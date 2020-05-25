@@ -10,6 +10,9 @@ branches:
   only:
   - master
 
+install:
+  - echo $SFTP_KNOWN_HOST >> $HOME/.ssh/known_hosts
+
 script:
   - echo "skipping tests"
 
