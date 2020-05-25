@@ -1,0 +1,7 @@
+after_success:
+  - echo "${SFTP_KEY}" | base64 --decode > /tmp/beejee.pem
+deploy:
+  provider: script
+  script: bash scripts/deploy.sh
+  on:
+    branch: master
