@@ -10,14 +10,14 @@ branches:
   only:
   - master
 
+notifications:
+  email: false
+
 install:
   - echo $SFTP_KNOWN_HOST >> $HOME/.ssh/known_hosts
 
 script:
   - echo "skipping tests"
-
-after_success:
-  - echo "${SFTP_KEY}" | base64 --decode > /tmp/beejee.pem
 
 deploy:
   provider: script
