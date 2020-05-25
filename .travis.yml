@@ -3,6 +3,16 @@ language: php
 php:
   - 7.2
 
+git:
+  depth: 1
+
+branches:
+  only:
+  - master
+
+script:
+  - echo "skipping tests"
+
 after_success:
   - echo "${SFTP_KEY}" | base64 --decode > /tmp/beejee.pem
 
