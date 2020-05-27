@@ -12,6 +12,7 @@ notifications:
 
 install:
   - echo $SFTP_KNOWN_HOST >> $HOME/.ssh/known_hosts
+  - npm i
 
 script:
   - npm run lint
