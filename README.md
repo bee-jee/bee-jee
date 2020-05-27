@@ -6,6 +6,13 @@ This project is an attempt for us to learn React by building something alongside
 ## What does BeeJee mean?
 The word note in Chinese is 笔记 which is transcribed to BiJi in Pinyin, hence BeeJee is chosen which sounds similar to the Chinese word for note.
 ## Architecture
-The project is split into 2 parts API and Web:
-- API: will be written in PHP, specifically utilise the Laravel Framework but instead of running via the LAMP/LEMP stack, this will be executed by [Swoole](https://www.swoole.co.uk/).
-- Web: TBD
+The project is split into 2 parts API and Front-end:
+- API: is written in TypeScript, which is compiled and ran on NodeJS.
+- Front-end: is a React app.
+## Development
+To start development, using the following command to run the app:
+
+```
+npm i && npm start
+```
+This will install all the dependencies and execute the `start` script which is defined in package.json
