@@ -1,7 +1,7 @@
-language: php
+language: node_js
 
-php:
-  - 7.2
+node_js:
+  - "12"
 
 branches:
   only:
@@ -14,6 +14,8 @@ install:
   - echo $SFTP_KNOWN_HOST >> $HOME/.ssh/known_hosts
 
 script:
+  - npm run lint
+  - npm run build
   - echo "skipping tests"
 
 deploy:
