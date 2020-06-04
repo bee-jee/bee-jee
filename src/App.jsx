@@ -4961,6 +4961,8 @@ function App() {
       const name = names[index];
       const resp = await axios.get(url(`/dummy?name=${name}`));
       setMessage(resp.data.message);
+
+      console.log('Here');
     }
     fetchData();
   }, []);
