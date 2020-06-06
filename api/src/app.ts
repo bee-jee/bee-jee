@@ -1,24 +1,53 @@
 import * as express from 'express';
-import { Application } from 'express';
+import * as mongoose from 'mongoose';
 import * as bodyParser from 'body-parser';
 import * as cors from 'cors';
-import { dummyRouter } from './dummy/dummy.router';
+import Controller from './interfaces/controller.interface';
 
 class App {
-  public app: Application;
+  public app: express.Application;
 
-  constructor() {
+  constructor(controllers: Controller[]) {
     this.app = express();
-    this.boot();
+    this.boot(controllers);
   }
 
-  private boot() {
+  public listen() {
+    this.app.listen(process.env.API_PORT, () => {
+      console.log(`API is listening on ${process.env.API_PORT}`);
+    });
+  }
+
+  private boot(controllers: Controller[]) {
+    this.initialiseMiddlewares();
+    this.initialiseControllers(controllers);
+
+    const {
+      MONGO_USER,
+      MONGO_PASSWORD,
+      MONGO_PATH,
+    } = process.env;
+    let uri = `mongodb://${MONGO_USER}:${MONGO_PASSWORD}@${MONGO_PATH}`;
+    if (typeof MONGO_USER === 'undefined' || MONGO_USER === '') {
+      uri = `mongodb://${MONGO_PATH}`;
+    }
+    mongoose.connect(uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+  }
+
+  private initialiseMiddlewares() {
     this.app.use(bodyParser.json({ limit: '50mb' }));
     this.app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
     this.app.use(cors());
+  }
 
-    this.app.use('/dummy', dummyRouter);
+  private initialiseControllers(controllers: Controller[]) {
+    controllers.forEach((controller) => {
+      this.app.use('/', controller.router);
+    });
   }
 }
 
-export default new App().app;
+export default App;
