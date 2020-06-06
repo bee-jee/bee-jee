@@ -1,6 +1,10 @@
-import app from './app';
-import { PORT } from './constants/server';
+import 'dotenv/config';
+import { validateEnv } from './utils/env';
+import App from './app';
+import NoteController from './note/note.controller';
 
-app.listen(PORT, () => {
-  console.log(`API is listening on ${PORT}`);
-});
+validateEnv();
+const app = new App([
+  new NoteController(),
+]);
+app.listen();

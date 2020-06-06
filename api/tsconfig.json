@@ -17,6 +17,7 @@
     "strictNullChecks": true,
     "resolveJsonModule": true,
     "allowJs": true,
+    "experimentalDecorators": true,
     "outDir": "../build/api"
   },
   "include": [
