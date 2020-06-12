@@ -19,10 +19,6 @@ module.exports = {
       },
       plugins: ['@typescript-eslint'],
       extends: ['airbnb-typescript'],
-      rules: {
-        '@typescript-eslint/camelcase': 'off',
-        'import/prefer-default-export': 'off',
-      },
     },
   ],
 };
