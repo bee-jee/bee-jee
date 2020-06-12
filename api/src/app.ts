@@ -3,6 +3,7 @@ import * as mongoose from 'mongoose';
 import * as bodyParser from 'body-parser';
 import * as cors from 'cors';
 import Controller from './interfaces/controller.interface';
+import errorMiddleware from './middleware/error.middleware';
 
 class App {
   public app: express.Application;
@@ -19,9 +20,6 @@ class App {
   }
 
   private boot(controllers: Controller[]) {
-    this.initialiseMiddlewares();
-    this.initialiseControllers(controllers);
-
     const {
       MONGO_USER,
       MONGO_PASSWORD,
@@ -35,6 +33,9 @@ class App {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
+    this.initialiseMiddlewares();
+    this.initialiseControllers(controllers);
+    this.initialiseErrorHandler();
   }
 
   private initialiseMiddlewares() {
@@ -47,6 +48,10 @@ class App {
     controllers.forEach((controller) => {
       this.app.use('/', controller.router);
     });
+  }
+
+  private initialiseErrorHandler() {
+    this.app.use(errorMiddleware);
   }
 }
 

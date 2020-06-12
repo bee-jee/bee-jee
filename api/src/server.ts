@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { validateEnv } from './utils/env';
+import validateEnv from './utils/env';
 import App from './app';
 import NoteController from './note/note.controller';
 
