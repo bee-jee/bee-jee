@@ -84,6 +84,7 @@ class NoteController implements Controller {
     }
     if (await this.NoteModel.findByIdAndDelete(id)) {
       response.send({
+        _id: id,
         status: 200,
       });
     } else {

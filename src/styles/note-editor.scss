@@ -1,0 +1,15 @@
+.note-editor-container,
+.note-editor {
+    height: 100%;
+}
+
+.note-content-editor {
+    height: calc(100% - 54px);
+    overflow: auto;
+}
+
+.note-editor-spinner {
+    position: absolute;
+    right: $spacer;
+    top: $spacer;
+}

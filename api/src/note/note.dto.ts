@@ -7,6 +7,10 @@ class CreateNoteDto {
 
   @IsString()
   public content: string;
+
+  @IsString({ each: true })
+  @IsOptional()
+  public drawings: string[];
 }
 
 export default CreateNoteDto;

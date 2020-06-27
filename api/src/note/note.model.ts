@@ -4,6 +4,7 @@ import { Note } from './note.interface';
 const noteSchema = new Schema({
   title: String,
   content: String,
+  drawings: [String],
   created: Date,
   updated: {
     type: Date,
