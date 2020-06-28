@@ -3,12 +3,14 @@ import { connect } from 'react-redux';
 import { fetchNotes, createNote, deleteNote, setToDeleteNote } from '../actions/notes';
 import { getNotes, getIsLoading, getToDeleteNote } from '../selectors/notes';
 import NoteExplorerItem from './NoteExplorerItem';
+import UtilityBar from './UtilityBar';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
+import { getConfig, toContentType } from '../selectors/config';
 
 class NoteExplorer extends React.Component {
   handleCreateNote = () => {
-    this.props.createNote({ title: '', content: '' });
+    this.props.createNote({ title: '', content: '', contentType: this.props.defaultContentType });
   }
 
   handleCloseDelete = () => {
@@ -47,7 +49,7 @@ class NoteExplorer extends React.Component {
           this.props.isLoading ? (
             "Loading . . ."
           ) : (
-              <div className="list-group">
+              <div className="list-group note-eplorer-content">
                 {this.props.notes.length !== 0 ? this.props.notes.map((note) => (
                   <NoteExplorerItem
                     key={`note-${note._id}`}
@@ -57,6 +59,8 @@ class NoteExplorer extends React.Component {
               </div>
             )
         }
+
+        <UtilityBar />
 
         <Modal
           show={toDeleteNote._id !== ''}
@@ -83,6 +87,7 @@ const mapStateToProps = (state) => ({
   notes: getNotes(state),
   isLoading: getIsLoading(state),
   toDeleteNote: getToDeleteNote(state),
+  defaultContentType: toContentType(getConfig(state, 'defaultEditorEditType')),
 });
 
 export default connect(

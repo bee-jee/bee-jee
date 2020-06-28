@@ -1,15 +1,33 @@
 .note-editor-container,
 .note-editor {
     height: 100%;
+
+    input[type="text"].title {
+        border: 0;
+        border-bottom: 1px solid #555;
+        width: 100%;
+        padding: 0.5rem 0 0.25rem 0;
+
+        &:focus{ 	
+            outline: none;
+            border-bottom: 1px solid $red;	
+        }
+    }
 }
 
-.note-content-editor {
+.note-content-editor-container {
     height: calc(100% - 54px);
     overflow: auto;
 }
 
-.note-editor-spinner {
-    position: absolute;
-    right: $spacer;
-    top: $spacer;
+.note-content-editor {
+    height: 100%;
+    width: 100%;
+    border: none;
+    outline: none;
+    padding: 0;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    resize: none;
 }

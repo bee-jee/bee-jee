@@ -2,6 +2,7 @@ import {
   SET_NOTES, API_START, FETCH_NOTES, API_END, APPEND_NOTE,
   SET_SELECTED_NOTE, SET_TO_DELETE_NOTE, DELETE_NOTE,
   UPDATE_NOTE_TITLE,
+  UPDATE_NOTE_CONTENT,
 } from '../actions/types';
 
 const initialState = {
@@ -10,6 +11,7 @@ const initialState = {
   selectedNoteId: '',
   toDeleteNoteId: '',
   pendingSyncTitleById: {},
+  pendingSyncContentById: {},
   isLoading: false,
   isSyncing: false,
 };
@@ -89,6 +91,28 @@ export default function (state = initialState, action) {
         pendingSyncTitleById,
       };
     }
+    case UPDATE_NOTE_CONTENT: {
+      const { _id, content, contentType } = action.payload;
+      const { byIds, pendingSyncContentById } = state;
+      let note = byIds[_id];
+      note.content = content;
+      note.contentType = contentType;
+      let sync = {
+        _id,
+      };
+      if (_id in pendingSyncContentById) {
+        sync = pendingSyncContentById[_id];
+      } else {
+        pendingSyncContentById[_id] = sync;
+      }
+      sync.content = content;
+      sync.contentType = contentType;
+      sync.status = 'pending';
+      return {
+        ...state,
+        pendingSyncContentById,
+      };
+    }
     case API_START: {
       const { type } = action.payload;
       switch (type) {
@@ -99,6 +123,12 @@ export default function (state = initialState, action) {
           };
         }
         case UPDATE_NOTE_TITLE: {
+          return {
+            ...state,
+            isSyncing: true,
+          };
+        }
+        case UPDATE_NOTE_CONTENT: {
           return {
             ...state,
             isSyncing: true,
@@ -118,6 +148,12 @@ export default function (state = initialState, action) {
           };
         }
         case UPDATE_NOTE_TITLE: {
+          return {
+            ...state,
+            isSyncing: false,
+          };
+        }
+        case UPDATE_NOTE_CONTENT: {
           return {
             ...state,
             isSyncing: false,

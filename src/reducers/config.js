@@ -2,6 +2,14 @@ import { SET_CONFIG } from '../actions/types';
 
 const initialState = {
   explorerSize: 300,
+  defaultEditorEditType: 'wysiwyg',
+  definitions: [
+    {
+      type: 'menu',
+      name: 'defaultEditorEditType',
+      values: ['wysiwyg', 'markdown'],
+    },
+  ],
 };
 
 export default function(state = initialState, action) {

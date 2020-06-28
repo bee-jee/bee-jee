@@ -5,4 +5,26 @@
 @import "~@fortawesome/fontawesome-free/scss/regular.scss";
 
 @import "./resizer.scss";
+@import "./notes-explorer.scss";
 @import "./note-editor.scss";
+
+.btn-icon {
+    border: 0;
+    background: transparent !important;
+    color: $black !important;
+    padding: 0;
+
+    &:focus,
+    &:active:focus {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+    &:hover {
+        &.btn-primary {
+            color: $blue !important;
+        }
+        &.btn-danger {
+            color: $red !important;
+        }
+    }
+}

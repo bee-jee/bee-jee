@@ -1,5 +1,8 @@
 import { apiAction } from './api';
-import { FETCH_NOTES, SET_NOTES, CREATE_NOTE, APPEND_NOTE, UPDATE_NOTE_TITLE, SET_SELECTED_NOTE, SET_TO_DELETE_NOTE, DELETE_NOTE, NOTE_SYNC_COMPLETE } from './types';
+import {
+  FETCH_NOTES, SET_NOTES, CREATE_NOTE, APPEND_NOTE, UPDATE_NOTE_TITLE,
+  SET_SELECTED_NOTE, SET_TO_DELETE_NOTE, DELETE_NOTE, UPDATE_NOTE_CONTENT,
+} from './types';
 import { getNotesState } from '../selectors/notes';
 
 export const fetchNotes = () => apiAction({
@@ -14,12 +17,13 @@ export const fetchNotes = () => apiAction({
   type: FETCH_NOTES,
 });
 
-export const createNote = ({ title, content }) => apiAction({
+export const createNote = ({ title, content, contentType }) => apiAction({
   url: '/note/create',
   method: 'POST',
   data: {
     title,
     content,
+    contentType,
   },
   onSuccess: (data) => ({
     type: APPEND_NOTE,
@@ -64,11 +68,12 @@ const syncNoteTitle = debounce((dispatch, getState) => {
       data: {
         title: sync.title,
       },
-      onSuccess: () => ({
-        type: NOTE_SYNC_COMPLETE,
-        payload: 'title',
-      }),
-      onFailure: (error) => { console.log(`Error: ${error}`) },
+      onSuccess: () => {
+        if (notes.pendingSyncTitleById[_id].status === 'in_progress') {
+          delete notes.pendingSyncTitleById[_id];
+        }
+      },
+      onFailure: (error) => { console.error(error) },
     }));
   }
 }, 1000, false);
@@ -81,6 +86,30 @@ export const changeNoteTitle = ({ _id, title }) => (dispatch, getState) => {
       _id, title,
     },
   });
+};
+
+const syncNoteContent = debounce((dispatch, { _id, content, contentType }) => {
+  content = content();
+  dispatch(apiAction({
+    url: `/note/${_id}`,
+    method: 'PATCH',
+    label: UPDATE_NOTE_CONTENT,
+    data: {
+      content,
+      contentType,
+    },
+    onSuccess: () => ({
+      type: UPDATE_NOTE_CONTENT,
+      payload: {
+        _id, content, contentType,
+      },
+    }),
+    onFailure: (error) => { console.error(error) },
+  }));
+}, 1000, false);
+
+export const changeNoteContent = ({ _id, content, contentType }) => (dispatch) => {
+  syncNoteContent(dispatch, { _id, content, contentType });
 };
 
 function debounce(func, wait, immediate) {
