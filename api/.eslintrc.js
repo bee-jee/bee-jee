@@ -1,24 +1,13 @@
+const path = require('path');
+
 module.exports = {
   extends: [
-    'react-app',
-  ],
-  plugins: [
-    'react',
+    'airbnb-typescript/base',
   ],
   env: {
-    browser: true,
+    es6: true,
   },
-  rules: {
-    'import/prefer-default-export': 'off',
+  parserOptions: {
+    project: path.join(__dirname, 'tsconfig.json'),
   },
-  overrides: [
-    {
-      files: ['*.ts', '*.tsx'],
-      parserOptions: {
-        project: './api/tsconfig.json',
-      },
-      plugins: ['@typescript-eslint'],
-      extends: ['airbnb-typescript'],
-    },
-  ],
 };
