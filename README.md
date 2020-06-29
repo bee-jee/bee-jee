@@ -8,7 +8,7 @@ The word note in Chinese is 笔记 which is transcribed to BiJi in Pinyin, hence
 ## Architecture
 The project is split into 2 parts API and Front-end:
 - API: is written in TypeScript, which is compiled and ran on NodeJS.
-- Front-end: is a React app.
+- Front-end: is a Vue.Js app
 ## Development
 To start development, using the following command to run the app:
 
