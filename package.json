@@ -34,26 +34,11 @@
     "build": "npm run vue:build && npm run api:build",
     "api:start": "nodemon",
     "api:build": "tsc -p api/tsconfig.json",
-    "api:lint": "eslint --config api/.eslintrc.js --ext .ts,.tsx api/",
+    "api:lint": "eslint --ext .ts,.tsx api/",
     "vue:serve": "cross-env VUE_APP_API_URL=http://localhost:9000 vue-cli-service serve --mode=development",
     "vue:build": "vue-cli-service build --mode=production",
     "vue:lint": "vue-cli-service lint",
     "lint": "npm run api:lint && npm run vue:lint"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "parser": "vue-eslint-parser",
-    "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended"
-    ],
-    "parserOptions": {
-      "parser": "babel-eslint"
-    },
-    "rules": {}
   },
   "browserslist": {
     "production": [
