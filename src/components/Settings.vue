@@ -31,7 +31,10 @@ export default {
   },
   methods: {
     handleConfigChange(e, definition) {
-      this.$store.dispatch('setConfig', definition.name, e.target.value);
+      this.$store.dispatch('setConfig', {
+        key: definition.name,
+        value: e.target.value,
+      });
     },
   },
 }
