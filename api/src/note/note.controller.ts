@@ -1,8 +1,10 @@
 import {
   Router, Request, Response, NextFunction,
 } from 'express';
+import * as Automerge from 'automerge';
+import * as pako from 'pako';
 import { isValidObjectId } from 'mongoose';
-import Controller from '../interfaces/controller.interface';
+import { Controller, WsController, WsContext } from '../interfaces/controller.interface';
 import NoteModel from './note.model';
 import validationMiddleware from '../middleware/validation.middleware';
 import CreateNoteDto from './note.dto';
@@ -10,8 +12,9 @@ import cleanHtml from '../utils/html';
 import NoteNotFoundException from '../exceptions/NoteNotFound';
 import InvalidObjectIdException from '../exceptions/InvalidObjectIdException';
 import { Note } from './note.interface';
+import broadcast from '../utils/ws';
 
-class NoteController implements Controller {
+class NoteController implements Controller, WsController {
   public path = '/note';
 
   public router = Router();
@@ -20,6 +23,37 @@ class NoteController implements Controller {
 
   constructor() {
     this.initialiseRoutes();
+  }
+
+  public async handleWsMessage({ wss, data, ws }: WsContext): Promise<boolean> {
+    if (data.action === 'contentUpdated') {
+      const { id, content } = data.payload;
+      if (!isValidObjectId(id)) {
+        throw new InvalidObjectIdException(id);
+      }
+      const note = await this.NoteModel.findById(id);
+      if (note !== null) {
+        let currContent = Automerge.load(note.content);
+        const decompressed = pako.inflate(content, { to: 'string' });
+        if (decompressed !== null) {
+          const newContent = Automerge.load(decompressed);
+          currContent = Automerge.merge(currContent, newContent);
+          note.content = Automerge.save(currContent);
+          await note.save();
+          broadcast(wss, JSON.stringify({
+            action: 'contentUpdated',
+            payload: {
+              id,
+              content: pako.deflate(note.content, { to: 'string' }),
+            },
+          }), {
+            except: ws,
+          });
+        }
+      }
+      return true;
+    }
+    return false;
   }
 
   private initialiseRoutes() {

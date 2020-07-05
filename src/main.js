@@ -5,6 +5,7 @@ import routes from './router/routes';
 import VueRouter from 'vue-router';
 import { BootstrapVue } from 'bootstrap-vue';
 import App from './App.vue';
+import VueNativeSock from 'vue-native-websocket';
 
 Vue.config.productionTip = false;
 
@@ -12,6 +13,7 @@ Vue.config.productionTip = false;
 // to be available to all components
 Vue.use(BootstrapVue);
 Vue.use(VueRouter);
+Vue.use(VueNativeSock, process.env.VUE_APP_WS_URL, { store, format: 'JSON' });
 
 const router = new VueRouter({
   routes,

@@ -12,7 +12,7 @@
       </div>
       <div class="col-12 form-group note-content-editor-container">
         <editor
-          :initialValue="note.content"
+          :initialValue="getNoteContent(note)"
           :options="editorOptions"
           height="100%"
           :initialEditType="getEditType(note)"
@@ -30,11 +30,15 @@ import { Editor } from '@toast-ui/vue-editor';
 import { toEditType, toContentType } from '../helpers/api';
 import 'codemirror/lib/codemirror.css';
 import '@toast-ui/editor/dist/toastui-editor.css';
+import noteMixins, { getNoteContent } from '../helpers/noteMixins';
 
 export default {
   components: {
     Editor,
   },
+  mixins: [
+    noteMixins,
+  ],
   data() {
     return {
       editorOptions: {
@@ -83,6 +87,18 @@ export default {
         contentType,
       });
     },
+    setEditorContent(text) {
+      const tuiEditor = this.$refs.editor;
+      const contentType = toContentType(tuiEditor.editor.currentMode);
+      switch (contentType) {
+        case 'html':
+          tuiEditor.invoke('setHtml', text);
+          break;
+        case 'markdown':
+          tuiEditor.invoke('setMarkdown', text);
+          break;
+      }
+    },
   },
   created() {
     if (this.$route.params.id) {
@@ -90,6 +106,13 @@ export default {
         _id: this.$route.params.id,
       });
     }
+    this.$store.subscribe((mutate) => {
+      if (mutate.type === 'NOTE_EDITOR') {
+        if (this.note._id) {
+          this.setEditorContent(getNoteContent(mutate.payload));
+        }
+      }
+    });
   },
 }
 </script>

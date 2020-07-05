@@ -41,6 +41,7 @@ import NoteExplorerItem from './NoteExplorerItem';
 import UtilityBar from './UtilityBar';
 import { mapGetters } from 'vuex';
 import { toContentType } from '../helpers/api';
+import Automerge from 'automerge';
 
 export default {
   components: {
@@ -63,7 +64,9 @@ export default {
     handleCreateNote() {
       this.$store.dispatch('createNote', {
         title: '',
-        content: '',
+        content: Automerge.from({
+          text: new Automerge.Text(''),
+        }),
         contentType: this.defaultContentType,
       });
     },

@@ -1,4 +1,12 @@
+import Automerge from 'automerge';
+import Vue from 'vue';
 import { api } from '../../helpers/api';
+import { Diff } from '../../../common/diff';
+import { applyNoteContentChanges, changesFromDiffs } from '../../../common/applyChanges';
+import { getNoteContent } from '../../helpers/noteMixins';
+import * as pako from 'pako';
+
+const diff = new Diff();
 
 export const state = {
   // allIds contains only the notes' IDs, the reason
@@ -48,7 +56,7 @@ export const actions = {
     try {
       const resp = await api.post('/note/create', {
         title,
-        content,
+        content: Automerge.save(content),
         contentType,
       });
       commit('appendNote', resp.data);
@@ -98,6 +106,7 @@ export const mutations = {
     const allIds = [];
     const byIds = {};
     notes.forEach((note) => {
+      note.content = Automerge.load(note.content);
       allIds.push(note._id);
       byIds[note._id] = note;
     });
@@ -106,6 +115,7 @@ export const mutations = {
   },
   // appendNote will add the new note to the current state
   appendNote(state, newNote) {
+    newNote.content = Automerge.load(newNote.content);
     state.allIds.push(newNote._id);
     state.byIds[newNote._id] = newNote;
   },
@@ -194,24 +204,29 @@ const syncNoteTitle = debounce(({ getters, commit }, { _id }) => {
     });
 }, 1000, false);
 
-const syncNoteContent = debounce(({ commit }, { _id, content, contentType }) => {
+const syncNoteContent = debounce(({ getters, commit }, { _id, content, contentType }) => {
   // The content here is a function which returns the string content
   // We want to do this because the get function in toastui is expensive
   // so calling that function on every key press is a waste when
   // what we really want is the latest content
+  const note = getters.noteById(_id);
   content = content();
-  commit('setNoteContent', { _id, content, contentType });
-  api.patch(`/note/${_id}`, {
-    content,
-    contentType,
-  })
-    .then(() => {
-      // TODO: Handle cases when the request has failed
-    })
-    .catch((err) => {
-      console.error(err);
-    });
-}, 1000, false);
+  const diffs = diff.main(getNoteContent(note), content, false);
+  const changes = changesFromDiffs(diffs);
+  if (changes.length > 0) {
+    content = applyNoteContentChanges(note.content, changes);
+    commit('setNoteContent', { _id, content, contentType });
+    content = Automerge.save(content);
+    content = pako.deflate(content, { to: 'string' });
+    Vue.prototype.$socket.send(JSON.stringify({
+      action: 'contentUpdated',
+      payload: {
+        id: _id,
+        content,
+      },
+    }));
+  }
+}, 500, false);
 
 function debounce(func, wait, immediate) {
 	let timeout;
