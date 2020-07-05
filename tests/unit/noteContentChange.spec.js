@@ -1,5 +1,5 @@
 import Automerge from 'automerge';
-import { applyNoteContentChanges, changesFromDiffs } from '../../common/applyChanges';
+import { applyNoteContentChanges, patchesFromDiffs } from '../../common/patch';
 import { DIFF_INSERT, DIFF_EQUAL, DIFF_DELETE } from '../../common/diff';
 import { assert } from 'chai';
 
@@ -13,7 +13,7 @@ describe('mixins/noteMixins.js', () => {
       { op: DIFF_EQUAL, text: 'AB' },
       { op: DIFF_DELETE, text: 'C' },
     ];
-    let changes = changesFromDiffs(diffs);
+    let changes = patchesFromDiffs(diffs);
     content = applyNoteContentChanges(content, changes);
     assert.equal(content.text.toString(), 'AAB');
     assert.deepEqual(changes, [
@@ -28,7 +28,7 @@ describe('mixins/noteMixins.js', () => {
       { op: DIFF_DELETE, text: 'ABC' },
       { op: DIFF_INSERT, text: 'This is a content' },
     ];
-    changes = changesFromDiffs(diffs);
+    changes = patchesFromDiffs(diffs);
     content = applyNoteContentChanges(content, changes);
     assert.equal(content.text.toString(), 'This is a content');
     assert.deepEqual(changes, [
@@ -48,7 +48,7 @@ describe('mixins/noteMixins.js', () => {
       { op: DIFF_EQUAL, text: 'C' },
       { op: DIFF_INSERT, text: ' Yes' },
     ];
-    changes = changesFromDiffs(diffs);
+    changes = patchesFromDiffs(diffs);
     content = applyNoteContentChanges(content, changes);
     assert.equal(content.text.toString(), 'ADDDBCDC Yes');
     assert.deepEqual(changes, [

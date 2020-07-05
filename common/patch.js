@@ -1,7 +1,7 @@
 import * as Automerge from 'automerge';
 import { DIFF_INSERT, DIFF_DELETE, DIFF_EQUAL } from './diff';
 
-class Change {
+class Patch {
   constructor(op, cps, offset) {
     this.op = op;
     this.cps = cps;
@@ -10,9 +10,9 @@ class Change {
 }
 
 /**
- * @return {!Array.<!Change>} Array of changes.
+ * @return {!Array.<!Patch>} Array of changes.
  */
-export function changesFromDiffs(diffs) {
+export function patchesFromDiffs(diffs) {
   const changes = [];
   let offset = 0;
   diffs.forEach((diff) => {
@@ -25,11 +25,11 @@ export function changesFromDiffs(diffs) {
     const cps = Array.from(diff.text);
     switch (diff.op) {
       case DIFF_INSERT:
-        changes.push(new Change(diff.op, cps, offset));
+        changes.push(new Patch(diff.op, cps, offset));
         offset += cps.length;
         break;
       case DIFF_DELETE:
-        changes.push(new Change(diff.op, cps, offset));
+        changes.push(new Patch(diff.op, cps, offset));
         break;
       case DIFF_EQUAL:
         offset += cps.length;
@@ -39,9 +39,9 @@ export function changesFromDiffs(diffs) {
   return changes;
 }
 
-export function applyNoteContentChanges(content, changes) {
+export function applyNoteContentChanges(content, patches) {
   return Automerge.change(content, (doc) => {
-    changes.forEach(({ cps, offset, op }) => {
+    patches.forEach(({ cps, offset, op }) => {
       switch (op) {
         case DIFF_INSERT:
           doc.text.insertAt(offset, ...cps);

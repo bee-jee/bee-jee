@@ -1,5 +1,4 @@
 import Vue from 'vue';
-import pako from 'pako';
 import Automerge from 'automerge';
 
 export const state = {
@@ -15,16 +14,19 @@ export const getters = {
 
 export const actions = {
   contentUpdated({ getters, commit }, data) {
-    const { id, content } = data.payload;
+    const { id, mergeChanges } = data.payload;
     const note = getters.noteById(id);
     if (note !== null) {
-      const currContent = note.content;
-      const decompressed = pako.inflate(content, { to: 'string' });
-      if (decompressed !== null) {
-        const newContent = Automerge.load(decompressed);
-        note.content = Automerge.merge(currContent, newContent);
+      const changes = JSON.parse(mergeChanges);
+      if (changes !== null) {
+        const currContent = note.content;
+        note.content = Automerge.applyChanges(currContent, changes);
+        commit('NOTE_EDITOR', {
+          note,
+          currContent,
+          changes: changes,
+        });
       }
-      commit('NOTE_EDITOR', note);
     }
   },
 };

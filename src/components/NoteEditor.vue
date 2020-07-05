@@ -109,7 +109,8 @@ export default {
     this.$store.subscribe((mutate) => {
       if (mutate.type === 'NOTE_EDITOR') {
         if (this.note._id) {
-          this.setEditorContent(getNoteContent(mutate.payload));
+          const { note } = mutate.payload;
+          this.setEditorContent(getNoteContent(note));
         }
       }
     });

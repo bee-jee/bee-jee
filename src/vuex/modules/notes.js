@@ -2,9 +2,9 @@ import Automerge from 'automerge';
 import Vue from 'vue';
 import { api } from '../../helpers/api';
 import { Diff } from '../../../common/diff';
-import { applyNoteContentChanges, changesFromDiffs } from '../../../common/applyChanges';
+import { applyNoteContentChanges } from '../../../common/patch';
 import { getNoteContent } from '../../helpers/noteMixins';
-import * as pako from 'pako';
+import { patchesFromDiffs } from '../../../common/patch';
 
 const diff = new Diff();
 
@@ -204,29 +204,30 @@ const syncNoteTitle = debounce(({ getters, commit }, { _id }) => {
     });
 }, 1000, false);
 
-const syncNoteContent = debounce(({ getters, commit }, { _id, content, contentType }) => {
+const syncNoteContent = ({ getters, commit }, { _id, content, contentType }) => {
   // The content here is a function which returns the string content
   // We want to do this because the get function in toastui is expensive
   // so calling that function on every key press is a waste when
   // what we really want is the latest content
   const note = getters.noteById(_id);
   content = content();
-  const diffs = diff.main(getNoteContent(note), content, false);
-  const changes = changesFromDiffs(diffs);
-  if (changes.length > 0) {
-    content = applyNoteContentChanges(note.content, changes);
+  const currentNoteContent = getNoteContent(note);
+  const diffs = diff.main(currentNoteContent, content, false);
+  const patches = patchesFromDiffs(diffs);
+  if (patches.length > 0) {
+    content = applyNoteContentChanges(note.content, patches);
+    let mergeChanges = Automerge.getChanges(note.content, content);
     commit('setNoteContent', { _id, content, contentType });
-    content = Automerge.save(content);
-    content = pako.deflate(content, { to: 'string' });
+    mergeChanges = JSON.stringify(mergeChanges);
     Vue.prototype.$socket.send(JSON.stringify({
       action: 'contentUpdated',
       payload: {
         id: _id,
-        content,
+        mergeChanges,
       },
     }));
   }
-}, 500, false);
+};
 
 function debounce(func, wait, immediate) {
 	let timeout;
