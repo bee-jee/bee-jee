@@ -1,4 +1,6 @@
+import Vue from 'vue';
 import { api } from '../../helpers/api';
+import { encodeDoc, decodeDoc, arrayToString } from '../../../common/collab';
 
 export const state = {
   // allIds contains only the notes' IDs, the reason
@@ -48,7 +50,7 @@ export const actions = {
     try {
       const resp = await api.post('/note/create', {
         title,
-        content,
+        content: encodeDoc(content),
         contentType,
       });
       commit('appendNote', resp.data);
@@ -80,8 +82,10 @@ export const actions = {
     commit('setNoteTitle', { _id, title });
     syncNoteTitle({ getters, commit }, { _id });
   },
-  changeNoteContent({ getters, commit }, { _id, content, contentType }) {
-    syncNoteContent({ getters, commit }, { _id, content, contentType });
+  changeNoteContent({ getters, commit }, { _id, ops }) {
+    const note = getters.noteById(_id);
+    note.content.getText('text').applyDelta(ops);
+    commit('setNoteContent', note);
   },
 };
 
@@ -98,22 +102,49 @@ export const mutations = {
     const allIds = [];
     const byIds = {};
     notes.forEach((note) => {
+      note.content = decodeDoc(note.content);
       allIds.push(note._id);
-      byIds[note._id] = note;
+      // The reason we want to Object.freeze the notes is because
+      // the note.content is a doc yjs object, and this object can
+      // have very high depth, which will cause maximum call stack
+      // if Vue makes it reactive. The downside of this is that we
+      // have to handle reactivity by ourselves.
+      byIds[note._id] = Object.freeze(note);
     });
+    // Before changing the state, we need to unsubscribe to content update
+    // on the selected note if available
+    if (state.selectedNoteId && state.byIds[state.selectedNoteId]) {
+      unsubscribeContentUpdate(state.byIds[state.selectedNoteId]);
+    }
     state.allIds = allIds;
     state.byIds = byIds;
+    if (state.selectedNoteId && state.byIds[state.selectedNoteId]) {
+      subscribeContentUpdate(state.byIds[state.selectedNoteId]);
+    }
   },
   // appendNote will add the new note to the current state
   appendNote(state, newNote) {
+    newNote.content = decodeDoc(newNote.content);
     state.allIds.push(newNote._id);
-    state.byIds[newNote._id] = newNote;
+    // The reason we want to Object.freeze the notes is because
+    // the note.content is a doc yjs object, and this object can
+    // have very high depth, which will cause maximum call stack
+    // if Vue makes it reactive. The downside of this is that we
+    // have to handle reactivity by ourselves.
+    state.byIds[newNote._id] = Object.freeze(newNote);
   },
   // setSelectedNote replaces the current selectedNoteId with the new one
   // the parameter can be an object, but we want to indicate that we only
   // want the _id field
   setSelectedNote(state, { _id }) {
+    // Make sure we don't subscribe to the previous selected note
+    if (state.selectedNoteId && state.byIds[state.selectedNoteId]) {
+      unsubscribeContentUpdate(state.byIds[state.selectedNoteId]);
+    }
     state.selectedNoteId = _id;
+    if (state.byIds[_id]) {
+      subscribeContentUpdate(state.byIds[_id]);
+    }
   },
   // The reason we want to store toDeleteNote in the state is that we can
   // have a single modal to confirm if the user wanted to delete the note.
@@ -129,6 +160,9 @@ export const mutations = {
     }
     state.allIds = state.allIds.filter(id => id !== _id);
     delete state.byIds[_id];
+    state.byIds = {
+      ...state.byIds,
+    };
   },
   // setNoteTitle does 2 things it changes the note's title in the state
   // and then push a pending sync to be synced later
@@ -137,7 +171,12 @@ export const mutations = {
     // Retrieve the current note from the state
     const note = byIds[_id];
     // Set its title to the new title
-    note.title = title;
+    // Since the note object is Object.freezed therefore we have to create
+    // a new object and freeze it.
+    byIds[_id] = Object.freeze({
+      ...note,
+      title,
+    });
     // Create a sync object to request to api
     let sync = {
       _id,
@@ -162,11 +201,17 @@ export const mutations = {
     sync.status = 'pending';
     state.pendingSyncTitleById = pendingSyncTitleById;
   },
-  setNoteContent(state, { _id, content, contentType }) {
+  setNoteContent(state, { _id }) {
     const { byIds } = state;
     const note = byIds[_id];
-    note.content = content;
-    note.contentType = contentType;
+    // The reason we want to Object.freeze the notes is because
+    // the note.content is a doc yjs object, and this object can
+    // have very high depth, which will cause maximum call stack
+    // if Vue makes it reactive. The downside of this is that we
+    // have to handle reactivity by ourselves.
+    Vue.set(state.byIds, _id, Object.freeze({
+      ...note,
+    }));
   },
   removePendingSyncTitle(state, { _id }) {
     delete state.pendingSyncTitleById[_id];
@@ -194,24 +239,24 @@ const syncNoteTitle = debounce(({ getters, commit }, { _id }) => {
     });
 }, 1000, false);
 
-const syncNoteContent = debounce(({ commit }, { _id, content, contentType }) => {
-  // The content here is a function which returns the string content
-  // We want to do this because the get function in toastui is expensive
-  // so calling that function on every key press is a waste when
-  // what we really want is the latest content
-  content = content();
-  commit('setNoteContent', { _id, content, contentType });
-  api.patch(`/note/${_id}`, {
-    content,
-    contentType,
-  })
-    .then(() => {
-      // TODO: Handle cases when the request has failed
-    })
-    .catch((err) => {
-      console.error(err);
-    });
-}, 1000, false);
+const subscribeContentUpdate = (note) => {
+  note.content.on('update', (update, origin) => {
+    if (origin !== null && origin === 'ws') {
+      return;
+    }
+    Vue.prototype.$socket.send(JSON.stringify({
+      action: 'contentUpdated',
+      payload: {
+        id: note._id,
+        mergeChanges: arrayToString(update),
+      },
+    }));
+  });
+};
+
+const unsubscribeContentUpdate = (note) => {
+  note.content.off('update');
+}
 
 function debounce(func, wait, immediate) {
 	let timeout;

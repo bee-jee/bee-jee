@@ -41,6 +41,7 @@ import NoteExplorerItem from './NoteExplorerItem';
 import UtilityBar from './UtilityBar';
 import { mapGetters } from 'vuex';
 import { toContentType } from '../helpers/api';
+import * as Y from 'yjs';
 
 export default {
   components: {
@@ -63,7 +64,7 @@ export default {
     handleCreateNote() {
       this.$store.dispatch('createNote', {
         title: '',
-        content: '',
+        content: new Y.Doc(),
         contentType: this.defaultContentType,
       });
     },

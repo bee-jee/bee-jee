@@ -1,33 +1,55 @@
 module.exports = {
   "root": true,
-  "overrides": [
+
+  overrides: [
     {
-      "files": ["*.ts", "*.tsx"],
-      "extends": [
-        "airbnb-typescript/base"
+      files: [
+        '*.ts',
+        '*.tsx'
       ],
-      "parser": "@typescript-eslint/parser",
-      "env": {
-        "es6": true
+      'extends': [
+        'airbnb-typescript/base'
+      ],
+      parser: '@typescript-eslint/parser',
+      env: {
+        es6: true
       },
-      "plugins": ["@typescript-eslint"],
-      "parserOptions": {
-        "project": "./api/tsconfig.json"
+      plugins: [
+        '@typescript-eslint'
+      ],
+      rules: {
+        "no-underscore-dangle": ["error", {
+          "allow": ["_id"]
+        }]    
+      },
+      parserOptions: {
+        project: './api/tsconfig.json'
       }
     },
     {
-      "files": ["*.vue", "*.js"],
-      "extends": [
-        "plugin:vue/essential",
-        "eslint:recommended"
+      files: [
+        '*.vue',
+        '*.js'
       ],
-      "env": {
-        "node": true
+      'extends': [
+        'plugin:vue/essential',
+        'eslint:recommended'
+      ],
+      env: {
+        node: true
       },
-      "rules": {},
-      "parser": "vue-eslint-parser",
-      "parserOptions": {
-        "parser": "babel-eslint"
+      parser: 'vue-eslint-parser',
+      parserOptions: {
+        parser: 'babel-eslint'
+      }
+    },
+    {
+      files: [
+        '**/__tests__/*.{j,t}s?(x)',
+        '**/tests/unit/**/*.spec.{j,t}s?(x)'
+      ],
+      env: {
+        mocha: true
       }
     }
   ]

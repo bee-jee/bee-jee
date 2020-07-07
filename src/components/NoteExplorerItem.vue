@@ -18,8 +18,9 @@
           </div>
         </div>
         <p
-          class="text-muted note-item-summary"
-          v-html="note.content ? note.content : 'No content'"
+          class="note-item-summary"
+          :class="{ 'text-muted': selectedNoteId !== note._id }"
+          v-html="getNoteContent(note) ? getNoteContent(note) : 'No content'"
         >
         </p>
       </router-link>
@@ -28,9 +29,13 @@
 
 <script>
 import { mapGetters } from 'vuex';
+import noteMixins from '../helpers/noteMixins';
 
 export default {
   props: ['note'],
+  mixins: [
+    noteMixins,
+  ],
   computed: {
     ...mapGetters([
       'selectedNoteId',
