@@ -1,7 +1,7 @@
 import {
   Router, Request, Response, NextFunction,
 } from 'express';
-import * as Automerge from 'automerge';
+import * as Y from 'yjs';
 import { isValidObjectId } from 'mongoose';
 import * as LRU from 'lru-cache';
 import { Controller, WsController, WsContext } from '../interfaces/controller.interface';
@@ -15,6 +15,7 @@ import {
   Note, PendingNote, pendingNote, saveContent,
 } from './note.interface';
 import broadcast from '../utils/ws';
+import { stringToArray } from '../../../common/collab';
 
 class NoteController implements Controller, WsController {
   public path = '/note';
@@ -49,9 +50,9 @@ class NoteController implements Controller, WsController {
       }
       const note = await this.findNoteByIdAndToPending(id);
       if (note !== null) {
-        const changes = JSON.parse(mergeChanges);
+        const changes = stringToArray(mergeChanges);
         if (changes !== null) {
-          note.content = Automerge.applyChanges(note.content, changes);
+          Y.applyUpdate(note.content, changes, 'websocket');
           note.isDirty = true;
           broadcast(wss, JSON.stringify({
             action: 'contentUpdated',

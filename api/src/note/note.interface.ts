@@ -1,5 +1,6 @@
 import { Document, Model } from 'mongoose';
-import * as Automerge from 'automerge';
+import * as Y from 'yjs';
+import { decodeDoc, encodeDoc } from '../../../common/collab';
 
 enum ContentType {
   HTML = 'html',
@@ -17,7 +18,7 @@ export interface Note {
 
 export interface PendingNote {
   note: Note & Document;
-  content: Automerge.FreezeObject<unknown>;
+  content: Y.Doc;
   isDirty: boolean;
 }
 
@@ -27,7 +28,7 @@ export function pendingNote(note: (Note & Document) | null): PendingNote | null 
   }
   return {
     note,
-    content: Automerge.load(note.content),
+    content: decodeDoc(note.content),
     isDirty: false,
   };
 }
@@ -43,7 +44,7 @@ export async function saveContent(model: Model<Note & Document, {}>,
   const { note } = pending;
   const newPending = pending;
   newPending.isDirty = false;
-  note.content = Automerge.save(pending.content);
+  note.content = encodeDoc(pending.content);
   await model.updateOne({ _id: pending.note._id },
     { content: note.content }, { upsert: true });
 }

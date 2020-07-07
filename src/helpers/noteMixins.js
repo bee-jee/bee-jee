@@ -10,5 +10,5 @@ export function getNoteContent(note) {
   if (!note || !note.content) {
     return '';
   }
-  return note.content.text ? note.content.text.toString() : '';
+  return note.content.getText('text').toString();
 }

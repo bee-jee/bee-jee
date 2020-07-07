@@ -1,5 +1,6 @@
 import Vue from 'vue';
-import Automerge from 'automerge';
+import * as Y from 'yjs';
+import { stringToArray } from '../../../common/collab';
 
 export const state = {
   socket: {
@@ -13,20 +14,13 @@ export const getters = {
 };
 
 export const actions = {
-  contentUpdated({ getters, commit }, data) {
+  contentUpdated({ commit, getters }, data) {
     const { id, mergeChanges } = data.payload;
     const note = getters.noteById(id);
-    if (note !== null) {
-      const changes = JSON.parse(mergeChanges);
-      if (changes !== null) {
-        const currContent = note.content;
-        note.content = Automerge.applyChanges(currContent, changes);
-        commit('NOTE_EDITOR', {
-          note,
-          currContent,
-          changes: changes,
-        });
-      }
+    if (note && note._id) {
+      const changes = stringToArray(mergeChanges);
+      Y.applyUpdate(note.content, changes, 'ws');
+      commit('setNoteContent', note);
     }
   },
 };
