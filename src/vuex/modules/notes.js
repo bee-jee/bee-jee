@@ -2,8 +2,6 @@ import Vue from 'vue';
 import { api } from '../../helpers/api';
 import { encodeDoc, decodeDoc, arrayToString } from '../../../common/collab';
 
-// const diff = new Diff();
-
 export const state = {
   // allIds contains only the notes' IDs, the reason
   // we want to do this is that we can have a quick way

@@ -5,7 +5,6 @@
 <script>
 import Quill from 'quill';
 import QuillCursors from 'quill-cursors';
-// import * as Y from 'yjs';
 import 'quill/dist/quill.core.css';
 import 'quill/dist/quill.snow.css';
 
@@ -41,13 +40,6 @@ export default {
   methods: {
     quillTextChange(delta, oldContents, source) {
       if (source === 'yjs') {
-        // const text = this.note.content.getText('text');
-        // const sel = this.quill.getSelection();
-        // if (sel !== null) {
-        //   const start = Y.createRelativePositionFromTypeIndex(text, sel.index);
-        //   const end = Y.createRelativePositionFromTypeIndex(text, sel.index + sel.length);
-        //   console.log({ start, end });
-        // }
         return;
       }
       // update content
