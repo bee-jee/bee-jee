@@ -104,6 +104,7 @@ class App {
         }
 
         ws.isAlive = false;
+        ws.ping(() => {});
       });
     }, 30000);
 
