@@ -8,10 +8,10 @@ enum ContentType {
 }
 
 export interface Note {
+  authorId: string;
   title: string;
   content: string;
   contentType: ContentType,
-  drawings: string[];
   created: Date;
   updated: Date;
 }
@@ -45,6 +45,8 @@ export async function saveContent(model: Model<Note & Document, {}>,
   const newPending = pending;
   newPending.isDirty = false;
   note.content = encodeDoc(pending.content);
-  await model.updateOne({ _id: pending.note._id },
-    { content: note.content }, { upsert: true });
+  await model.updateOne({ _id: pending.note._id }, {
+    content: note.content,
+    updated: new Date(),
+  }, { upsert: true });
 }

@@ -2,10 +2,13 @@ import { Schema, model, Document } from 'mongoose';
 import { Note } from './note.interface';
 
 const noteSchema = new Schema({
+  author: {
+    ref: 'User',
+    type: Schema.Types.ObjectId,
+  },
   title: String,
   content: String,
   contentType: String,
-  drawings: [String],
   created: Date,
   updated: {
     type: Date,

@@ -8,7 +8,6 @@ import { Controller, WsController, WsContext } from '../interfaces/controller.in
 import NoteModel from './note.model';
 import validationMiddleware from '../middleware/validation.middleware';
 import CreateNoteDto from './note.dto';
-import cleanHtml from '../utils/html';
 import NoteNotFoundException from '../exceptions/NoteNotFound';
 import InvalidObjectIdException from '../exceptions/InvalidObjectIdException';
 import {
@@ -80,7 +79,6 @@ class NoteController implements Controller, WsController {
 
   private createNote = async (request: Request, response: Response) => {
     const postData: CreateNoteDto = request.body;
-    postData.content = cleanHtml(postData.content);
     const createdNote = new this.NoteModel({
       ...postData,
       created: Date.now(),
