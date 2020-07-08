@@ -10,7 +10,7 @@ export const state = {
 };
 
 export const getters = {
-
+  websocketIsConnected: state => state.socket.isConnected,
 };
 
 export const actions = {

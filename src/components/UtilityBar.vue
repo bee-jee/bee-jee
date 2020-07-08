@@ -7,6 +7,10 @@
         </router-link>
       </div>
       <div class="col-auto">
+        <span class="text-success" v-if="websocketIsConnected">Connected</span>
+        <span class="text-danger" v-else>Disconnected</span>
+      </div>
+      <div class="col-auto">
         <div v-if="isSyncing" class="spinner spinner-grow spinner-grow-sm text-primary" role="status">
           <span class="sr-only">Loading...</span>
         </div>
@@ -22,6 +26,7 @@ export default {
   computed: {
     ...mapGetters([
       'isSyncing',
+      'websocketIsConnected',
     ]),
   },
 }
