@@ -20,7 +20,10 @@ module.exports = {
       rules: {
         "no-underscore-dangle": ["error", {
           "allow": ["_id"]
-        }]    
+        }],
+        "no-param-reassign": [
+          2, { "props": false }
+        ]
       },
       parserOptions: {
         project: './api/tsconfig.json'

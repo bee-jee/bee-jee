@@ -28,7 +28,10 @@ export const getters = {
   toDeleteNote: (state, getters) => state.toDeleteNoteId ? getters.noteById(state.toDeleteNoteId) : {},
   allNotes: (state, getters) => state.allIds.map(id => getters.noteById(id)),
   isLoading: (state) => state.isLoading,
-  isSyncing: (state) => state.isSyncing,
+  isSyncing: (state) => {
+    console.log(Object.keys(state.pendingSyncTitleById));
+    return state.isSyncing || Object.keys(state.pendingSyncTitleById).length !== 0;
+  },
   pendingSyncTitleById: (state) => state.pendingSyncTitleById,
 };
 
@@ -199,7 +202,9 @@ export const mutations = {
     // don't want to lose data
     sync.title = title;
     sync.status = 'pending';
-    state.pendingSyncTitleById = pendingSyncTitleById;
+    state.pendingSyncTitleById = {
+      ...pendingSyncTitleById,
+    };
   },
   setNoteContent(state, { _id }) {
     const { byIds } = state;
@@ -215,6 +220,9 @@ export const mutations = {
   },
   removePendingSyncTitle(state, { _id }) {
     delete state.pendingSyncTitleById[_id];
+    state.pendingSyncTitleById = {
+      ...state.pendingSyncTitleById,
+    };
   },
 };
 

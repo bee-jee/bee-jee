@@ -6,6 +6,7 @@ import * as WebSocket from 'ws';
 import * as http from 'http';
 import { Controller, isWsController } from './interfaces/controller.interface';
 import errorMiddleware from './middleware/error.middleware';
+import WebsocketWithAlive from './interfaces/websocket.interface';
 
 class App {
   public app: express.Application;
@@ -63,12 +64,18 @@ class App {
   }
 
   private initialiseWebsocketServer() {
-    this.wss = new WebSocket.Server({
+    const wss = new WebSocket.Server({
       server: this.server,
       path: '/ws',
     });
 
-    this.wss.on('connection', (ws: WebSocket) => {
+    wss.on('connection', (ws: WebsocketWithAlive) => {
+      ws.isAlive = true;
+
+      ws.on('pong', function heartbeat(this: WebsocketWithAlive) {
+        this.isAlive = true;
+      });
+
       ws.on('message', async (data: WebSocket.Data) => {
         /* eslint-disable no-await-in-loop */
         if (typeof data === 'string') {
@@ -88,6 +95,23 @@ class App {
         }
       });
     });
+
+    const interval = setInterval(() => {
+      wss.clients.forEach((ws: WebsocketWithAlive): void => {
+        if (ws.isAlive === false) {
+          ws.terminate();
+          return;
+        }
+
+        ws.isAlive = false;
+      });
+    }, 30000);
+
+    wss.on('close', () => {
+      clearInterval(interval);
+    });
+
+    this.wss = wss;
   }
 }
 
