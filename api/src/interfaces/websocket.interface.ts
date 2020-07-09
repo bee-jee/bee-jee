@@ -1,7 +1,8 @@
 import * as WebSocket from 'ws';
 
-interface WebsocketWithAlive extends WebSocket {
+interface WebsocketWithBeeJee extends WebSocket {
   isAlive?: boolean;
+  isAuthenticated?: boolean;
 }
 
-export default WebsocketWithAlive;
+export default WebsocketWithBeeJee;

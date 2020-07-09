@@ -2,7 +2,7 @@
   <div>
       <router-link
         :to="`/${note._id}`"
-        class="list-group-item list-group-item-action"
+        class="note-explorer-item px-3 py-1"
         :class="{active: selectedNoteId === note._id}"
         @click="handleClickNoteItem(note)"
       >
@@ -18,8 +18,7 @@
           </div>
         </div>
         <p
-          class="note-item-summary"
-          :class="{ 'text-muted': selectedNoteId !== note._id }"
+          class="note-item-summary text-muted"
           v-html="getNoteContent(note) ? getNoteContent(note) : 'No content'"
         >
         </p>

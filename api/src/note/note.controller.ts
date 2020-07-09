@@ -1,5 +1,5 @@
 import {
-  Router, Request, Response, NextFunction,
+  Router, Response, NextFunction,
 } from 'express';
 import * as Y from 'yjs';
 import { isValidObjectId } from 'mongoose';
@@ -15,6 +15,8 @@ import {
 } from './note.interface';
 import broadcast from '../utils/ws';
 import { stringToArray } from '../../../common/collab';
+import authMiddleware from '../middleware/auth.middleware';
+import RequestWithUser from '../interfaces/requestWithUser.interface';
 
 class NoteController implements Controller, WsController {
   public path = '/note';
@@ -41,11 +43,15 @@ class NoteController implements Controller, WsController {
     this.initialiseRoutes();
   }
 
-  public async handleWsMessage({ wss, data, ws }: WsContext): Promise<boolean> {
-    if (data.action === 'contentUpdated') {
-      const { id, mergeChanges } = data.payload;
+  public subscribeToWs({ ws, wss }: WsContext): void {
+    ws.on('contentUpdated', async (payload) => {
+      if (!ws.isAuthenticated) {
+        return;
+      }
+      const { id, mergeChanges } = payload;
       if (!isValidObjectId(id)) {
-        throw new InvalidObjectIdException(id);
+        console.error(new InvalidObjectIdException(id));
+        return;
       }
       const note = await this.findNoteByIdAndToPending(id);
       if (note !== null) {
@@ -64,23 +70,22 @@ class NoteController implements Controller, WsController {
           });
         }
       }
-      return true;
-    }
-    return false;
+    });
   }
 
   private initialiseRoutes() {
-    this.router.get(this.path, this.getAllNotes);
-    this.router.post(`${this.path}/create`, validationMiddleware(CreateNoteDto), this.createNote);
-    this.router.patch(`${this.path}/:id`, validationMiddleware(CreateNoteDto, true), this.editNote);
-    this.router.get(`${this.path}/:id`, this.getNoteById);
-    this.router.delete(`${this.path}/:id`, this.deleteNote);
+    this.router.get(this.path, authMiddleware, this.getAllNotes);
+    this.router.post(`${this.path}/create`, authMiddleware, validationMiddleware(CreateNoteDto), this.createNote);
+    this.router.patch(`${this.path}/:id`, authMiddleware, validationMiddleware(CreateNoteDto, true), this.editNote);
+    this.router.get(`${this.path}/:id`, authMiddleware, this.getNoteById);
+    this.router.delete(`${this.path}/:id`, authMiddleware, this.deleteNote);
   }
 
-  private createNote = async (request: Request, response: Response) => {
+  private createNote = async (request: RequestWithUser, response: Response) => {
     const postData: CreateNoteDto = request.body;
     const createdNote = new this.NoteModel({
       ...postData,
+      author: request.user._id,
       created: Date.now(),
       updated: Date.now(),
     });
@@ -88,18 +93,21 @@ class NoteController implements Controller, WsController {
     response.send(savedNote);
   };
 
-  private getAllNotes = async (_: Request, response: Response) => {
-    const notes = await this.NoteModel.find();
+  private getAllNotes = async (request: RequestWithUser, response: Response) => {
+    const notes = await this.NoteModel.find({
+      author: request.user._id,
+    });
     response.send(notes);
   };
 
-  private getNoteById = async (request: Request, response: Response, next: NextFunction) => {
+  private getNoteById = async (request: RequestWithUser, response: Response,
+    next: NextFunction) => {
     const { id } = request.params;
     if (!isValidObjectId(id)) {
       next(new InvalidObjectIdException(id));
       return;
     }
-    const note = await this.NoteModel.findById(id);
+    const note = await this.NoteModel.findOne({ _id: id, author: request.user._id });
     if (note !== null) {
       response.send(note);
     } else {
@@ -107,14 +115,17 @@ class NoteController implements Controller, WsController {
     }
   };
 
-  private editNote = async (request: Request, response: Response, next: NextFunction) => {
+  private editNote = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const { id } = request.params;
     const data: Note = request.body;
     if (!isValidObjectId(id)) {
       next(new InvalidObjectIdException(id));
       return;
     }
-    const note = await this.NoteModel.findByIdAndUpdate(id, data, { new: true });
+    const note = await this.NoteModel.findOneAndUpdate({
+      _id: id,
+      author: request.user._id,
+    }, data, { new: true });
     if (note !== null) {
       response.send(note);
     } else {
@@ -122,13 +133,13 @@ class NoteController implements Controller, WsController {
     }
   };
 
-  private deleteNote = async (request: Request, response: Response, next: NextFunction) => {
+  private deleteNote = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const { id } = request.params;
     if (!isValidObjectId(id)) {
       next(new InvalidObjectIdException(id));
       return;
     }
-    if (await this.NoteModel.findByIdAndDelete(id)) {
+    if (await this.NoteModel.findOneAndDelete({ _id: id, author: request.user._id }) !== null) {
       response.send({
         _id: id,
         status: 200,

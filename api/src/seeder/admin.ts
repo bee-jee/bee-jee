@@ -59,6 +59,7 @@ rl.question('Password: ', (answer: string) => {
         process.stdout.write('User with username admin exists, changing the password only\n');
         return UserModel.updateOne({ _id: user._id }, {
           password: hashedPassword,
+          role: 'admin',
         }, { upsert: true });
       }
 
@@ -66,6 +67,7 @@ rl.question('Password: ', (answer: string) => {
         firstName: 'Admin',
         lastName: 'User',
         username: 'admin',
+        role: 'admin',
         password: hashedPassword,
       });
     })

@@ -2,7 +2,7 @@
   <splitpanes
     @resize="resize"
   >
-    <pane min-size="10" :size="explorerSize" max-size="30">
+    <pane min-size="15" :size="explorerSize" max-size="30">
       <note-explorer />
     </pane>
     <pane :size="otherPaneSize">

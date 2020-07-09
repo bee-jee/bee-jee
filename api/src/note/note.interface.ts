@@ -8,7 +8,7 @@ enum ContentType {
 }
 
 export interface Note {
-  authorId: string;
+  author: string;
   title: string;
   content: string;
   contentType: ContentType,

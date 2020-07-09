@@ -1,5 +1,4 @@
 import Vue from 'vue';
-import { api } from '../../helpers/api';
 import { encodeDoc, decodeDoc, arrayToString } from '../../../common/collab';
 
 export const state = {
@@ -28,10 +27,7 @@ export const getters = {
   toDeleteNote: (state, getters) => state.toDeleteNoteId ? getters.noteById(state.toDeleteNoteId) : {},
   allNotes: (state, getters) => state.allIds.map(id => getters.noteById(id)),
   isLoading: (state) => state.isLoading,
-  isSyncing: (state) => {
-    console.log(Object.keys(state.pendingSyncTitleById));
-    return state.isSyncing || Object.keys(state.pendingSyncTitleById).length !== 0;
-  },
+  isSyncing: (state) =>  state.isSyncing || Object.keys(state.pendingSyncTitleById).length !== 0,
   pendingSyncTitleById: (state) => state.pendingSyncTitleById,
 };
 
@@ -39,7 +35,7 @@ export const actions = {
   async fetchNotes({ commit }) {
     commit('setIsLoading', true);
     try {
-      const resp = await api.get('/note');
+      const resp = await Vue.prototype.$http.get('/note');
       commit('setNotes', resp.data);
     } catch (err) {
       // TODO: Display error message on the interface
@@ -51,7 +47,7 @@ export const actions = {
   async createNote({ commit }, { title, content, contentType }) {
     commit('setIsLoading', true);
     try {
-      const resp = await api.post('/note/create', {
+      const resp = await Vue.prototype.$http.post('/note/create', {
         title,
         content: encodeDoc(content),
         contentType,
@@ -71,7 +67,7 @@ export const actions = {
   },
   async deleteNote({ commit }, { _id }) {
     try {
-      const resp = await api.delete(`/note/${_id}`);
+      const resp = await Vue.prototype.$http.delete(`/note/${_id}`);
       commit('deleteNote', resp.data);
     } catch (err) {
       console.error(err);
@@ -235,7 +231,7 @@ const syncNoteTitle = debounce(({ getters, commit }, { _id }) => {
     return;
   }
   sync.status = 'in_progress';
-  api.patch(`/note/${_id}`, {
+  Vue.prototype.$http.patch(`/note/${_id}`, {
     title: sync.title,
   })
     .then(() => {

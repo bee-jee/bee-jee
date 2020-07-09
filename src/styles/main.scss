@@ -1,4 +1,11 @@
+$blue: #c7edfc;
+$blue-light: #dcf1fa;
+$gray-100: #f5f5f5;
+
+$secondary: $blue-light;
+
 @import "~bootstrap/scss/bootstrap.scss";
+@import "~bootstrap-vue/src/index.scss";
 
 $fa-font-path : "~@fortawesome/fontawesome-free/webfonts";
 

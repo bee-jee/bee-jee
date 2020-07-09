@@ -1,12 +1,30 @@
 // This constant contains all the routes of the app
+
+import VueRouter from 'vue-router';
+import store from '../vuex/store';
+
 // which use vue-router
 const routes = [
+  // Make sure all routes before the one with path '' because
+  // '' matches everything so unless the router finds a match
+  // before it reaches that otherwise it will go to path ''
+  // no matter what
+  {
+    path: '/login',
+    component: () => import('../components/Login'),
+    meta: {
+      requiresGuest: true,
+    },
+  },
   {
     // The path here is empty because we want to use a layout
     // for all routes, because we want to display a note-explorer
     // on the left bar no matter what routes
     path: '',
     component: () => import('../components/layout/Layout'),
+    meta: {
+      requiresAuth: true,
+    },
     children: [
       // A page for display all the settings we have in the app
       // this is a child of the Layout component to make sure that
@@ -28,4 +46,51 @@ const routes = [
   },
 ];
 
-export default routes;
+const router = new VueRouter({
+  routes,
+});
+
+const checkLoggedIn = (nextCurrent, nextLogin) => {
+  if (store.getters.token !== '') {
+    store.dispatch('checkLoggedIn')
+      .then(() => {
+        if (store.getters.isLoggedIn) {
+          nextCurrent();
+        } else {
+          nextLogin();
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        nextLogin();
+      });
+  } else {
+    nextLogin();
+  }
+};
+
+router.beforeEach((to, from, next) => {
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    if (store.getters.isLoggedIn) {
+      next();
+    } else {
+      checkLoggedIn(() => {
+        next();
+      }, () => {
+        next('/login');
+      });
+    }
+  } else if (to.matched.some(record => record.meta.requiresGuest)) {
+    if (store.getters.isLoggedIn) {
+      next('/');
+    } else {
+      checkLoggedIn(() => {
+        next('/');
+      }, () => {
+        next();
+      });
+    }
+  }
+});
+
+export default router;

@@ -7,15 +7,15 @@ import JWTSecretIsMissingException from '../exceptions/JWSSecretIsMissingExcepti
 import DataStoredInToken from '../interfaces/dataStoredInToken.interface';
 
 async function authMiddleware(request: RequestWithUser, _: Response, next: NextFunction) {
-  const { cookies } = request;
-  if (cookies && cookies.Authorization) {
+  const { headers } = request;
+  if (headers && headers.authorization) {
     const secret = process.env.JWT_SECRET;
     if (secret === undefined) {
       next(new JWTSecretIsMissingException());
       return;
     }
     try {
-      const vertificationResponse = jwt.verify(cookies.Authorization, secret) as DataStoredInToken;
+      const vertificationResponse = jwt.verify(headers.authorization, secret) as DataStoredInToken;
       const { id } = vertificationResponse;
       const user = await UserModel.findById(id);
       if (user) {

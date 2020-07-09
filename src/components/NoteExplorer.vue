@@ -12,7 +12,7 @@
         </div>
       </div>
     </div>
-    <div class="list-group note-eplorer-content">
+    <div class="note-eplorer-content">
       <div class="col-12" v-if="isLoading">Loading . . .</div>
       <div
         class="col-12"
@@ -40,7 +40,6 @@
 import NoteExplorerItem from './NoteExplorerItem';
 import UtilityBar from './UtilityBar';
 import { mapGetters } from 'vuex';
-import { toContentType } from '../helpers/api';
 import * as Y from 'yjs';
 
 export default {
@@ -52,9 +51,6 @@ export default {
     notes() {
       return this.$store.getters.allNotes;
     },
-    defaultContentType() {
-      return toContentType(this.$store.getters.config('defaultEditorEditType'));
-    },
     ...mapGetters([
       'isLoading',
       'toDeleteNote',
@@ -65,7 +61,7 @@ export default {
       this.$store.dispatch('createNote', {
         title: '',
         content: new Y.Doc(),
-        contentType: this.defaultContentType,
+        contentType: '',
       });
     },
     handleCloseDelete() {
