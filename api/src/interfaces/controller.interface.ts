@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import WebSocket from 'ws';
+import WebsocketWithBeeJee from './websocket.interface';
 
 export interface Controller {
   path: string;
@@ -7,15 +8,14 @@ export interface Controller {
 }
 
 export interface WsController {
-  handleWsMessage(context: WsContext): Promise<boolean> | boolean;
+  subscribeToWs(context: WsContext): void;
 }
 
 export interface WsContext {
   wss: WebSocket.Server,
-  ws: WebSocket,
-  data: any,
+  ws: WebsocketWithBeeJee,
 }
 
 export function isWsController(controller: Controller): controller is Controller & WsController {
-  return 'handleWsMessage' in controller;
+  return 'subscribeToWs' in controller;
 }

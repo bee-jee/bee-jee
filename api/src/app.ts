@@ -4,9 +4,9 @@ import * as bodyParser from 'body-parser';
 import * as cors from 'cors';
 import * as WebSocket from 'ws';
 import * as http from 'http';
-import { Controller, isWsController } from './interfaces/controller.interface';
+import { Controller, isWsController, WsContext } from './interfaces/controller.interface';
 import errorMiddleware from './middleware/error.middleware';
-import WebsocketWithAlive from './interfaces/websocket.interface';
+import WebsocketWithBeeJee from './interfaces/websocket.interface';
 
 class App {
   public app: express.Application;
@@ -69,35 +69,43 @@ class App {
       path: '/ws',
     });
 
-    wss.on('connection', (ws: WebsocketWithAlive) => {
+    wss.on('connection', (ws: WebsocketWithBeeJee) => {
       ws.isAlive = true;
 
-      ws.on('pong', function heartbeat(this: WebsocketWithAlive) {
+      const wsContext: WsContext = {
+        wss: this.wss,
+        ws,
+      };
+      this.controllers.forEach((controller) => {
+        if (isWsController(controller)) {
+          controller.subscribeToWs(wsContext);
+        }
+      });
+
+      ws.on('pong', function heartbeat(this: WebsocketWithBeeJee) {
         this.isAlive = true;
       });
 
-      ws.on('message', async (data: WebSocket.Data) => {
-        /* eslint-disable no-await-in-loop */
+      ws.on('message', (data: WebSocket.Data) => {
         if (typeof data === 'string') {
-          const payload = JSON.parse(data);
-          for (let i = 0; i < this.controllers.length; i += 1) {
-            const controller = this.controllers[i];
-            if (isWsController(controller)) {
-              if (await Promise.resolve(controller.handleWsMessage({
-                wss: this.wss,
-                data: payload,
-                ws,
-              }))) {
-                break;
-              }
+          try {
+            const event = JSON.parse(data);
+            if (typeof event.action !== 'string') {
+              console.log('Invalid data received');
+              return;
             }
+            ws.emit(event.action, event.payload);
+          } catch (err) {
+            console.log('Not an event', err);
           }
+        } else {
+          console.log(`Unknown data type ${typeof data}`);
         }
       });
     });
 
     const interval = setInterval(() => {
-      wss.clients.forEach((ws: WebsocketWithAlive): void => {
+      wss.clients.forEach((ws: WebsocketWithBeeJee): void => {
         if (ws.isAlive === false) {
           ws.terminate();
           return;

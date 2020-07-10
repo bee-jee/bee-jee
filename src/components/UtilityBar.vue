@@ -6,12 +6,20 @@
           <i class="fas fa-cog"></i>
         </router-link>
       </div>
-      <div class="col-auto">
-        <span class="text-success" v-if="websocketIsConnected">Connected</span>
-        <span class="text-danger" v-else>Disconnected</span>
+      <div class="col-auto pl-0">
+        <small class="text-success" v-if="websocketIsConnected && websocketIsAuthenticated">
+          <b>Connected</b>
+        </small>
+        <small class="text-danger" v-else>
+          <b>{{disconnectedStatus}}</b>
+        </small>
       </div>
       <div class="col-auto">
-        <div v-if="isSyncing" class="spinner spinner-grow spinner-grow-sm text-primary" role="status">
+        <div
+          v-if="isSyncing"
+          class="spinner spinner-grow spinner-grow-sm text-primary"
+          role="status"
+        >
           <span class="sr-only">Loading...</span>
         </div>
       </div>
@@ -27,7 +35,14 @@ export default {
     ...mapGetters([
       'isSyncing',
       'websocketIsConnected',
+      'websocketIsAuthenticated',
     ]),
+    disconnectedStatus() {
+      if (!this.websocketIsConnected) {
+        return 'Disconnected';
+      }
+      return 'Not logged in';
+    },
   },
 }
 </script>
