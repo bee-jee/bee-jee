@@ -4,6 +4,7 @@ const CONFIG_KEY = 'config';
 
 export const state = {
   explorerSize: 20,
+  explorerClosed: false,
   defaultEditorEditType: 'wysiwyg',
   definitions: [
     {

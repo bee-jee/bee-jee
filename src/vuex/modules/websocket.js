@@ -43,11 +43,12 @@ export const actions = {
 
 export const mutations = {
   SOCKET_ONOPEN(state, event) {
-    Vue.prototype.$socket = event.currentTarget
+    Vue.prototype.$socket = event.currentTarget;
     state.socket.isConnected = true;
   },
   SOCKET_ONCLOSE(state) {
     state.socket.isConnected = false;
+    state.socket.isAuthenticated = false;
   },
   SOCKET_ONERROR(state, event) {
     console.error(state, event);

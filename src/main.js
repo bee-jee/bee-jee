@@ -7,11 +7,17 @@ import {
   BModal,
   BButton,
 } from 'bootstrap-vue';
+import { library } from '@fortawesome/fontawesome';
+import { faTrashAlt } from '@fortawesome/free-regular-svg-icons';
+import {
+  faCog, faPlus, faChevronLeft, faChevronRight,
+} from '@fortawesome/free-solid-svg-icons';
 import App from './App.vue';
 import VueNativeSock from 'vue-native-websocket';
 import Axios from 'axios';
 import { apiUrl } from './helpers/url';
 
+library.add(faTrashAlt, faCog, faPlus, faChevronLeft, faChevronRight);
 Vue.config.productionTip = false;
 
 // This will register bootstrap tags such as <b-modal>

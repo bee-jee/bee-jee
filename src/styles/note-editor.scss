@@ -1,25 +1,26 @@
 @import '~quill/dist/quill.snow.css';
 
-.note-editor-container,
 .note-editor {
     height: 100%;
-
-    input[type="text"].title {
-        border: 0;
-        border-bottom: 1px solid $gray-500;
-        width: 100%;
-        padding: 0.5rem 0 0.25rem 0;
-
-        &:focus{ 	
-            outline: none;
-            border-bottom: 1px solid $green;	
-        }
-    }
 }
 
-.note-content-editor-container {
-    height: calc(100% - 54px);
+.note-editor-container {
+    height: calc(100% - 43px);
+}
+
+.ql-container.ql-snow {
     overflow: auto;
+    border: none;
+
+    .ql-editor {
+        min-height: 100%;
+        height: auto;
+        width: 100%;
+        max-width: 794px;
+        margin: 0 auto 6rem auto;
+        box-shadow: 0 1px 3px 1px rgba(60, 64, 67, .15);
+        font-size: 1em;
+    }
 }
 
 .note-content-editor {
@@ -44,6 +45,49 @@
     user-select: none;
 }
 
-.ql-container {
-    height: auto;
+.ql-toolbar.ql-snow {
+    border: none;
+    border-bottom: 1px solid #eee;
+    padding: 8px 40px;
+
+    .ql-formats {
+        text-align: left;
+
+        &:last-of-type {
+            margin-right: 0;
+        }
+    }
+}
+
+.ql-snow {
+    .ql-toolbar,
+    &.ql-toolbar {
+        button:hover,
+        button:focus,
+        button.ql-active,
+        .ql-picker-label:hover,
+        .ql-picker-label.ql-active,
+        .ql-picker-item:hover,
+        .ql-picker-item.ql-selected {
+            $hover-background: darken($primary, 7.5%);
+
+            color: $hover-background !important;
+
+            .ql-fill {
+                fill: $hover-background !important;
+            }
+
+            .ql-stroke {
+                stroke: $hover-background !important;
+            }
+        }
+
+        .ql-picker {
+            &.ql-expanded {
+                .ql-picker-options {
+                    border: 0;
+                }
+            }
+        }
+    }
 }

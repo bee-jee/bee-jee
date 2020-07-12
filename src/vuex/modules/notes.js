@@ -17,6 +17,7 @@ export const state = {
   toDeleteNoteId: '',
   pendingSyncTitleById: {},
   isLoading: false,
+  isCreatingNote: false,
   isSyncing: false,
 };
 
@@ -27,6 +28,7 @@ export const getters = {
   toDeleteNote: (state, getters) => state.toDeleteNoteId ? getters.noteById(state.toDeleteNoteId) : {},
   allNotes: (state, getters) => state.allIds.map(id => getters.noteById(id)),
   isLoading: (state) => state.isLoading,
+  isCreatingNote: (state) => state.isCreatingNote,
   isSyncing: (state) =>  state.isSyncing || Object.keys(state.pendingSyncTitleById).length !== 0,
   pendingSyncTitleById: (state) => state.pendingSyncTitleById,
 };
@@ -45,7 +47,7 @@ export const actions = {
     }
   },
   async createNote({ commit }, { title, content, contentType }) {
-    commit('setIsLoading', true);
+    commit('setIsCreatingNote', true);
     try {
       const resp = await Vue.prototype.$http.post('/note/create', {
         title,
@@ -56,7 +58,7 @@ export const actions = {
     } catch (err) {
       console.error(err);
     } finally {
-      commit('setIsLoading', false);
+      commit('setIsCreatingNote', false);
     }
   },
   setSelectedNote({ commit }, { _id }) {
@@ -91,6 +93,9 @@ export const actions = {
 export const mutations = {
   setIsLoading(state, value) {
     state.isLoading = value;
+  },
+  setIsCreatingNote(state, value) {
+    state.isCreatingNote = value;
   },
   setIsSyncing(state, value) {
     state.isSyncing = value;

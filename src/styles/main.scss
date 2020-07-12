@@ -1,18 +1,12 @@
 $blue: #c7edfc;
 $blue-light: #dcf1fa;
 $gray-100: #f5f5f5;
-
-$secondary: $blue-light;
+$primary-light: $blue-light;
 
 @import "~bootstrap/scss/bootstrap.scss";
 @import "~bootstrap-vue/src/index.scss";
 
-$fa-font-path : "~@fortawesome/fontawesome-free/webfonts";
-
-@import "~@fortawesome/fontawesome-free/scss/fontawesome.scss";
-@import "~@fortawesome/fontawesome-free/scss/solid.scss";
-@import "~@fortawesome/fontawesome-free/scss/regular.scss";
-
+@import "./layout.scss";
 @import "./splitpanes.scss";
 @import "./notes-explorer.scss";
 @import "./note-editor.scss";

@@ -12,44 +12,10 @@ const options = {
   theme: 'snow',
   modules: {
     cursors: true,
-    toolbar: [
-      ['bold', 'italic', 'underline', 'strike'],
-      ['blockquote', 'code-block'],
-      [{ 'header': 1 }, { 'header': 2 }],
-      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-      [{ 'script': 'sub' }, { 'script': 'super' }],
-      [{ 'indent': '-1' }, { 'indent': '+1' }],
-      [{ 'direction': 'rtl' }],
-      [{ 'size': ['small', false, 'large', 'huge'] }],
-      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-      [{ 'color': [] }, { 'background': [] }],
-      [{ 'align': [] }],
-      ['clean'],
-      ['link', 'image', 'video'],
-    ],
+    toolbar: '#toolbar',
   },
   readOnly: false,
 };
-
-function getElementHeight(el) {
-  let height, margin;
-  if (document.all) { // IE
-    height = el.currentStyle.height;
-    margin = parseInt(el.currentStyle.marginTop, 10) + parseInt(el.currentStyle.marginBottom, 10);
-  } else { // Mozilla
-    height = parseFloat(document.defaultView.getComputedStyle(el, '').height);
-    margin = parseInt(document.defaultView.getComputedStyle(el, '').getPropertyValue('margin-top')) +
-      parseInt(document.defaultView.getComputedStyle(el, '').getPropertyValue('margin-bottom'));
-  }
-  return height + margin;
-}
-
-function calculateQlContainerSize() {
-  const toolbarHeight = getElementHeight(document.getElementsByClassName('ql-toolbar')[0]);
-  console.log(toolbarHeight);
-  const qlContainer = document.getElementsByClassName('ql-container')[0];
-  qlContainer.style.height = `calc(100% - ${toolbarHeight}px)`;
-}
 
 export default {
   props: [
@@ -112,11 +78,6 @@ export default {
       this.internalNote = this.note;
       this.internalNote.content.getText('text').observe(this.textObserver);
       this.quill.on('text-change', this.quillTextChange);
-
-      calculateQlContainerSize();
-      window.addEventListener('resize', () => {
-        calculateQlContainerSize();
-      });
     }
   },
   beforeDestroy() {
