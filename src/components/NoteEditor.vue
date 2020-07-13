@@ -105,5 +105,22 @@ export default {
       this.calculateContainerSize();
     });
   },
+  watch: {
+    note(newNote, oldNote) {
+      if (newNote._id === oldNote._id) {
+        return;
+      }
+      if (oldNote._id) {
+        this.$store.dispatch('leaveNote', {
+          _id: oldNote._id,
+        });
+      }
+      if (newNote._id) {
+        this.$store.dispatch('enterNote', {
+          _id: newNote._id,
+        });
+      }
+    },
+  },
 }
 </script>

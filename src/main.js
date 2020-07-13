@@ -16,9 +16,15 @@ import App from './App.vue';
 import VueNativeSock from 'vue-native-websocket';
 import Axios from 'axios';
 import { apiUrl } from './helpers/url';
+import { PendingSocket } from './vuex/modules/websocket';
 
 library.add(faTrashAlt, faCog, faPlus, faChevronLeft, faChevronRight);
 Vue.config.productionTip = false;
+
+// Initialise a pending socket to push any data sent before
+// the connection opened, so that once the socket is opened
+// it will send the data
+Vue.prototype.$socket = new PendingSocket(store);
 
 // This will register bootstrap tags such as <b-modal>
 // to be available to all components

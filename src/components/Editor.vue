@@ -28,18 +28,19 @@ export default {
       }
       // update content
       const ops = delta.ops
-      ops.forEach(op => {
-        if (op.attributes !== undefined) {
-          for (let key in op.attributes) {
-            if (this.negatedUsedFormats[key] === undefined) {
-              this.negatedUsedFormats[key] = false
-            }
-          }
-        }
-      });
       this.$store.dispatch('changeNoteContent', {
         _id: this.note._id,
         ops,
+      });
+    },
+    quillSelectionChange(range) {
+      console.log(range);
+      if (range === null) {
+        return;
+      }
+      this.$store.dispatch('changeCursor', {
+        note: this.note,
+        ...range,
       });
     },
     textObserver(event) {
@@ -64,7 +65,6 @@ export default {
   },
   data() {
     return {
-      negatedUsedFormats: {},
       internalNote: {},
     };
   },
@@ -78,6 +78,30 @@ export default {
       this.internalNote = this.note;
       this.internalNote.content.getText('text').observe(this.textObserver);
       this.quill.on('text-change', this.quillTextChange);
+      this.quill.on('selection-change', this.quillSelectionChange);
+
+      const cursors = this.quillCursors;
+      this.$store.subscribe((mutation) => {
+        switch (mutation.type) {
+          case 'appendUserCursor': {
+            const { id, name, color } = mutation.payload;
+            cursors.createCursor(id, name, color);
+            break;
+          }
+          case 'removeUserCursor': {
+            const { id } = mutation.payload;
+            cursors.removeCursor(id);
+            break;
+          }
+          case 'updateUserCursor': {
+            const { id, index, length } = mutation.payload;
+            cursors.moveCursor(id, {
+              index, length,
+            });
+            break;
+          }
+        }
+      });
     }
   },
   beforeDestroy() {

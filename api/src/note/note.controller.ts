@@ -14,7 +14,7 @@ import {
   Note, PendingNote, pendingNote, saveContent,
 } from './note.interface';
 import broadcast from '../utils/ws';
-import { stringToArray } from '../../../common/collab';
+import { stringToArray, Actions } from '../../../common/collab';
 import authMiddleware from '../middleware/auth.middleware';
 import RequestWithUser from '../interfaces/requestWithUser.interface';
 
@@ -60,7 +60,7 @@ class NoteController implements Controller, WsController {
           Y.applyUpdate(note.content, changes, 'websocket');
           note.isDirty = true;
           broadcast(wss, JSON.stringify({
-            action: 'contentUpdated',
+            action: Actions.CONTENT_UPDATED,
             payload: {
               id,
               mergeChanges,

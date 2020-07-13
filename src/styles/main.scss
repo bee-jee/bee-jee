@@ -11,6 +11,14 @@ $primary-light: $blue-light;
 @import "./notes-explorer.scss";
 @import "./note-editor.scss";
 
+a {
+    color: #7ed6f8;
+
+    &:hover {
+        color: darken(#7ed6f8, 7.5%);
+    }
+}
+
 .btn-icon {
     border: 0;
     background: transparent !important;

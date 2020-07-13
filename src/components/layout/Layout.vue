@@ -2,16 +2,12 @@
   <div>
     <nav class="navbar navbar-light">
       <a class="navbar-brand" href="#">BeeJee</a>
+      <span href="#" class="nav-link" @click.prevent>{{user.fullName}}</span>
     </nav>
     <splitpanes @resize="resize" class="content">
       <pane min-size="15" :size="explorerSize" max-size="30" class="explorer" ref="explorer">
         <note-explorer />
-        <button
-          v-if="explorerClosed"
-          type="button"
-          class="btn open-explorer"
-          @click="openExplorer"
-        >
+        <button v-if="explorerClosed" type="button" class="btn open-explorer" @click="openExplorer">
           <i class="fas fa-chevron-right"></i>
         </button>
       </pane>
@@ -25,6 +21,7 @@
 <script>
 import NoteExplorer from '../NoteExplorer';
 import { Splitpanes, Pane } from 'splitpanes';
+import { mapGetters } from 'vuex';
 
 export default {
   components: {
@@ -43,6 +40,9 @@ export default {
     explorerClosed() {
       return this.$store.getters.config('explorerClosed');
     },
+    ...mapGetters([
+      'user',
+    ]),
   },
   methods: {
     resize(panes) {

@@ -1,23 +1,32 @@
 import Vue from 'vue';
 import * as Y from 'yjs';
-import { stringToArray } from '../../../common/collab';
+import { stringToArray, Actions } from '../../../common/collab';
 import { wsAuthenticate } from './auth';
 
+export class PendingSocket {
+  constructor(store) {
+    this.store = store;
+  }
+
+  send(data) {
+    this.store.commit('SOCKET_ADD_PENDING', data);
+  }
+}
+
 export const state = {
-  socket: {
-    isConnected: false,
-    isAuthenticated: false,
-    reconnectError: false,
-  },
+  isConnected: false,
+  isAuthenticated: false,
+  reconnectError: false,
+  pendingData: [],
 };
 
 export const getters = {
-  websocketIsConnected: state => state.socket.isConnected,
-  websocketIsAuthenticated: state => state.socket.isAuthenticated,
+  websocketIsConnected: state => state.isConnected,
+  websocketIsAuthenticated: state => state.isAuthenticated,
 };
 
 export const actions = {
-  contentUpdated({ commit, getters }, data) {
+  [Actions.CONTENT_UPDATED]({ commit, getters }, data) {
     const { id, mergeChanges } = data.payload;
     const note = getters.noteById(id);
     if (note && note._id) {
@@ -31,24 +40,34 @@ export const actions = {
       commit('setIsAuthenticated', true);
     }
   },
-  onSocketOpen({ getters }) {
+  onSocketOpen({ state, getters, commit }) {
     // If the ws is open after we got the response from server
     // saying we are authenticated, then we will need to do ws
     // authentication here
     if (getters.isLoggedIn) {
       wsAuthenticate(getters.token);
     }
+    state.pendingData.forEach((data) => {
+      Vue.prototype.$socket.send(data);
+    });
+    commit('SOCKET_SET_PENDING', []);
   },
 };
 
 export const mutations = {
+  SOCKET_ADD_PENDING(state, data) {
+    state.pendingData.push(data);
+  },
+  SOCKET_SET_PENDING(state, value) {
+    state.pendingData = value;
+  },
   SOCKET_ONOPEN(state, event) {
     Vue.prototype.$socket = event.currentTarget;
-    state.socket.isConnected = true;
+    state.isConnected = true;
   },
   SOCKET_ONCLOSE(state) {
-    state.socket.isConnected = false;
-    state.socket.isAuthenticated = false;
+    state.isConnected = false;
+    state.isAuthenticated = false;
   },
   SOCKET_ONERROR(state, event) {
     console.error(state, event);
@@ -62,10 +81,10 @@ export const mutations = {
     console.info(state, count);
   },
   SOCKET_RECONNECT_ERROR(state) {
-    state.socket.reconnectError = true;
+    state.reconnectError = true;
   },
   setIsAuthenticated(state, value) {
-    state.socket.isAuthenticated = value;
+    state.isAuthenticated = value;
   },
 };
 

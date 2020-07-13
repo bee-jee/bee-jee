@@ -43,6 +43,7 @@ class AuthenticationController implements Controller, WsController {
           .then((user: (User & Document) | null) => {
             if (user !== null) {
               ws.isAuthenticated = true;
+              ws.user = user;
 
               ws.send(JSON.stringify({
                 action: 'authenticated',

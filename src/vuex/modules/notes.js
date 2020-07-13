@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import { encodeDoc, decodeDoc, arrayToString } from '../../../common/collab';
+import { encodeDoc, decodeDoc, arrayToString, Actions } from '../../../common/collab';
 
 export const state = {
   // allIds contains only the notes' IDs, the reason
@@ -254,7 +254,7 @@ const subscribeContentUpdate = (note) => {
       return;
     }
     Vue.prototype.$socket.send(JSON.stringify({
-      action: 'contentUpdated',
+      action: Actions.CONTENT_UPDATED,
       payload: {
         id: note._id,
         mergeChanges: arrayToString(update),
