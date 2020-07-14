@@ -1,15 +1,29 @@
-.note-item-content {
-    max-height: 200px;
-    overflow: hidden;
+@mixin fading($background) {
+    background: linear-gradient(to left, $background, transparent 15px);
 }
 
 .note-explorer {
     height: 100%;
     background-color: $gray-100;
 
-    .note-eplorer-content {
-        height: calc(100% - 109px);
+    .note-explorer-content {
+        height: calc(100% - 86px);
         overflow: auto;
+    }
+    .note-item-title {
+        height: 1.5rem;
+        overflow: hidden;
+        white-space: nowrap;
+
+        &:after {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            left: 0;
+            @include fading($gray-100);
+        }
     }
     .note-explorer-item {
         display: block;
@@ -17,10 +31,18 @@
 
         &:hover {
             text-decoration: none;
-            background-color: $secondary;
+            background-color: $primary-light;
+
+            .note-item-title:after {
+                @include fading($primary-light);
+            }
         }
         &.active {
             background-color: $primary;
+
+            .note-item-title:after {
+                @include fading($primary);
+            }
         }
     }
     .note-item-summary {

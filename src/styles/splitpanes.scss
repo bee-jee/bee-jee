@@ -3,10 +3,8 @@ $splitter-thickness: 7px;
 .splitpanes {
     display: flex;
     flex: 1 1 0%;
-    height: 100%;
     position: absolute;
     outline: none;
-    overflow: hidden;
     user-select: text;
     flex-direction: row;
     left: 0px;
@@ -36,7 +34,7 @@ $splitter-thickness: 7px;
         .splitpanes__splitter {
             height: $splitter-thickness;
             margin-top: -$splitter-thickness;
-            cursor: row-resize;
+            cursor: ns-resize;
             width: 100%;
         }
     }
@@ -44,7 +42,7 @@ $splitter-thickness: 7px;
         .splitpanes__splitter {
             width: $splitter-thickness;
             margin-left: -$splitter-thickness;
-            cursor: col-resize;
+            cursor: ew-resize;
         }
     }
 }

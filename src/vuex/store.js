@@ -4,6 +4,7 @@ import config from './modules/config';
 import notes from './modules/notes';
 import websocket from './modules/websocket';
 import auth from './modules/auth';
+import cursors from './modules/cursors';
 
 Vue.use(Vuex);
 
@@ -13,6 +14,7 @@ const store = new Vuex.Store({
     config,
     websocket,
     auth,
+    cursors,
   },
 });
 

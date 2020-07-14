@@ -12,44 +12,10 @@ const options = {
   theme: 'snow',
   modules: {
     cursors: true,
-    toolbar: [
-      ['bold', 'italic', 'underline', 'strike'],
-      ['blockquote', 'code-block'],
-      [{ 'header': 1 }, { 'header': 2 }],
-      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-      [{ 'script': 'sub' }, { 'script': 'super' }],
-      [{ 'indent': '-1' }, { 'indent': '+1' }],
-      [{ 'direction': 'rtl' }],
-      [{ 'size': ['small', false, 'large', 'huge'] }],
-      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-      [{ 'color': [] }, { 'background': [] }],
-      [{ 'align': [] }],
-      ['clean'],
-      ['link', 'image', 'video'],
-    ],
+    toolbar: '#toolbar',
   },
   readOnly: false,
 };
-
-function getElementHeight(el) {
-  let height, margin;
-  if (document.all) { // IE
-    height = el.currentStyle.height;
-    margin = parseInt(el.currentStyle.marginTop, 10) + parseInt(el.currentStyle.marginBottom, 10);
-  } else { // Mozilla
-    height = parseFloat(document.defaultView.getComputedStyle(el, '').height);
-    margin = parseInt(document.defaultView.getComputedStyle(el, '').getPropertyValue('margin-top')) +
-      parseInt(document.defaultView.getComputedStyle(el, '').getPropertyValue('margin-bottom'));
-  }
-  return height + margin;
-}
-
-function calculateQlContainerSize() {
-  const toolbarHeight = getElementHeight(document.getElementsByClassName('ql-toolbar')[0]);
-  console.log(toolbarHeight);
-  const qlContainer = document.getElementsByClassName('ql-container')[0];
-  qlContainer.style.height = `calc(100% - ${toolbarHeight}px)`;
-}
 
 export default {
   props: [
@@ -61,19 +27,19 @@ export default {
         return;
       }
       // update content
-      const ops = delta.ops
-      ops.forEach(op => {
-        if (op.attributes !== undefined) {
-          for (let key in op.attributes) {
-            if (this.negatedUsedFormats[key] === undefined) {
-              this.negatedUsedFormats[key] = false
-            }
-          }
-        }
-      });
+      const ops = delta.ops;
       this.$store.dispatch('changeNoteContent', {
         _id: this.note._id,
         ops,
+      });
+    },
+    quillSelectionChange(range) {
+      if (range === null) {
+        return;
+      }
+      this.$store.dispatch('changeCursor', {
+        note: this.note,
+        ...range,
       });
     },
     textObserver(event) {
@@ -98,7 +64,6 @@ export default {
   },
   data() {
     return {
-      negatedUsedFormats: {},
       internalNote: {},
     };
   },
@@ -112,10 +77,34 @@ export default {
       this.internalNote = this.note;
       this.internalNote.content.getText('text').observe(this.textObserver);
       this.quill.on('text-change', this.quillTextChange);
+      this.quill.on('selection-change', this.quillSelectionChange);
 
-      calculateQlContainerSize();
-      window.addEventListener('resize', () => {
-        calculateQlContainerSize();
+      const cursors = this.quillCursors;
+      this.$store.subscribe((mutation) => {
+        switch (mutation.type) {
+          case 'appendUserCursor': {
+            const { id, name, index, length, color } = mutation.payload;
+            cursors.createCursor(id, name, color);
+            if (index !== undefined && length !== undefined) {
+              cursors.moveCursor(id, {
+                index, length,
+              });
+            }
+            break;
+          }
+          case 'removeUserCursor': {
+            const { id } = mutation.payload;
+            cursors.removeCursor(id);
+            break;
+          }
+          case 'updateUserCursor': {
+            const { id, index, length } = mutation.payload;
+            cursors.moveCursor(id, {
+              index, length,
+            });
+            break;
+          }
+        }
       });
     }
   },
