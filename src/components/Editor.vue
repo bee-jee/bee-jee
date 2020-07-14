@@ -27,7 +27,7 @@ export default {
         return;
       }
       // update content
-      const ops = delta.ops
+      const ops = delta.ops;
       this.$store.dispatch('changeNoteContent', {
         _id: this.note._id,
         ops,
@@ -83,8 +83,13 @@ export default {
       this.$store.subscribe((mutation) => {
         switch (mutation.type) {
           case 'appendUserCursor': {
-            const { id, name, color } = mutation.payload;
+            const { id, name, index, length, color } = mutation.payload;
             cursors.createCursor(id, name, color);
+            if (index !== undefined && length !== undefined) {
+              cursors.moveCursor(id, {
+                index, length,
+              });
+            }
             break;
           }
           case 'removeUserCursor': {

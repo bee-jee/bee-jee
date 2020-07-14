@@ -111,15 +111,6 @@ const mutations = {
       },
     };
   },
-  setUserCursors(state, userCursors) {
-    let allUserCursorIds = [], userCursorsById = {};
-    userCursors.forEach((cursor) => {
-      allUserCursorIds.push(cursor.id);
-      userCursorsById[cursor.id] = cursor;
-    });
-    state.allUserCursorIds = allUserCursorIds;
-    state.userCursorsById = userCursorsById;
-  },
   setCurrent(state, payload) {
     state.current = {
       ...state.current,
