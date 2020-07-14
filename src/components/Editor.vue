@@ -34,7 +34,6 @@ export default {
       });
     },
     quillSelectionChange(range) {
-      console.log(range);
       if (range === null) {
         return;
       }
