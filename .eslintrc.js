@@ -23,7 +23,8 @@ module.exports = {
         }],
         "no-param-reassign": [
           2, { "props": false }
-        ]
+        ],
+        "class-methods-use-this": 'off'
       },
       parserOptions: {
         project: './api/tsconfig.json'

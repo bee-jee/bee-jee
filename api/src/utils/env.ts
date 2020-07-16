@@ -3,11 +3,12 @@ import {
 } from 'envalid';
 
 export default function validateEnv() {
-  cleanEnv(process.env, {
+  return cleanEnv(process.env, {
     MONGO_USER: str(),
     MONGO_PASSWORD: str(),
     MONGO_PATH: str(),
     API_PORT: port(),
-    JWT_SECRET: str(),
+    OAUTH_CLIENT_ID: str(),
+    OAUTH_CLIENT_SECRET: str(),
   });
 }

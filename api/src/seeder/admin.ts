@@ -1,17 +1,16 @@
-import * as readline from 'readline';
+import readline from 'readline';
 import { Writable } from 'stream';
-import * as bcrypt from 'bcrypt';
-import * as mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
+import mongoose from 'mongoose';
 import 'dotenv/config';
 import UserModel from '../user/user.model';
 import validateEnv from '../utils/env';
 
-validateEnv();
 const {
   MONGO_USER,
   MONGO_PASSWORD,
   MONGO_PATH,
-} = process.env;
+} = validateEnv();
 let uri = `mongodb://${MONGO_USER}:${MONGO_PASSWORD}@${MONGO_PATH}`;
 if (typeof MONGO_USER === 'undefined' || MONGO_USER === '') {
   uri = `mongodb://${MONGO_PATH}`;

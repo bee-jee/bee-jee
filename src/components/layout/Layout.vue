@@ -1,8 +1,18 @@
 <template>
   <div>
     <nav class="navbar navbar-light">
-      <a class="navbar-brand" href="#">BeeJee</a>
-      <span href="#" class="nav-link" @click.prevent>{{user.fullName}}</span>
+      <a class="navbar-brand" href="#">
+        <img src="../../images/BeeJee-logo-small.png" alt="BeeJee" width="30" height="30" />
+        BeeJee
+      </a>
+      <ul class="navbar-nav ml-auto">
+        <b-nav-item-dropdown right>
+          <template v-slot:button-content>
+            <em>{{user.fullName}}</em>
+          </template>
+          <b-dropdown-item href="#" @click.prevent="logout">Logout</b-dropdown-item>
+        </b-nav-item-dropdown>
+      </ul>
     </nav>
     <splitpanes @resize="resize" class="content">
       <pane min-size="15" :size="explorerSize" max-size="30" class="explorer" ref="explorer">
@@ -28,6 +38,11 @@ export default {
     NoteExplorer,
     Splitpanes,
     Pane,
+  },
+  data() {
+    return {
+      showUserMenu: false,
+    };
   },
   computed: {
     explorerSize() {
@@ -70,6 +85,13 @@ export default {
         key: 'explorerClosed',
         value: false,
       });
+    },
+    logout() {
+      const self = this;
+      this.$store.dispatch('logout')
+        .then(() => {
+          self.$router.push('/login');
+        });
     },
   },
   mounted() {

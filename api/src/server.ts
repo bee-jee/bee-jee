@@ -8,8 +8,8 @@ import CursorController from './cursor/cursor.controller';
 
 require('source-map-support').install();
 
-validateEnv();
-const app = new App([
+const config = validateEnv();
+const app = new App(config, [
   new NoteController(),
   new AuthenticationController(),
   new UserController(),

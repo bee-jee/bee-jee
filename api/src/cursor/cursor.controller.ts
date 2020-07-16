@@ -17,6 +17,8 @@ class CursorController implements Controller {
 
   private NoteModel = NoteModel;
 
+  public boot() {}
+
   public subscribeToWs({ ws, wss }: WsContext) {
     const self = this;
 

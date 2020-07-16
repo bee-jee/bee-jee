@@ -1,30 +1,45 @@
-import * as express from 'express';
-import * as mongoose from 'mongoose';
-import * as bodyParser from 'body-parser';
-import * as cors from 'cors';
-import * as WebSocket from 'ws';
-import * as http from 'http';
+import express from 'express';
+import mongoose from 'mongoose';
+import bodyParser from 'body-parser';
+import cors from 'cors';
+import WebSocket from 'ws';
+import http from 'http';
+import { CleanEnv } from 'envalid';
 import { Controller, isWsController, WsContext } from './interfaces/controller.interface';
 import errorMiddleware from './middleware/error.middleware';
 import WebsocketWithBeeJee from './interfaces/websocket.interface';
+import ConfigManager from './interfaces/config.interface';
 
-class App {
+class App implements ConfigManager {
   public app: express.Application;
 
   public server: http.Server;
 
   public wss: WebSocket.Server;
 
-  constructor(public controllers: Controller[]) {
+  constructor(public config: Readonly<{
+    MONGO_USER: string;
+    MONGO_PASSWORD: string;
+    MONGO_PATH: string;
+    API_PORT: number;
+    OAUTH_CLIENT_ID: string;
+    OAUTH_CLIENT_SECRET: string;
+  }> & CleanEnv & {
+    readonly [varName: string]: string | undefined
+  }, public controllers: Controller[]) {
     this.app = express();
     this.server = http.createServer(this.app);
     this.boot(controllers);
   }
 
   public listen() {
-    this.server.listen(process.env.API_PORT, () => {
-      console.log(`API is listening on ${process.env.API_PORT}`);
+    this.server.listen(this.config.API_PORT, () => {
+      console.log(`API is listening on ${this.config.API_PORT}`);
     });
+  }
+
+  public get(key: string): string | undefined {
+    return this.config[key];
   }
 
   private boot(controllers: Controller[]) {
@@ -32,7 +47,7 @@ class App {
       MONGO_USER,
       MONGO_PASSWORD,
       MONGO_PATH,
-    } = process.env;
+    } = this.config;
     let uri = `mongodb://${MONGO_USER}:${MONGO_PASSWORD}@${MONGO_PATH}`;
     if (typeof MONGO_USER === 'undefined' || MONGO_USER === '') {
       uri = `mongodb://${MONGO_PATH}`;
@@ -55,6 +70,7 @@ class App {
 
   private initialiseControllers(controllers: Controller[]) {
     controllers.forEach((controller) => {
+      controller.boot(this);
       this.app.use('/', controller.router);
     });
   }
@@ -112,7 +128,7 @@ class App {
         }
 
         ws.isAlive = false;
-        ws.ping(() => {});
+        ws.ping(() => { });
       });
     }, 30000);
 

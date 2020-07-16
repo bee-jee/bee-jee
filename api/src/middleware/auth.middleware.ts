@@ -1,35 +1,33 @@
 import { Response, NextFunction } from 'express';
-import * as jwt from 'jsonwebtoken';
+import OAuth2Server from 'oauth2-server';
 import RequestWithUser from '../interfaces/requestWithUser.interface';
 import UserModel from '../user/user.model';
-import InvalidAuthenticationTokenException from '../exceptions/WrongAuthenticationTokenException';
-import JWTSecretIsMissingException from '../exceptions/JWSSecretIsMissingException';
-import DataStoredInToken from '../interfaces/dataStoredInToken.interface';
+import InvalidAuthenticationTokenException from '../exceptions/InvalidAuthenticationTokenException';
+import OAuthModel from '../authentication/authentication.service';
 
-async function authMiddleware(request: RequestWithUser, _: Response, next: NextFunction) {
-  const { headers } = request;
-  if (headers && headers.authorization) {
-    const secret = process.env.JWT_SECRET;
-    if (secret === undefined) {
-      next(new JWTSecretIsMissingException());
-      return;
-    }
-    try {
-      const vertificationResponse = jwt.verify(headers.authorization, secret) as DataStoredInToken;
-      const { id } = vertificationResponse;
-      const user = await UserModel.findById(id);
-      if (user) {
-        request.user = user;
-        next();
-      } else {
-        next(new InvalidAuthenticationTokenException());
-      }
-    } catch (error) {
+export const oauthServer = new OAuth2Server({
+  model: OAuthModel,
+  accessTokenLifetime: 60 * 60,
+  allowBearerTokensInQueryString: true,
+});
+
+export const oauthToken = oauthServer.token.bind(oauthServer);
+
+export async function authMiddleware(request: RequestWithUser,
+  response: Response, next: NextFunction) {
+  const oauthRequest = new OAuth2Server.Request(request);
+  const oauthResponse = new OAuth2Server.Response(response);
+  try {
+    const token = await oauthServer.authenticate(oauthRequest, oauthResponse);
+    const user = await UserModel.findById(token.user);
+    if (user) {
+      request.user = user;
+      request.token = token;
+      next();
+    } else {
       next(new InvalidAuthenticationTokenException());
     }
-  } else {
-    next(new InvalidAuthenticationTokenException());
+  } catch (err) {
+    next(new InvalidAuthenticationTokenException(err.message));
   }
 }
-
-export default authMiddleware;

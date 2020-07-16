@@ -1,4 +1,4 @@
-import * as WebSocket from 'ws';
+import WebSocket from 'ws';
 import { Document } from 'mongoose';
 import { User } from '../user/user.interface';
 

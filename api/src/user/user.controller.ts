@@ -7,6 +7,8 @@ class UserController implements Controller {
   public path = '/user';
 
   public router = Router();
+
+  public boot() {}
 }
 
 export default UserController;

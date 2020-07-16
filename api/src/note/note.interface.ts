@@ -1,5 +1,5 @@
 import { Document, Model } from 'mongoose';
-import * as Y from 'yjs';
+import Y from 'yjs';
 import { decodeDoc, encodeDoc } from '../../../common/collab';
 
 enum ContentType {

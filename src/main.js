@@ -6,6 +6,8 @@ import VueRouter from 'vue-router';
 import {
   BModal,
   BButton,
+  BDropdownItem,
+  BNavItemDropdown,
 } from 'bootstrap-vue';
 import { library } from '@fortawesome/fontawesome';
 import { faTrashAlt } from '@fortawesome/free-regular-svg-icons';
@@ -30,6 +32,8 @@ Vue.prototype.$socket = new PendingSocket(store);
 // to be available to all components
 Vue.component('b-modal', BModal);
 Vue.component('b-button', BButton);
+Vue.component('b-nav-item-dropdown', BNavItemDropdown);
+Vue.component('b-dropdown-item', BDropdownItem);
 Vue.use(VueRouter);
 Vue.use(VueNativeSock, process.env.VUE_APP_WS_URL, {
   store,
@@ -48,7 +52,7 @@ Vue.prototype.$http = Axios;
 Vue.prototype.$http.defaults.baseURL = apiUrl('/');
 Vue.prototype.$http.defaults.headers.common['Content-Type'] = 'application/json';
 Vue.prototype.$http.defaults.headers.common['Accept'] = 'application/json';
-Vue.prototype.$http.defaults.headers.common['Authorization'] = store.getters.token;
+Vue.prototype.$http.defaults.headers.common['Authorization'] = `Bearer ${store.getters.token}`;
 
 new Vue({
   render: (h) => h(App),

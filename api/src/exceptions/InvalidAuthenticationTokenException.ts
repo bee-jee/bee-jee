@@ -1,8 +1,8 @@
 import HttpException from './HttpException';
 
 class InvalidAuthenticationTokenException extends HttpException {
-  constructor() {
-    super(401, 'Invalid authentication token');
+  constructor(message?: string) {
+    super(401, message || 'Invalid authentication token');
   }
 }
 

@@ -1,9 +1,9 @@
 import {
   Router, Response, NextFunction,
 } from 'express';
-import * as Y from 'yjs';
+import Y from 'yjs';
 import { isValidObjectId } from 'mongoose';
-import * as LRU from 'lru-cache';
+import LRU from 'lru-cache';
 import { Controller, WsController, WsContext } from '../interfaces/controller.interface';
 import NoteModel from './note.model';
 import validationMiddleware from '../middleware/validation.middleware';
@@ -15,7 +15,7 @@ import {
 } from './note.interface';
 import broadcast from '../utils/ws';
 import { stringToArray, Actions } from '../../../common/collab';
-import authMiddleware from '../middleware/auth.middleware';
+import { authMiddleware } from '../middleware/auth.middleware';
 import RequestWithUser from '../interfaces/requestWithUser.interface';
 
 class NoteController implements Controller, WsController {
@@ -42,6 +42,8 @@ class NoteController implements Controller, WsController {
     }, 500);
     this.initialiseRoutes();
   }
+
+  public boot() {}
 
   public subscribeToWs({ ws, wss }: WsContext): void {
     ws.on('contentUpdated', async (payload) => {

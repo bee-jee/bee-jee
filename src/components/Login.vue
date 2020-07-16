@@ -1,6 +1,7 @@
 <template>
   <div class="text-center login-container">
     <form class="form-login" @submit.prevent="login">
+      <img class="mb-4" src="../images/BeeJee-logo-small.png" alt="BeeJee" width="72" height="72" />
       <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
       <p class="text-danger" v-if="error">{{error}}</p>
       <div class="mb-4">
