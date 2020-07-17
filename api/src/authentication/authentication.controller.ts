@@ -1,28 +1,23 @@
 import {
   Router, Request, Response, NextFunction,
 } from 'express';
-import { Document } from 'mongoose';
-import OAuth2Server, { Request as OAuthRequest, Response as OAuthResponse } from 'oauth2-server';
-import { Controller, WsController, WsContext } from '../interfaces/controller.interface';
-import UserModel from '../user/user.model';
+import { Request as OAuthRequest, Response as OAuthResponse } from 'oauth2-server';
+import { Controller } from '../interfaces/controller.interface';
 import validationMiddleware from '../middleware/validation.middleware';
 import LoginDto from './login.dto';
-import { oauthToken, authMiddleware, oauthServer } from '../middleware/auth.middleware';
+import { oauthToken, authMiddleware } from '../middleware/auth.middleware';
 import RequestWithUser from '../interfaces/requestWithUser.interface';
-import { User } from '../user/user.interface';
 import ConfigManager from '../interfaces/config.interface';
 import OAuthModel from './authentication.service';
 import RefreshTokenDto from './refreshToken.dto';
 import HttpException from '../exceptions/HttpException';
 
-class AuthenticationController implements Controller, WsController {
+class AuthenticationController implements Controller {
   public path = '/auth';
 
   public router = Router();
 
   private config: ConfigManager;
-
-  private UserModel = UserModel;
 
   constructor() {
     this.initialiseRoutes();
@@ -30,41 +25,6 @@ class AuthenticationController implements Controller, WsController {
 
   public boot(config: ConfigManager): void {
     this.config = config;
-  }
-
-  public subscribeToWs({ ws }: WsContext): void {
-    const self = this;
-    ws.on('authenticate', (data: any) => {
-      const oauthRequest = this.buildOAuthRequest({});
-      oauthRequest.headers = {
-        ...oauthRequest.headers,
-        authorization: `Bearer ${data.token}`,
-      };
-      const oauthResponse = new OAuth2Server.Response();
-      oauthServer.authenticate(oauthRequest, oauthResponse)
-        .then((token) => {
-          self.UserModel.findById(token.user)
-            .then((user: (User & Document) | null) => {
-              if (user !== null) {
-                ws.isAuthenticated = true;
-                ws.user = user;
-
-                ws.send(JSON.stringify({
-                  action: 'authenticated',
-                  payload: {
-                    status: 200,
-                  },
-                }));
-              }
-            })
-            .catch((err) => {
-              console.error(err);
-            });
-        })
-        .catch((err) => {
-          console.error(err);
-        });
-    });
   }
 
   private initialiseRoutes() {

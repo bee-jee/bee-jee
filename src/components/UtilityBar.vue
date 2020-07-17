@@ -7,7 +7,7 @@
         </router-link>
       </div>
       <div class="col-auto pl-0">
-        <small class="text-success" v-if="websocketIsConnected && websocketIsAuthenticated">
+        <small class="text-success" v-if="websocketIsConnected && isLoggedIn">
           <b>Connected</b>
         </small>
         <small class="text-danger" v-else>
@@ -35,7 +35,7 @@ export default {
     ...mapGetters([
       'isSyncing',
       'websocketIsConnected',
-      'websocketIsAuthenticated',
+      'isLoggedIn',
     ]),
     disconnectedStatus() {
       if (!this.websocketIsConnected) {

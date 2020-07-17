@@ -4,7 +4,8 @@ import NoteModel from '../note/note.model';
 import { Actions, Colors } from '../../../common/collab';
 import { Cursor } from './cursor.interface';
 import broadcast from '../utils/ws';
-import WebsocketWithBeeJee from '../interfaces/websocket.interface';
+import { WebsocketWithBeeJee, MiddlewareData } from '../interfaces/websocket.interface';
+import { authWsMiddleware } from '../middleware/auth.middleware';
 
 class CursorController implements Controller {
   public path = '/cursor';
@@ -22,47 +23,48 @@ class CursorController implements Controller {
   public subscribeToWs({ ws, wss }: WsContext) {
     const self = this;
 
-    ws.on(Actions.ENTER_NOTE, async ({ _id }) => {
-      if (!ws.isAuthenticated || !ws.user) {
-        return;
-      }
-      const { user } = ws;
-      const note = await self.NoteModel.findById(_id);
-      if (note === null || user === null) {
-        return;
-      }
-      const idForCursors = `${note._id}`;
-      const currCursors: Map<string, Cursor> = this.noteCursors.get(idForCursors)
-        || new Map<string, Cursor>();
-      const idForCounter = `${idForCursors}-${user._id}`;
-      const sameUserCount = this.userNoteInstanceCounter.get(idForCounter) || 0;
-      const id = `${user._id}-${sameUserCount}`;
-      const wsCursorIds: Map<string, string> = ws.cursorIds || new Map<string, string>();
-      wsCursorIds.set(idForCursors, id);
-      ws.cursorIds = wsCursorIds;
-      this.userNoteInstanceCounter.set(idForCounter, sameUserCount + 1);
-      const cursor: Cursor = {
-        id,
-        color: Colors[currCursors.size % Colors.length],
-        name: user.fullName,
-      };
-      currCursors.set(id, cursor);
-      this.noteCursors.set(idForCursors, currCursors);
-      ws.send(JSON.stringify({
-        action: Actions.NOTE_ENTERED,
-        payload: {
-          ...cursor,
-          currCursors: Array.from(currCursors).reduce((obj: any, [key, value]) => {
-            obj[key] = value;
-            return obj;
-          }, {}),
-        },
-      }));
-      broadcast(wss, JSON.stringify({
-        action: Actions.USER_ENTERED,
-        payload: cursor,
-      }), {
-        except: ws,
+    ws.on(Actions.ENTER_NOTE, async (payload) => {
+      authWsMiddleware(ws, payload, async ({ user }: MiddlewareData) => {
+        if (!user) {
+          return;
+        }
+        const note = await self.NoteModel.findById(payload._id);
+        if (note === null || user === null) {
+          return;
+        }
+        const idForCursors = `${note._id}`;
+        const currCursors: Map<string, Cursor> = this.noteCursors.get(idForCursors)
+          || new Map<string, Cursor>();
+        const idForCounter = `${idForCursors}-${user._id}`;
+        const sameUserCount = this.userNoteInstanceCounter.get(idForCounter) || 0;
+        const id = `${user._id}-${sameUserCount}`;
+        const wsCursorIds: Map<string, string> = ws.cursorIds || new Map<string, string>();
+        wsCursorIds.set(idForCursors, id);
+        ws.cursorIds = wsCursorIds;
+        this.userNoteInstanceCounter.set(idForCounter, sameUserCount + 1);
+        const cursor: Cursor = {
+          id,
+          color: Colors[currCursors.size % Colors.length],
+          name: user.fullName,
+        };
+        currCursors.set(id, cursor);
+        this.noteCursors.set(idForCursors, currCursors);
+        ws.send(JSON.stringify({
+          action: Actions.NOTE_ENTERED,
+          payload: {
+            ...cursor,
+            currCursors: Array.from(currCursors).reduce((obj: any, [key, value]) => {
+              obj[key] = value;
+              return obj;
+            }, {}),
+          },
+        }));
+        broadcast(wss, JSON.stringify({
+          action: Actions.USER_ENTERED,
+          payload: cursor,
+        }), {
+          except: ws,
+        });
       });
     });
 
@@ -79,7 +81,7 @@ class CursorController implements Controller {
     });
 
     ws.on('close', () => {
-      if (!ws.isAuthenticated || !ws.user || !ws.cursorIds) {
+      if (!ws.cursorIds) {
         return;
       }
       ws.cursorIds.forEach((_: string, idForCursors: string) => {
@@ -97,23 +99,23 @@ class CursorController implements Controller {
       });
     });
 
-    ws.on(Actions.CURSOR_UPDATED, async ({
-      _id, id, index, length,
-    }) => {
-      if (!ws.isAuthenticated || !ws.user) {
-        return;
-      }
-      const cursor = this.getCursor(_id, id);
-      if (cursor === undefined) {
-        return;
-      }
-      cursor.index = index;
-      cursor.length = length;
-      broadcast(wss, JSON.stringify({
-        action: Actions.CURSOR_UPDATED,
-        payload: cursor,
-      }), {
-        except: ws,
+    ws.on(Actions.CURSOR_UPDATED, async (payload) => {
+      authWsMiddleware(ws, payload, () => {
+        const {
+          id, index, length,
+        } = payload;
+        const cursor = this.getCursor(payload._id, id);
+        if (cursor === undefined) {
+          return;
+        }
+        cursor.index = index;
+        cursor.length = length;
+        broadcast(wss, JSON.stringify({
+          action: Actions.CURSOR_UPDATED,
+          payload: cursor,
+        }), {
+          except: ws,
+        });
       });
     });
   }
@@ -127,7 +129,7 @@ class CursorController implements Controller {
   }
 
   private removeCursor(ws: WebsocketWithBeeJee, { _id }: { _id: string }): string | undefined {
-    if (!ws.isAuthenticated || !ws.user || !ws.cursorIds) {
+    if (!ws.cursorIds) {
       return undefined;
     }
     const idForCursors = `${_id}`;

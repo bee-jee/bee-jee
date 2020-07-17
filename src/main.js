@@ -18,15 +18,11 @@ import App from './App.vue';
 import VueNativeSock from 'vue-native-websocket';
 import Axios from 'axios';
 import { apiUrl } from './helpers/url';
-import { PendingSocket } from './vuex/modules/websocket';
+import './helpers/ws';
+import WS from './helpers/ws';
 
 library.add(faTrashAlt, faCog, faPlus, faChevronLeft, faChevronRight);
 Vue.config.productionTip = false;
-
-// Initialise a pending socket to push any data sent before
-// the connection opened, so that once the socket is opened
-// it will send the data
-Vue.prototype.$socket = new PendingSocket(store);
 
 // This will register bootstrap tags such as <b-modal>
 // to be available to all components
@@ -40,12 +36,6 @@ Vue.use(VueNativeSock, process.env.VUE_APP_WS_URL, {
   format: 'JSON',
   reconnection: true,
   reconnectionDelay: 5000,
-  passToStoreHandler: (eventName, event, defaultHandler) => {
-    if (eventName === 'SOCKET_onopen') {
-      store.dispatch('onSocketOpen', event);
-    }
-    defaultHandler(eventName, event);
-  },
 });
 
 Vue.prototype.$http = Axios;
@@ -53,6 +43,7 @@ Vue.prototype.$http.defaults.baseURL = apiUrl('/');
 Vue.prototype.$http.defaults.headers.common['Content-Type'] = 'application/json';
 Vue.prototype.$http.defaults.headers.common['Accept'] = 'application/json';
 Vue.prototype.$http.defaults.headers.common['Authorization'] = `Bearer ${store.getters.token}`;
+WS.defaults['Authorization'] = store.getters.token;
 
 new Vue({
   render: (h) => h(App),

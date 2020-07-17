@@ -1,7 +1,7 @@
 import {
   Router, Response, NextFunction,
 } from 'express';
-import Y from 'yjs';
+import * as Y from 'yjs';
 import { isValidObjectId } from 'mongoose';
 import LRU from 'lru-cache';
 import { Controller, WsController, WsContext } from '../interfaces/controller.interface';
@@ -15,8 +15,9 @@ import {
 } from './note.interface';
 import broadcast from '../utils/ws';
 import { stringToArray, Actions } from '../../../common/collab';
-import { authMiddleware } from '../middleware/auth.middleware';
+import { authMiddleware, authWsMiddleware } from '../middleware/auth.middleware';
 import RequestWithUser from '../interfaces/requestWithUser.interface';
+import { MiddlewareData } from '../interfaces/websocket.interface';
 
 class NoteController implements Controller, WsController {
   public path = '/note';
@@ -43,35 +44,37 @@ class NoteController implements Controller, WsController {
     this.initialiseRoutes();
   }
 
-  public boot() {}
+  public boot() { }
 
   public subscribeToWs({ ws, wss }: WsContext): void {
     ws.on('contentUpdated', async (payload) => {
-      if (!ws.isAuthenticated) {
-        return;
-      }
-      const { id, mergeChanges } = payload;
-      if (!isValidObjectId(id)) {
-        console.error(new InvalidObjectIdException(id));
-        return;
-      }
-      const note = await this.findNoteByIdAndToPending(id);
-      if (note !== null) {
-        const changes = stringToArray(mergeChanges);
-        if (changes !== null) {
-          Y.applyUpdate(note.content, changes, 'websocket');
-          note.isDirty = true;
-          broadcast(wss, JSON.stringify({
-            action: Actions.CONTENT_UPDATED,
-            payload: {
-              id,
-              mergeChanges,
-            },
-          }), {
-            except: ws,
-          });
+      authWsMiddleware(ws, payload, async ({ user }: MiddlewareData) => {
+        if (!user) {
+          return;
         }
-      }
+        const { id, mergeChanges } = payload;
+        if (!isValidObjectId(id)) {
+          console.error(new InvalidObjectIdException(id));
+          return;
+        }
+        const note = await this.findNoteByIdAndToPending(id);
+        if (note !== null) {
+          const changes = stringToArray(mergeChanges);
+          if (changes !== null) {
+            Y.applyUpdate(note.content, changes, 'websocket');
+            note.isDirty = true;
+            broadcast(wss, JSON.stringify({
+              action: Actions.CONTENT_UPDATED,
+              payload: {
+                id,
+                mergeChanges,
+              },
+            }), {
+              except: ws,
+            });
+          }
+        }
+      });
     });
   }
 

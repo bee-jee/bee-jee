@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import WebSocket from 'ws';
-import WebsocketWithBeeJee from './websocket.interface';
+import { WebsocketWithBeeJee } from './websocket.interface';
 import ConfigManager from './config.interface';
 
 export interface Controller {

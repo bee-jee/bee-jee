@@ -7,7 +7,7 @@ import http from 'http';
 import { CleanEnv } from 'envalid';
 import { Controller, isWsController, WsContext } from './interfaces/controller.interface';
 import errorMiddleware from './middleware/error.middleware';
-import WebsocketWithBeeJee from './interfaces/websocket.interface';
+import { WebsocketWithBeeJee } from './interfaces/websocket.interface';
 import ConfigManager from './interfaces/config.interface';
 
 class App implements ConfigManager {

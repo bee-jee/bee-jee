@@ -1,5 +1,5 @@
-import Vue from 'vue';
 import { Actions } from '../../../common/collab';
+import { wsSend } from '../../helpers/ws';
 
 const state = {
   allUserCursorIds: [],
@@ -16,12 +16,12 @@ const getters = {
 
 const actions = {
   enterNote(context, { _id }) {
-    Vue.prototype.$socket.send(JSON.stringify({
+    wsSend({
       action: Actions.ENTER_NOTE,
       payload: {
         _id,
       },
-    }));
+    });
   },
   [Actions.NOTE_ENTERED]({ commit }, data) {
     const { id, color, name, currCursors } = data.payload;
@@ -39,13 +39,13 @@ const actions = {
     if (!getters.current.id) {
       return;
     }
-    Vue.prototype.$socket.send(JSON.stringify({
+    wsSend({
       action: Actions.USER_LEFT,
       payload: {
         _id,
         id: getters.current.id,
       },
-    }));
+    });
   },
   changeCursor({ getters, commit }, { note, index, length }) {
     commit('setCurrent', {
@@ -53,7 +53,7 @@ const actions = {
       length,
     });
     if (getters.current.id) {
-      Vue.prototype.$socket.send(JSON.stringify({
+      wsSend({
         action: Actions.CURSOR_UPDATED,
         payload: {
           _id: note._id,
@@ -61,7 +61,7 @@ const actions = {
           index,
           length,
         },
-      }));
+      });
     }
   },
   [Actions.USER_ENTERED]({ commit }, data) {

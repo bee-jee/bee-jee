@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import { encodeDoc, decodeDoc, arrayToString, Actions } from '../../../common/collab';
+import { wsSend } from '../../helpers/ws';
 
 export const state = {
   // allIds contains only the notes' IDs, the reason
@@ -253,13 +254,13 @@ const subscribeContentUpdate = (note) => {
     if (origin !== null && origin === 'ws') {
       return;
     }
-    Vue.prototype.$socket.send(JSON.stringify({
+    wsSend({
       action: Actions.CONTENT_UPDATED,
       payload: {
         id: note._id,
         mergeChanges: arrayToString(update),
       },
-    }));
+    });
   });
 };
 

@@ -1,5 +1,7 @@
 import Vue from 'vue';
 import Cookie from 'js-cookie';
+import WS from '../../helpers/ws';
+import { Actions } from '../../../common/collab';
 
 const state = {
   user: {},
@@ -14,49 +16,33 @@ const getters = {
   refreshToken: state => state.refreshToken,
 };
 
-export const wsAuthenticate = (token) => {
-  Vue.prototype.$socket.send(JSON.stringify({
-    action: 'authenticate',
-    payload: {
-      token: token,
-    },
-  }));
-};
-
 const actions = {
-  async login({ commit, getters }, { username, password }) {
+  async login({ commit }, { username, password }) {
     try {
       const resp = await Vue.prototype.$http.post(`/auth/login`, {
         username,
         password,
       });
       commit('setToken', resp.data.accessToken);
-      commit('setRefreshToken', resp.data.accessToken);
+      commit('setRefreshToken', resp.data.refreshToken);
       commit('setUser', resp.data.user);
-      wsAuthenticate(getters.token);
     } catch (err) {
       console.error(err);
     }
   },
   async logout({ commit }) {
-    Vue.prototype.$http.post('/auth/logout');
+    await Vue.prototype.$http.post('/auth/logout');
     commit('setUser', {});
     commit('setToken', '');
     commit('setRefreshToken', '');
-    commit('setIsAuthenticated', false);
+    delete Vue.prototype.$http.defaults.headers.common['Authorization'];
+    delete WS.defaults['Authorization'];
   },
   async checkLoggedIn({ commit, getters, dispatch }) {
-    const finaliseUser = (user) => {
+    const finaliseUser = async (user) => {
       commit('setUser', user);
-      // If the ws is connected before we got the response from the server
-      // then we want to do ws authentication here. Because onSocketOpen has
-      // not authenticate due to not being logged in
-      if (user._id) {
-        if (getters.websocketIsConnected) {
-          wsAuthenticate(getters.token);
-        }
-      } else {
-        dispatch('logout');
+      if (!user._id) {
+        await dispatch('logout');
       }
     };
     const tryRefreshToken = async () => {
@@ -66,22 +52,24 @@ const actions = {
             refreshToken: getters.refreshToken,
           });
           commit('setToken', resp.data.accessToken);
-          commit('setRefreshToken', resp.data.accessToken);
+          commit('setRefreshToken', resp.data.refreshToken);
           commit('setUser', resp.data.user);
-          wsAuthenticate(getters.token);
         } catch(err) {
-          dispatch('logout');
+          await dispatch('logout');
         }
         return;
       }
-      dispatch('logout');
+      await dispatch('logout');
     };
     try {
       const resp = await Vue.prototype.$http.get(`/auth/user`);
-      finaliseUser(resp.data);
+      await finaliseUser(resp.data);
     } catch (err) {
-      tryRefreshToken();
+      await tryRefreshToken();
     }
+  },
+  async [Actions.NOT_AUTHENTICATED]({ dispatch }) {
+    await dispatch('checkLoggedIn');
   },
 };
 
@@ -96,6 +84,7 @@ const mutations = {
       secure: process.env.NODE_ENV === 'production',
     });
     Vue.prototype.$http.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    WS.defaults['Authorization'] = token;
   },
   setRefreshToken(state, token) {
     state.refreshToken = token;

@@ -1,28 +1,14 @@
-import Vue from 'vue';
 import * as Y from 'yjs';
 import { stringToArray, Actions } from '../../../common/collab';
-import { wsAuthenticate } from './auth';
-
-export class PendingSocket {
-  constructor(store) {
-    this.store = store;
-  }
-
-  send(data) {
-    this.store.commit('SOCKET_ADD_PENDING', data);
-  }
-}
+import { setWs, removeWs } from '../../helpers/ws';
 
 export const state = {
   isConnected: false,
-  isAuthenticated: false,
   reconnectError: false,
-  pendingData: [],
 };
 
 export const getters = {
   websocketIsConnected: state => state.isConnected,
-  websocketIsAuthenticated: state => state.isAuthenticated,
 };
 
 export const actions = {
@@ -35,39 +21,16 @@ export const actions = {
       commit('setNoteContent', note);
     }
   },
-  authenticated({ commit }, data) {
-    if (data.payload.status === 200) {
-      commit('setIsAuthenticated', true);
-    }
-  },
-  onSocketOpen({ state, getters, commit }) {
-    // If the ws is open after we got the response from server
-    // saying we are authenticated, then we will need to do ws
-    // authentication here
-    if (getters.isLoggedIn) {
-      wsAuthenticate(getters.token);
-    }
-    state.pendingData.forEach((data) => {
-      Vue.prototype.$socket.send(data);
-    });
-    commit('SOCKET_SET_PENDING', []);
-  },
 };
 
 export const mutations = {
-  SOCKET_ADD_PENDING(state, data) {
-    state.pendingData.push(data);
-  },
-  SOCKET_SET_PENDING(state, value) {
-    state.pendingData = value;
-  },
   SOCKET_ONOPEN(state, event) {
-    Vue.prototype.$socket = event.currentTarget;
+    setWs(event.currentTarget);
     state.isConnected = true;
   },
   SOCKET_ONCLOSE(state) {
     state.isConnected = false;
-    state.isAuthenticated = false;
+    removeWs();
   },
   SOCKET_ONERROR(state, event) {
     console.error(state, event);
@@ -82,9 +45,6 @@ export const mutations = {
   },
   SOCKET_RECONNECT_ERROR(state) {
     state.reconnectError = true;
-  },
-  setIsAuthenticated(state, value) {
-    state.isAuthenticated = value;
   },
 };
 
