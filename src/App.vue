@@ -28,7 +28,7 @@ export default {
     });
     const self = this;
     this.$router.beforeEach((to, from, next) => {
-      self.requiresAuth = to.matched.some(record => record.meta.requiresAuth);
+      self.showExpired = to.matched.some(record => record.meta.requiresAuth) && !self.isLoggedIn;
       next();
     });
   },
@@ -40,7 +40,6 @@ export default {
   data() {
     return {
       showExpired: false,
-      requiresAuth: false,
     };
   },
   methods: {
@@ -52,7 +51,7 @@ export default {
       this.$router.push('/login');
     },
     invalidateModal() {
-      if (this.requiresAuth && this.showExpired) {
+      if (this.showExpired) {
         this.$modal.show('expiredSession');
       } else {
         this.$modal.hide('expiredSession');
@@ -64,9 +63,6 @@ export default {
       if (!newValue) {
         this.showExpired = true;
       }
-    },
-    requiresAuth() {
-      this.invalidateModal();
     },
     showExpired() {
       this.invalidateModal();

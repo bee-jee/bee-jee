@@ -6,8 +6,9 @@ function errorMiddleware(
 ) {
   const status = err.status || 500;
   const message = err.message || 'Unexpected error';
+  const errors = err.errors || undefined;
   response.status(status).send({
-    message, status,
+    message, status, errors,
   });
 }
 

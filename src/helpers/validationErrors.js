@@ -12,7 +12,11 @@ class ValidationErrors {
     if (key in this.errors) {
       errors = this.errors[key];
     }
-    errors.push(message);
+    if (Array.isArray(message)) {
+      errors = errors.concat(message);
+    } else {
+      errors.push(message);
+    }
     this.errors = {
       ...this.errors,
       [key]: errors,

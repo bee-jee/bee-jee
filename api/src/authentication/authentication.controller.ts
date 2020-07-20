@@ -11,6 +11,7 @@ import ConfigManager from '../interfaces/config.interface';
 import OAuthModel from './authentication.service';
 import RefreshTokenDto from './refreshToken.dto';
 import HttpException from '../exceptions/HttpException';
+import InvalidCredentialsException from '../exceptions/InvalidCredentialsException';
 
 class AuthenticationController implements Controller {
   public path = '/auth';
@@ -39,15 +40,19 @@ class AuthenticationController implements Controller {
     response.send(request.user);
   };
 
-  private login = async (request: Request, response: Response) => {
+  private login = async (request: Request, response: Response, next: NextFunction) => {
     const data: LoginDto = request.body;
     const oauthRequest = this.buildOAuthRequest({
       ...data,
       grant_type: 'password',
     });
     const oauthResponse = new OAuthResponse(response);
-    const token = await oauthToken(oauthRequest, oauthResponse);
-    response.send(token);
+    try {
+      const token = await oauthToken(oauthRequest, oauthResponse);
+      response.send(token);
+    } catch (err) {
+      next(new InvalidCredentialsException());
+    }
   };
 
   private logout = async (request: RequestWithUser, response: Response) => {

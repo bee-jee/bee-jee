@@ -1,20 +1,27 @@
 import { RequestHandler } from 'express';
 import { validate, ValidationError } from 'class-validator';
 import { plainToClass } from 'class-transformer';
-import HttpException from '../exceptions/HttpException';
+import { ValidationErrors, ValidationException } from '../exceptions/ValidationException';
 
 function validationMiddleware(type: any, skipMissingProperties: boolean = false): RequestHandler {
   return (req, _, next) => {
     validate(plainToClass(type, req.body), { skipMissingProperties })
       .then((errors: ValidationError[]) => {
         if (errors.length > 0) {
-          const message = errors.map((error: ValidationError) => {
-            if (typeof error.constraints === 'undefined') {
-              return 'Unknown validation error';
+          const errorsObject = errors.reduce((acc: ValidationErrors, err: ValidationError) => {
+            let errorList: string[] = [];
+            if (err.property in acc) {
+              errorList = acc[err.property];
             }
-            return Object.values(error.constraints);
-          }).join(', ');
-          next(new HttpException(400, message));
+            if (err.constraints === undefined) {
+              errorList.push('Unknown validation error');
+            } else {
+              errorList = errorList.concat(Object.values(err.constraints));
+            }
+            acc[err.property] = errorList;
+            return acc;
+          }, {});
+          next(new ValidationException(errorsObject));
         } else {
           next();
         }

@@ -7,6 +7,7 @@ const state = {
   user: {},
   token: Cookie.get('token') || '',
   refreshToken: Cookie.get('refreshToken') || '',
+  loginError: '',
 };
 
 const getters = {
@@ -14,6 +15,7 @@ const getters = {
   isLoggedIn: state => !!state.user._id,
   token: state => state.token,
   refreshToken: state => state.refreshToken,
+  loginError: state => state.loginError,
 };
 
 const actions = {
@@ -27,7 +29,11 @@ const actions = {
       commit('setRefreshToken', resp.data.refreshToken);
       commit('setUser', resp.data.user);
     } catch (err) {
-      console.error(err);
+      if (err.response && err.response.status === 401) {
+        commit('setLoginError', err.response.data.message);
+      } else {
+        commit('setLoginError', err.message);
+      }
     }
   },
   async logout({ commit }) {
@@ -96,6 +102,9 @@ const mutations = {
       sameSite: true,
       secure: process.env.NODE_ENV === 'production',
     });
+  },
+  setLoginError(state, message) {
+    state.loginError = message;
   },
 };
 

@@ -24,6 +24,7 @@
           placeholder="Password"
           required
         />
+        <div class="text-danger" v-if="loginError">{{loginError}}</div>
       </div>
       <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
     </form>
@@ -31,6 +32,7 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 export default {
   data() {
     return {
@@ -45,12 +47,17 @@ export default {
       const self = this;
       this.$store.dispatch('login', { username, password })
         .then(function () {
-          self.$router.push('/');
-        })
-        .catch((err) => {
-          self.error = err;
+          if (self.isLoggedIn) {
+            self.$router.push('/');
+          }
         });
     },
+  },
+  computed: {
+    ...mapGetters([
+      'loginError',
+      'isLoggedIn',
+    ]),
   },
 }
 </script>
