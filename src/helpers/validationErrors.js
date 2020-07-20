@@ -3,7 +3,7 @@ class ValidationErrors {
 
   constructor(errors) {
     if (typeof errors !== 'undefined') {
-      this.errors = errors;
+      this.setErrors(errors);
     }
   }
 
@@ -37,6 +37,10 @@ class ValidationErrors {
 
   reset() {
     this.errors = {};
+  }
+
+  setErrors(errors) {
+    this.errors = errors;
   }
 }
 

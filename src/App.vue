@@ -32,6 +32,9 @@ export default {
       next();
     });
   },
+  mounted() {
+    this.$store.dispatch('retrieveConfig');
+  },
   computed: {
     ...mapGetters([
       'isLoggedIn',

@@ -1,6 +1,12 @@
 <template>
   <div class="note-editor">
-    <div class="text-center" id="toolbar" :class="{ 'd-none': !!!note._id }" ref="toolbar">
+    <div
+      class="text-center"
+      id="toolbar"
+      :class="{ 'd-none': !!!note._id }"
+      ref="toolbar"
+      :key="note._id"
+    >
       <div class="d-inline-block text-left">
         <span class="ql-formats">
           <span class="ql-picker" @click="handleShowEditTitle">
@@ -53,7 +59,7 @@
       </div>
     </div>
     <div v-if="note && note._id" class="note-editor-container" ref="editorContainer">
-      <editor :note="note"></editor>
+      <editor :note="note" :key="note._id"></editor>
     </div>
 
     <modal name="editTitle" height="auto" :draggable="true" :adaptive="true">
@@ -136,8 +142,6 @@ export default {
     },
   },
   mounted() {
-    // this.calculateContainerSize();
-    // ResizeSensor.detach(this.$refs.toolbar);
     new ResizeSensor(this.$refs.toolbar, () => {
       this.calculateContainerSize();
     });
@@ -155,6 +159,13 @@ export default {
       if (newNote._id) {
         this.$store.dispatch('enterNote', {
           _id: newNote._id,
+        });
+      }
+    },
+    $route(to) {
+      if (to.params.id) {
+        this.$store.dispatch('setSelectedNote', {
+          _id: to.params.id,
         });
       }
     },
