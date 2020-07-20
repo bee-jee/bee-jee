@@ -3,14 +3,10 @@
     <div class="col-12 pb-2">
       <div class="row no-gutters">
         <div class="col-12 text-right">
-          <button type="button" class="btn" @click="showCreateNote = true">
+          <button type="button" class="btn btn-sm" @click="showCreateNote = true">
             <i class="fas fa-plus"></i>
           </button>
-          <button
-            type="button"
-            class="btn ml-2"
-            @click="closeExplorer"
-          >
+          <button type="button" class="btn btn-sm ml-2" @click="closeExplorer">
             <i class="fas fa-chevron-left"></i>
           </button>
         </div>

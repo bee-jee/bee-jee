@@ -5,12 +5,14 @@ import router from './router/routes';
 import VueRouter from 'vue-router';
 import {
   BModal,
-  BButton,
   BDropdownItem,
   BNavItemDropdown,
 } from 'bootstrap-vue';
+import VModal from 'vue-js-modal';
 import { library } from '@fortawesome/fontawesome';
-import { faTrashAlt } from '@fortawesome/free-regular-svg-icons';
+import {
+  faTrashAlt, faEdit,
+} from '@fortawesome/free-regular-svg-icons';
 import {
   faCog, faPlus, faChevronLeft, faChevronRight,
 } from '@fortawesome/free-solid-svg-icons';
@@ -21,13 +23,12 @@ import { apiUrl } from './helpers/url';
 import './helpers/ws';
 import WS from './helpers/ws';
 
-library.add(faTrashAlt, faCog, faPlus, faChevronLeft, faChevronRight);
+library.add(faTrashAlt, faCog, faPlus, faChevronLeft, faChevronRight, faEdit);
 Vue.config.productionTip = false;
 
 // This will register bootstrap tags such as <b-modal>
 // to be available to all components
 Vue.component('b-modal', BModal);
-Vue.component('b-button', BButton);
 Vue.component('b-nav-item-dropdown', BNavItemDropdown);
 Vue.component('b-dropdown-item', BDropdownItem);
 Vue.use(VueRouter);
@@ -37,6 +38,7 @@ Vue.use(VueNativeSock, process.env.VUE_APP_WS_URL, {
   reconnection: true,
   reconnectionDelay: 5000,
 });
+Vue.use(VModal);
 
 Vue.prototype.$http = Axios;
 Vue.prototype.$http.defaults.baseURL = apiUrl('/');

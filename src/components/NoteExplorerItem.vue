@@ -12,8 +12,8 @@
           <b>{{note.title ? note.title : 'No title'}}</b>
         </div>
         <div class="col-auto">
-          <span class="btn-icon btn-danger" @click="handleClickDeleteNote(note)">
-            <i class="far fa-trash-alt btn-icon btn-danger" @click="handleClickDeleteNote(note)"></i>
+          <span @click="handleClickDeleteNote(note)">
+            <i class="far fa-trash-alt btn-icon btn-danger fa-sm"></i>
           </span>
         </div>
       </div>

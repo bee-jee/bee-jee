@@ -31,7 +31,11 @@ const actions = {
     }
   },
   async logout({ commit }) {
-    await Vue.prototype.$http.post('/auth/logout');
+    try {
+      await Vue.prototype.$http.post('/auth/logout');
+    } catch (err) {
+      console.error(err);
+    }
     commit('setUser', {});
     commit('setToken', '');
     commit('setRefreshToken', '');

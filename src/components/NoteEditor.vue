@@ -3,6 +3,11 @@
     <div class="text-center" id="toolbar" :class="{ 'd-none': !!!note._id }" ref="toolbar">
       <div class="d-inline-block text-left">
         <span class="ql-formats">
+          <span class="ql-picker" @click="handleShowEditTitle">
+            <span class="ql-picker-label" role="button">Edit title</span>
+          </span>
+        </span>
+        <span class="ql-formats">
           <select class="ql-size"></select>
         </span>
         <span class="ql-formats">
@@ -50,12 +55,27 @@
     <div v-if="note && note._id" class="note-editor-container" ref="editorContainer">
       <editor :note="note"></editor>
     </div>
+
+    <modal name="editTitle" height="auto" :draggable="true" :adaptive="true">
+      <form @submit.prevent="handleEditTitle" class="p-2">
+        <h5>Edit title</h5>
+        <div class="form-group">
+          <input type="text" class="form-control" v-model="editedTitle" />
+          <div v-if="isUpdatingNoteTitle">Loading . . .</div>
+        </div>
+        <div class="text-right">
+          <button type="button" class="btn btn-secondary mr-2" @click="handleCloseEditTitle">Cancel</button>
+          <button class="btn btn-primary" @click="handleEditTitle">Save</button>
+        </div>
+      </form>
+    </modal>
   </div>
 </template>
 
 <script>
 import Editor from './Editor';
 import { ResizeSensor } from 'css-element-queries';
+import { mapGetters } from 'vuex';
 
 function getElementHeight(el) {
   let height, margin;
@@ -76,12 +96,13 @@ export default {
   },
   data() {
     return {
-      editorOptions: {
-        usageStatistics: false,
-      },
+      editedTitle: '',
     };
   },
   computed: {
+    ...mapGetters([
+      'isUpdatingNoteTitle',
+    ]),
     note() {
       return this.$store.getters.selectedNote;
     },
@@ -95,9 +116,23 @@ export default {
   },
   methods: {
     calculateContainerSize() {
-      const toolbarHeight = getElementHeight(this.$refs.toolbar);
+      const toolbarHeight = getElementHeight(this.$refs.toolbar) + 1;
       const container = this.$refs.editorContainer;
       container.style.height = `calc(100% - ${toolbarHeight}px)`;
+    },
+    handleShowEditTitle() {
+      this.$modal.show('editTitle');
+      this.editedTitle = this.note.title;
+    },
+    handleCloseEditTitle() {
+      this.$modal.hide('editTitle');
+    },
+    handleEditTitle() {
+      this.handleCloseEditTitle();
+      this.$store.dispatch('editNoteTitle', {
+        _id: this.note._id,
+        title: this.editedTitle,
+      });
     },
   },
   mounted() {

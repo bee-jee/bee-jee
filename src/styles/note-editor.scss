@@ -11,6 +11,7 @@
 .ql-container.ql-snow {
     overflow: auto;
     border: none;
+    font-size: 1rem;
 
     .ql-editor {
         min-height: 100%;
@@ -19,7 +20,6 @@
         max-width: 794px;
         margin: 0 auto 6rem auto;
         box-shadow: 0 1px 3px 1px rgba(60, 64, 67, .15);
-        font-size: 1em;
     }
 }
 
@@ -48,7 +48,7 @@
 .ql-toolbar.ql-snow {
     border: none;
     border-bottom: 1px solid #eee;
-    padding: 8px 40px;
+    padding: 0.5rem 0.5rem 0.5rem 26.75px;
 
     .ql-formats {
         text-align: left;

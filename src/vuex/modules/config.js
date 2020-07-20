@@ -5,14 +5,6 @@ const CONFIG_KEY = 'config';
 export const state = {
   explorerSize: 20,
   explorerClosed: false,
-  defaultEditorEditType: 'wysiwyg',
-  definitions: [
-    {
-      type: 'menu',
-      name: 'defaultEditorEditType',
-      values: ['wysiwyg', 'markdown'],
-    },
-  ],
 };
 
 export const getters = {

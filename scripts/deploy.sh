@@ -8,8 +8,3 @@ ssh-add /tmp/beejee.pem # Add the private key to SSH
 git config --global push.default matching
 git remote add deploy ssh://git@$SFTP_IP:22$SFTP_DEPLOY_DIR
 git push deploy master
-
-ssh $SFTP_USERNAME@$SFTP_IP -p 22 <<EOF
-  cd $SFTP_DEPLOY_DIR
-  npm i && npm run build
-EOF

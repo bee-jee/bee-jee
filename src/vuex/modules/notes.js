@@ -19,6 +19,7 @@ export const state = {
   pendingSyncTitleById: {},
   isLoading: false,
   isCreatingNote: false,
+  isUpdatingNoteTitle: false,
   isSyncing: false,
 };
 
@@ -30,6 +31,7 @@ export const getters = {
   allNotes: (state, getters) => state.allIds.map(id => getters.noteById(id)),
   isLoading: (state) => state.isLoading,
   isCreatingNote: (state) => state.isCreatingNote,
+  isUpdatingNoteTitle: (state) => state.isUpdatingNoteTitle,
   isSyncing: (state) =>  state.isSyncing || Object.keys(state.pendingSyncTitleById).length !== 0,
   pendingSyncTitleById: (state) => state.pendingSyncTitleById,
 };
@@ -76,13 +78,17 @@ export const actions = {
       console.error(err);
     }
   },
-  changeNoteTitle({ getters, commit }, { _id, title }) {
-    // We don't want to send an api request on every key stroke
-    // therefore, what we want to do is update the state so that
-    // the note's title is changed and then use debounce to delay
-    // the api request
-    commit('setNoteTitle', { _id, title });
-    syncNoteTitle({ getters, commit }, { _id });
+  async editNoteTitle({ commit }, { _id, title }) {
+    try {
+      commit('setIsUpdatingNoteTitle', true);
+      const resp = await Vue.prototype.$http.patch(`/note/${_id}`, {
+        title,
+      });
+      commit('setNoteTitle', { _id, title: resp.data.title });
+    } catch (err) {
+      console.error(err);
+    }
+    commit('setIsUpdatingNoteTitle', false);
   },
   changeNoteContent({ getters, commit }, { _id, ops }) {
     const note = getters.noteById(_id);
@@ -226,28 +232,10 @@ export const mutations = {
       ...state.pendingSyncTitleById,
     };
   },
+  setIsUpdatingNoteTitle(state, value) {
+    state.isUpdatingNoteTitle = value;
+  },
 };
-
-const syncNoteTitle = debounce(({ getters, commit }, { _id }) => {
-  if (!(_id in getters.pendingSyncTitleById)) {
-    return;
-  }
-  const sync = getters.pendingSyncTitleById[_id];
-  if (sync.status !== 'pending') {
-    return;
-  }
-  sync.status = 'in_progress';
-  Vue.prototype.$http.patch(`/note/${_id}`, {
-    title: sync.title,
-  })
-    .then(() => {
-      // TODO: Handle cases when the request has failed
-      commit('removePendingSyncTitle', { _id });
-    })
-    .catch((err) => {
-      console.error(err);
-    });
-}, 1000, false);
 
 const subscribeContentUpdate = (note) => {
   note.content.on('update', (update, origin) => {
@@ -266,21 +254,6 @@ const subscribeContentUpdate = (note) => {
 
 const unsubscribeContentUpdate = (note) => {
   note.content.off('update');
-}
-
-function debounce(func, wait, immediate) {
-	let timeout;
-	return function() {
-		const context = this, args = arguments;
-		const later = function() {
-			timeout = null;
-			if (!immediate) func.apply(context, args);
-		};
-		const callNow = immediate && !timeout;
-		clearTimeout(timeout);
-		timeout = setTimeout(later, wait);
-		if (callNow) func.apply(context, args);
-	};
 }
 
 export default {
