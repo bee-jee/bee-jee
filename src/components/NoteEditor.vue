@@ -57,7 +57,7 @@
     </div>
 
     <modal name="editTitle" height="auto" :draggable="true" :adaptive="true">
-      <form @submit.prevent="handleEditTitle" class="p-2">
+      <form @submit.prevent="handleEditTitle" class="p-3">
         <h5>Edit title</h5>
         <div class="form-group">
           <input type="text" class="form-control" v-model="editedTitle" />

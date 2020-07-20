@@ -4,7 +4,6 @@ import store from './vuex/store';
 import router from './router/routes';
 import VueRouter from 'vue-router';
 import {
-  BModal,
   BDropdownItem,
   BNavItemDropdown,
 } from 'bootstrap-vue';
@@ -28,7 +27,6 @@ Vue.config.productionTip = false;
 
 // This will register bootstrap tags such as <b-modal>
 // to be available to all components
-Vue.component('b-modal', BModal);
 Vue.component('b-nav-item-dropdown', BNavItemDropdown);
 Vue.component('b-dropdown-item', BDropdownItem);
 Vue.use(VueRouter);

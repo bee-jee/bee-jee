@@ -2,16 +2,16 @@
   <div id="app">
     <router-view></router-view>
 
-    <b-modal :visible="requiresAuth && showExpired" centered @hidden="handleCloseExpired">
-      <template v-slot:modal-title>Your session has expired</template>
-      <template
-        v-slot:default
-      >Your session has expired do you want to redirect to the login page. If you don't want to your edit will not be able be saved.</template>
-      <template v-slot:modal-footer>
-        <button class="btn btn-danger" @click="handleCloseExpired">No</button>
-        <button class="btn btn-primary" @click="handleRedirect">Yes</button>
-      </template>
-    </b-modal>
+    <modal name="expiredSession" height="auto" :adaptive="true" @closed="handleCloseExpired">
+      <div class="p-3">
+        <h5>Your session has expired</h5>
+        <p>Your session has expired, do you want to redirect to the login page? If you don't want to your edit will not be able be saved.</p>
+        <div class="text-right">
+          <button class="btn btn-danger mr-2" @click="handleCloseExpired">No</button>
+          <button class="btn btn-primary" @click="handleRedirect">Yes</button>
+        </div>
+      </div>
+    </modal>
   </div>
 </template>
 
@@ -51,12 +51,25 @@ export default {
       this.handleCloseExpired();
       this.$router.push('/login');
     },
+    invalidateModal() {
+      if (this.requiresAuth && this.showExpired) {
+        this.$modal.show('expiredSession');
+      } else {
+        this.$modal.hide('expiredSession');
+      }
+    },
   },
   watch: {
     isLoggedIn(newValue) {
       if (!newValue) {
         this.showExpired = true;
       }
+    },
+    requiresAuth() {
+      this.invalidateModal();
+    },
+    showExpired() {
+      this.invalidateModal();
     },
   },
 }

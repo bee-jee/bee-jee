@@ -1,12 +1,12 @@
 <template>
   <div class="note-explorer">
-    <div class="col-12 pb-2">
+    <div class="col-12 p-0">
       <div class="row no-gutters">
         <div class="col-12 text-right">
-          <button type="button" class="btn btn-sm" @click="showCreateNote = true">
+          <button type="button" class="btn px-2" @click="$modal.show('createNote')">
             <i class="fas fa-plus"></i>
           </button>
-          <button type="button" class="btn btn-sm ml-2" @click="closeExplorer">
+          <button type="button" class="btn px-2 ml-2" @click="closeExplorer">
             <i class="fas fa-chevron-left"></i>
           </button>
         </div>
@@ -23,9 +23,15 @@
 
     <utility-bar />
 
-    <b-modal v-if="showCreateNote" :visible="true" @hidden="handleCloseCreateNote">
-      <template v-slot:modal-title>Create a new note</template>
-      <template v-slot:default>
+    <modal
+      name="createNote"
+      height="auto"
+      :draggable="true"
+      :adaptive="true"
+      @closed="handleCloseCreateNote"
+    >
+      <div class="p-3">
+        <h5>Create a new note</h5>
         <form @submit.prevent="handleCreateNote">
           <div class="form-group">
             <label>Title</label>
@@ -42,22 +48,34 @@
             >{{newNoteErrors.getFirst('newNoteTitle')}}</p>
             <div v-if="isCreatingNote">Loading . . .</div>
           </div>
+          <div class="text-right">
+            <button
+              type="button"
+              class="btn btn-secondary mr-2"
+              @click="handleCloseCreateNote"
+            >Cancel</button>
+            <button class="btn btn-primary">Create</button>
+          </div>
         </form>
-      </template>
-      <template v-slot:modal-footer>
-        <button class="btn btn-secondary" @click="handleCloseCreateNote">Close</button>
-        <button class="btn btn-primary" @click="handleCreateNote">Create</button>
-      </template>
-    </b-modal>
+      </div>
+    </modal>
 
-    <b-modal v-if="toDeleteNote._id" :visible="true" @hidden="handleCloseDelete">
-      <template v-slot:modal-title>Delete "{{toDeleteNote.title}}"</template>
-      <template v-slot:default>Are you sure you want to delete?</template>
-      <template v-slot:modal-footer>
-        <button class="btn btn-secondary" @click="handleCloseDelete">Close</button>
-        <button class="btn btn-danger" @click="handleDeleteNote">Delete</button>
-      </template>
-    </b-modal>
+    <modal
+      name="deleteNote"
+      height="auto"
+      :draggable="true"
+      :adaptive="true"
+      @closed="handleCloseDelete"
+    >
+      <div class="p-3">
+        <h5>Delete "{{toDeleteNote.title}}"</h5>
+        <p>Are you sure you want to delete?</p>
+        <div class="text-right">
+          <button class="btn btn-secondary mr-2" @click="handleCloseDelete">Close</button>
+          <button class="btn btn-danger" @click="handleDeleteNote">Delete</button>
+        </div>
+      </div>
+    </modal>
   </div>
 </template>
 
@@ -75,7 +93,6 @@ export default {
   },
   data() {
     return {
-      showCreateNote: false,
       newNoteTitle: '',
       newNoteErrors: new ValidationErrors(),
     };
@@ -92,6 +109,7 @@ export default {
   },
   methods: {
     handleCreateNote() {
+      this.newNoteErrors.reset();
       if (this.newNoteTitle.trim() === '') {
         this.newNoteErrors.addError('newNoteTitle', 'Note title cannot be empty');
         return;
@@ -117,7 +135,7 @@ export default {
         });
     },
     handleCloseCreateNote() {
-      this.showCreateNote = false;
+      this.$modal.hide('createNote');
       this.newNoteTitle = '';
       this.newNoteErrors.reset();
     },
@@ -130,6 +148,15 @@ export default {
   },
   mounted() {
     this.$store.dispatch('fetchNotes');
+  },
+  watch: {
+    toDeleteNote(note) {
+      if (note._id) {
+        this.$modal.show('deleteNote');
+      } else {
+        this.$modal.hide('deleteNote');
+      }
+    }
   },
 };
 </script>

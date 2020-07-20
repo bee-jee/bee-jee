@@ -8,10 +8,15 @@ class ValidationErrors {
   }
 
   addError(key, message) {
-    if (!(key in this.errors)) {
-      this.errors[key] = [];
+    let errors = [];
+    if (key in this.errors) {
+      errors = this.errors[key];
     }
-    this.errors[key].push(message);
+    errors.push(message);
+    this.errors = {
+      ...this.errors,
+      [key]: errors,
+    };
   }
 
   has(key) {

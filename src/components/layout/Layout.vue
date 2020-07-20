@@ -20,13 +20,13 @@
         <button
           v-if="explorerClosed"
           type="button"
-          class="btn btn-sm open-explorer"
+          class="btn open-explorer"
           @click="openExplorer"
         >
           <i class="fas fa-chevron-right"></i>
         </button>
       </pane>
-      <pane :size="contentSize" ref="mainContent">
+      <pane :size="contentSize">
         <router-view :key="$route.fullPath" />
       </pane>
     </splitpanes>
@@ -58,6 +58,9 @@ export default {
       return explorerSize;
     },
     contentSize() {
+      if (this.explorerClosed) {
+        return 100;
+      }
       return 100 - this.explorerSize;
     },
     explorerClosed() {
@@ -77,13 +80,11 @@ export default {
     },
     updateExplorerMargin(size) {
       const explorerPane = this.$refs.explorer;
-      const mainContentPane = this.$refs.mainContent;
       if (!size) {
         size = explorerPane.size;
       }
       if (this.explorerClosed) {
         explorerPane.$el.style['margin-left'] = `-${size}%`;
-        mainContentPane.$el.style['width'] = '100%';
       } else {
         explorerPane.$el.style['margin-left'] = '0';
       }
