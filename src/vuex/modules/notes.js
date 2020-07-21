@@ -16,7 +16,6 @@ export const state = {
   // hexidecimal string therefore the IDs will have string type
   selectedNoteId: '',
   toDeleteNoteId: '',
-  pendingSyncTitleById: {},
   isLoading: false,
   isCreatingNote: false,
   isUpdatingNoteTitle: false,
@@ -32,8 +31,7 @@ export const getters = {
   isLoading: (state) => state.isLoading,
   isCreatingNote: (state) => state.isCreatingNote,
   isUpdatingNoteTitle: (state) => state.isUpdatingNoteTitle,
-  isSyncing: (state) =>  state.isSyncing || Object.keys(state.pendingSyncTitleById).length !== 0,
-  pendingSyncTitleById: (state) => state.pendingSyncTitleById,
+  isSyncing: (state) =>  state.isSyncing || state.isUpdatingNoteTitle,
 };
 
 export const actions = {
@@ -178,7 +176,7 @@ export const mutations = {
   // setNoteTitle does 2 things it changes the note's title in the state
   // and then push a pending sync to be synced later
   setNoteTitle(state, { _id, title }) {
-    const { byIds, pendingSyncTitleById } = state;
+    const { byIds } = state;
     // Retrieve the current note from the state
     const note = byIds[_id];
     // Set its title to the new title
@@ -188,31 +186,6 @@ export const mutations = {
       ...note,
       title,
     });
-    // Create a sync object to request to api
-    let sync = {
-      _id,
-    };
-    // If there's already a sync request on the queue
-    if (_id in pendingSyncTitleById) {
-      // then retrieve the sync object from the queue
-      sync = pendingSyncTitleById[_id];
-    } else {
-      // Otherwise, put the newly created object on the queue
-      pendingSyncTitleById[_id] = sync;
-    }
-    // Change the title of the sync object regardless of whether it
-    // is a new sync object or existing one, we only want to sync the latest
-    // title.
-    // TODO: Implement a CRDT on the client so that it supports real-time editing
-    // and then sync the CRDT with API by sending the edits to API, this edits
-    // should be persisted offline (via IndexDB) because it is possible that
-    // sending edits would take a long time (pasting of large data) and we
-    // don't want to lose data
-    sync.title = title;
-    sync.status = 'pending';
-    state.pendingSyncTitleById = {
-      ...pendingSyncTitleById,
-    };
   },
   setNoteContent(state, { _id }) {
     const { byIds } = state;
@@ -225,12 +198,6 @@ export const mutations = {
     Vue.set(state.byIds, _id, Object.freeze({
       ...note,
     }));
-  },
-  removePendingSyncTitle(state, { _id }) {
-    delete state.pendingSyncTitleById[_id];
-    state.pendingSyncTitleById = {
-      ...state.pendingSyncTitleById,
-    };
   },
   setIsUpdatingNoteTitle(state, value) {
     state.isUpdatingNoteTitle = value;
