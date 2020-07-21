@@ -1,8 +1,9 @@
-import { IsString, IsOptional } from 'class-validator';
+import { IsString, IsOptional, Length } from 'class-validator';
 
 class CreateNoteDto {
   @IsString()
   @IsOptional()
+  @Length(0, 255)
   public title: string;
 
   @IsString()

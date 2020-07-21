@@ -14,16 +14,7 @@
         height: 1.5rem;
         overflow: hidden;
         white-space: nowrap;
-
-        &:after {
-            content: "";
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            right: 0;
-            left: 0;
-            @include fading($gray-100);
-        }
+        text-overflow: ellipsis;
     }
     .note-explorer-item {
         display: block;
@@ -49,6 +40,11 @@
         min-height: 1rem;
         max-height: 3rem;
         overflow: hidden;
+    }
+    .note-explorer-item-delete {
+        position: absolute;
+        right: 0.5rem;
+        top: 0.25rem;
     }
 }
 

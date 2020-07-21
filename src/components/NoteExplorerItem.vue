@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="position-relative">
     <router-link
       :to="`/${note._id}`"
       class="note-explorer-item px-3 py-1"
@@ -7,21 +7,19 @@
       @click="handleClickNoteItem(note)"
       :title="note.title"
     >
-      <div class="row no-gutters">
-        <div class="col note-item-title">
-          <b>{{note.title ? note.title : 'No title'}}</b>
-        </div>
-        <div class="col-auto">
-          <span @click="handleClickDeleteNote(note)">
-            <i class="far fa-trash-alt btn-icon btn-danger fa-sm"></i>
-          </span>
-        </div>
+      <div class="note-item-title position-relative mr-1">
+        <b>{{note.title ? note.title : 'No title'}}</b>
       </div>
       <p
         class="note-item-summary text-muted"
         v-html="getNoteContent(note) ? getNoteContent(note) : 'No content'"
       ></p>
     </router-link>
+    <div class="note-explorer-item-delete">
+      <button class="btn-icon btn-danger" @click="handleClickDeleteNote(note)">
+        <i class="far fa-trash-alt fa-sm"></i>
+      </button>
+    </div>
   </div>
 </template>
 

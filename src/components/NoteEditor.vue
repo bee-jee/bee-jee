@@ -62,12 +62,22 @@
       <editor :note="note" :key="note._id"></editor>
     </div>
 
-    <modal name="editTitle" height="auto" :draggable="true" :adaptive="true">
+    <modal name="editTitle" height="auto" draggable=".modal-mover" :adaptive="true">
       <form @submit.prevent="handleEditTitle" class="p-3">
-        <h5>Edit title</h5>
+        <h5><i class="fas fa-arrows-alt modal-mover"></i> Edit title</h5>
         <div class="form-group">
-          <input type="text" class="form-control" v-model="editedTitle" />
+          <input
+            type="text"
+            class="form-control"
+            v-model="editedTitle"
+            :class="{ 'is-invalid': editTitleErrors.has('title') }"
+          />
           <div v-if="isUpdatingNoteTitle">Loading . . .</div>
+          <span
+            class="invalid-feedback"
+            v-for="error in editTitleErrors.getErrors('title')"
+            :key="error"
+          >{{error}}</span>
         </div>
         <div class="text-right">
           <button type="button" class="btn btn-secondary mr-2" @click="handleCloseEditTitle">Cancel</button>
@@ -82,6 +92,7 @@
 import Editor from './Editor';
 import { ResizeSensor } from 'css-element-queries';
 import { mapGetters } from 'vuex';
+import ValidationErrors from '../helpers/validationErrors';
 
 function getElementHeight(el) {
   let height, margin;
@@ -103,6 +114,7 @@ export default {
   data() {
     return {
       editedTitle: '',
+      editTitleErrors: new ValidationErrors(),
     };
   },
   computed: {
@@ -129,16 +141,22 @@ export default {
     handleShowEditTitle() {
       this.$modal.show('editTitle');
       this.editedTitle = this.note.title;
+      this.editTitleErrors.reset();
     },
     handleCloseEditTitle() {
       this.$modal.hide('editTitle');
     },
     handleEditTitle() {
-      this.handleCloseEditTitle();
       this.$store.dispatch('editNoteTitle', {
         _id: this.note._id,
         title: this.editedTitle,
-      });
+      })
+        .then(() => {
+          this.handleCloseEditTitle();
+        })
+        .catch((err) => {
+          this.editTitleErrors.setErrors(err.response.data.errors);
+        });
     },
   },
   mounted() {

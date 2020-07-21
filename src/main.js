@@ -14,6 +14,7 @@ import {
 } from '@fortawesome/free-regular-svg-icons';
 import {
   faCog, faPlus, faChevronLeft, faChevronRight,
+  faArrowsAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import App from './App.vue';
 import VueNativeSock from 'vue-native-websocket';
@@ -22,7 +23,8 @@ import { apiUrl } from './helpers/url';
 import './helpers/ws';
 import WS from './helpers/ws';
 
-library.add(faTrashAlt, faCog, faPlus, faChevronLeft, faChevronRight, faEdit);
+library.add(faTrashAlt, faCog, faPlus, faChevronLeft, faChevronRight, faEdit,
+  faArrowsAlt);
 Vue.config.productionTip = false;
 
 // This will register bootstrap tags such as <b-modal>

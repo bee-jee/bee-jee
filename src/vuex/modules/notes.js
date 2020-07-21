@@ -83,10 +83,9 @@ export const actions = {
         title,
       });
       commit('setNoteTitle', { _id, title: resp.data.title });
-    } catch (err) {
-      console.error(err);
+    } finally {
+      commit('setIsUpdatingNoteTitle', false);
     }
-    commit('setIsUpdatingNoteTitle', false);
   },
   changeNoteContent({ getters, commit }, { _id, ops }) {
     const note = getters.noteById(_id);

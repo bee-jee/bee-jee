@@ -26,15 +26,14 @@
     <modal
       name="createNote"
       height="auto"
-      :draggable="true"
+      draggable=".modal-mover"
       :adaptive="true"
       @closed="handleCloseCreateNote"
     >
       <div class="p-3">
-        <h5>Create a new note</h5>
+        <h5><i class="fas fa-arrows-alt modal-mover"></i> Create a new note</h5>
         <form @submit.prevent="handleCreateNote">
           <div class="form-group">
-            <label>Title</label>
             <input
               type="text"
               class="form-control"
@@ -63,12 +62,12 @@
     <modal
       name="deleteNote"
       height="auto"
-      :draggable="true"
+      draggable=".modal-mover"
       :adaptive="true"
       @closed="handleCloseDelete"
     >
       <div class="p-3">
-        <h5>Delete "{{toDeleteNote.title}}"</h5>
+        <h5><i class="fas fa-arrows-alt modal-mover"></i> Delete "{{toDeleteNote.title}}"</h5>
         <p>Are you sure you want to delete?</p>
         <div class="text-right">
           <button class="btn btn-secondary mr-2" @click="handleCloseDelete">Close</button>
