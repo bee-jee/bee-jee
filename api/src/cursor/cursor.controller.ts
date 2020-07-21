@@ -14,7 +14,9 @@ class CursorController implements Controller {
 
   private noteCursors = new Map<string, Map<string, Cursor>>();
 
-  private userNoteInstanceCounter = new Map<string, number>();
+  private noteSameUserCounter = new Map<string, number>();
+
+  private noteUserCounter = new Map<string, number>();
 
   private NoteModel = NoteModel;
 
@@ -35,16 +37,18 @@ class CursorController implements Controller {
         const idForCursors = `${note._id}`;
         const currCursors: Map<string, Cursor> = this.noteCursors.get(idForCursors)
           || new Map<string, Cursor>();
-        const idForCounter = `${idForCursors}-${user._id}`;
-        const sameUserCount = this.userNoteInstanceCounter.get(idForCounter) || 0;
+        const idForSameUserCounter = `${idForCursors}-${user._id}`;
+        const sameUserCount = this.noteSameUserCounter.get(idForSameUserCounter) || 0;
+        const userCount = this.noteUserCounter.get(idForCursors) || 0;
         const id = `${user._id}-${sameUserCount}`;
         const wsCursorIds: Map<string, string> = ws.cursorIds || new Map<string, string>();
         wsCursorIds.set(idForCursors, id);
         ws.cursorIds = wsCursorIds;
-        this.userNoteInstanceCounter.set(idForCounter, sameUserCount + 1);
+        this.noteSameUserCounter.set(idForSameUserCounter, sameUserCount + 1);
+        this.noteUserCounter.set(idForCursors, userCount + 1);
         const cursor: Cursor = {
           id,
-          color: Colors[currCursors.size % Colors.length],
+          color: Colors[userCount % Colors.length],
           name: user.fullName,
         };
         currCursors.set(id, cursor);

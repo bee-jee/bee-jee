@@ -5,14 +5,25 @@
 <script>
 import Quill from 'quill';
 import QuillCursors from 'quill-cursors';
+import ImageResize from 'quill-image-resize';
+import { ImageDrop } from 'quill-image-drop-module';
 
 Quill.register('modules/cursors', QuillCursors);
+Quill.register('modules/imageResize', ImageResize);
+Quill.register('modules/imageDrop', ImageDrop);
 
 const options = {
   theme: 'snow',
   modules: {
     cursors: true,
     toolbar: '#toolbar',
+    imageResize: {
+      modules: [
+        'DisplaySize',
+        'Resize',
+      ],
+    },
+    imageDrop: true,
   },
   readOnly: false,
 };
@@ -34,9 +45,6 @@ export default {
       });
     },
     quillSelectionChange(range) {
-      if (range === null) {
-        return;
-      }
       this.$store.dispatch('changeCursor', {
         note: this.note,
         ...range,
