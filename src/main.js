@@ -6,6 +6,10 @@ import VueRouter from 'vue-router';
 import {
   BDropdownItem,
   BNavItemDropdown,
+  BNavbarToggle,
+  BCollapse,
+  BNavbarNav,
+  BNavbar,
 } from 'bootstrap-vue';
 import VModal from 'vue-js-modal';
 import { library } from '@fortawesome/fontawesome';
@@ -31,6 +35,10 @@ Vue.config.productionTip = false;
 // to be available to all components
 Vue.component('b-nav-item-dropdown', BNavItemDropdown);
 Vue.component('b-dropdown-item', BDropdownItem);
+Vue.component('b-navbar-toggle', BNavbarToggle);
+Vue.component('b-collapse', BCollapse);
+Vue.component('b-navbar-nav', BNavbarNav);
+Vue.component('b-navbar', BNavbar);
 Vue.use(VueRouter);
 Vue.use(VueNativeSock, process.env.VUE_APP_WS_URL, {
   store,

@@ -4,6 +4,7 @@ import VueRouter from 'vue-router';
 import store from '../vuex/store';
 import BaseLayout from '../components/layout/BaseLayout';
 import SidebarLayout from '../components/layout/SidebarLayout';
+import navigations from '../helpers/nav';
 
 // which use vue-router
 const routes = [
@@ -28,6 +29,15 @@ const routes = [
       requiresAuth: true,
     },
     children: [
+      {
+        path: '/users/form/:id/change-password',
+        component: () => import('../components/ManageUsers/ChangePassword'),
+      },
+      {
+        path: '/users/form/:id?',
+        component: () => import('../components/ManageUsers/Create'),
+      },
+      ...navigations.map((navigation) => navigation.toRoute()),
       {
         path: '/change-own-password',
         component: () => import('../components/ChangeOwnPassword'),
@@ -82,6 +92,7 @@ const checkLoggedIn = (nextCurrent, nextLogin) => {
 };
 
 router.beforeEach((to, from, next) => {
+  store.commit('setGlobalIsLoading', true);
   if (to.matched.some(record => record.meta.requiresAuth)) {
     if (store.getters.isLoggedIn) {
       next();
@@ -103,6 +114,10 @@ router.beforeEach((to, from, next) => {
       });
     }
   }
+});
+
+router.afterEach(() => {
+  store.commit('setGlobalIsLoading', false);
 });
 
 export default router;

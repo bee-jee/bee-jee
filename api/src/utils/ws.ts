@@ -5,10 +5,10 @@ export interface BroadcastOptions {
 }
 
 export default function broadcast(
-  wss: WebSocket.Server, msg: string, opts?: BroadcastOptions,
+  clients: Set<WebSocket>, msg: string, opts?: BroadcastOptions,
 ): void {
   const except: WebSocket | null = typeof opts !== 'undefined' ? opts.except || null : null;
-  wss.clients.forEach((ws: WebSocket) => {
+  clients.forEach((ws: WebSocket) => {
     if (ws === except) {
       return;
     }

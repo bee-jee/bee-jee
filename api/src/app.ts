@@ -17,6 +17,8 @@ class App implements ConfigManager {
 
   public wss: WebSocket.Server;
 
+  public static noteWebsockets = new Map<string, Set<WebSocket>>();
+
   constructor(public config: Readonly<{
     MONGO_USER: string;
     MONGO_PASSWORD: string;

@@ -4,6 +4,7 @@ import {
 import * as Y from 'yjs';
 import { isValidObjectId } from 'mongoose';
 import LRU from 'lru-cache';
+import WebSocket from 'ws';
 import { Controller, WsController, WsContext } from '../interfaces/controller.interface';
 import NoteModel from './note.model';
 import validationMiddleware from '../middleware/validation.middleware';
@@ -18,6 +19,7 @@ import { stringToArray, Actions } from '../../../common/collab';
 import { authMiddleware, authWsMiddleware } from '../middleware/auth.middleware';
 import RequestWithUser from '../interfaces/requestWithUser.interface';
 import { MiddlewareData } from '../interfaces/websocket.interface';
+import App from '../app';
 
 class NoteController implements Controller, WsController {
   public path = '/note';
@@ -46,7 +48,7 @@ class NoteController implements Controller, WsController {
 
   public boot() { }
 
-  public subscribeToWs({ ws, wss }: WsContext): void {
+  public subscribeToWs({ ws }: WsContext): void {
     ws.on('contentUpdated', async (payload) => {
       authWsMiddleware(ws, payload, async ({ user }: MiddlewareData) => {
         if (!user) {
@@ -63,7 +65,8 @@ class NoteController implements Controller, WsController {
           if (changes !== null) {
             Y.applyUpdate(note.content, changes, 'websocket');
             note.isDirty = true;
-            broadcast(wss, JSON.stringify({
+            const websockets = App.noteWebsockets.get(`${note.note._id}`) || new Set<WebSocket>();
+            broadcast(websockets, JSON.stringify({
               action: Actions.CONTENT_UPDATED,
               payload: {
                 id,

@@ -1,5 +1,5 @@
 <template>
-  <div class="container mt-3">
+  <div class="content container">
     <h4>Change own password</h4>
     <form @submit.prevent="changePassword">
       <div v-if="successMessage" class="alert alert-success">{{successMessage}}</div>

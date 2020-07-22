@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import WebSocket from 'ws';
 import { Controller, WsContext } from '../interfaces/controller.interface';
 import NoteModel from '../note/note.model';
 import { Actions, Colors } from '../../../common/collab';
@@ -6,6 +7,7 @@ import { Cursor } from './cursor.interface';
 import broadcast from '../utils/ws';
 import { WebsocketWithBeeJee, MiddlewareData } from '../interfaces/websocket.interface';
 import { authWsMiddleware } from '../middleware/auth.middleware';
+import App from '../app';
 
 class CursorController implements Controller {
   public path = '/cursor';
@@ -22,7 +24,7 @@ class CursorController implements Controller {
 
   public boot() {}
 
-  public subscribeToWs({ ws, wss }: WsContext) {
+  public subscribeToWs({ ws }: WsContext) {
     const self = this;
 
     ws.on(Actions.ENTER_NOTE, async (payload) => {
@@ -35,6 +37,7 @@ class CursorController implements Controller {
           return;
         }
         const idForCursors = `${note._id}`;
+        const websockets = App.noteWebsockets.get(idForCursors) || new Set<WebSocket>();
         const currCursors: Map<string, Cursor> = this.noteCursors.get(idForCursors)
           || new Map<string, Cursor>();
         const idForSameUserCounter = `${idForCursors}-${user._id}`;
@@ -63,7 +66,9 @@ class CursorController implements Controller {
             }, {}),
           },
         }));
-        broadcast(wss, JSON.stringify({
+        websockets.add(ws);
+        App.noteWebsockets.set(idForCursors, websockets);
+        broadcast(websockets, JSON.stringify({
           action: Actions.USER_ENTERED,
           payload: cursor,
         }), {
@@ -75,7 +80,11 @@ class CursorController implements Controller {
     ws.on(Actions.USER_LEFT, ({ _id }) => {
       const id = self.removeCursor(ws, { _id });
       if (id !== undefined) {
-        broadcast(wss, JSON.stringify({
+        const idForCursors = `${_id}`;
+        const websockets = App.noteWebsockets.get(idForCursors) || new Set<WebSocket>();
+        websockets.delete(ws);
+        App.noteWebsockets.set(idForCursors, websockets);
+        broadcast(websockets, JSON.stringify({
           action: Actions.USER_LEFT,
           payload: {
             id,
@@ -93,7 +102,10 @@ class CursorController implements Controller {
           _id: idForCursors,
         });
         if (id !== undefined) {
-          broadcast(wss, JSON.stringify({
+          const websockets = App.noteWebsockets.get(idForCursors) || new Set<WebSocket>();
+          websockets.delete(ws);
+          App.noteWebsockets.set(idForCursors, websockets);
+          broadcast(websockets, JSON.stringify({
             action: Actions.USER_LEFT,
             payload: {
               id,
@@ -114,7 +126,9 @@ class CursorController implements Controller {
         }
         cursor.index = index;
         cursor.length = length;
-        broadcast(wss, JSON.stringify({
+        const idForCursors = `${payload._id}`;
+        const websockets = App.noteWebsockets.get(idForCursors) || new Set<WebSocket>();
+        broadcast(websockets, JSON.stringify({
           action: Actions.CURSOR_UPDATED,
           payload: cursor,
         }), {

@@ -1,4 +1,5 @@
-import { IsString, Length } from 'class-validator';
+import { IsString, Length, IsNotEmpty } from 'class-validator';
+import { Match } from '../validation/match.decorator';
 
 class CreateUserDto {
   @IsString()
@@ -10,12 +11,20 @@ class CreateUserDto {
   public password: string;
 
   @IsString()
-  public email: string;
+  @IsNotEmpty()
+  @Match('password')
+  public passwordConfirm: string;
 
   @IsString()
+  @IsNotEmpty()
+  public role: string;
+
+  @IsString()
+  @IsNotEmpty()
   public firstName: string;
 
   @IsString()
+  @IsNotEmpty()
   public lastName: string;
 }
 
