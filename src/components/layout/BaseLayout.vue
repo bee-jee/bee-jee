@@ -24,10 +24,12 @@
             <template v-slot:button-content>
               <em>{{user.fullName}}</em>
             </template>
-            <router-link to="/change-own-password" v-slot="{ href, navigate }">
-              <b-dropdown-item :href="href" @click="navigate">Change password</b-dropdown-item>
-            </router-link>
-            <b-dropdown-item href="#" @click.prevent="logout">Logout</b-dropdown-item>
+            <router-link
+              to="/change-own-password"
+              role="menuitem"
+              class="dropdown-item"
+            >Change password</router-link>
+            <a role="menuitem" class="dropdown-item" href="#" @click.prevent="logout">Logout</a>
           </b-nav-item-dropdown>
         </b-navbar-nav>
       </b-collapse>
@@ -64,10 +66,7 @@ import navigations from '../../helpers/nav';
 
 export default {
   computed: {
-    ...mapGetters([
-      'user',
-      'globalIsLoading',
-    ]),
+    ...mapGetters(['user', 'globalIsLoading']),
     allowedNavigations() {
       return navigations.filter((navigation) => {
         return navigation.hasAccess(this.user);
@@ -77,11 +76,10 @@ export default {
   methods: {
     logout() {
       const self = this;
-      this.$store.dispatch('logout')
-        .then(() => {
-          self.$router.push('/login');
-        });
+      this.$store.dispatch('logout').then(() => {
+        self.$router.push('/login');
+      });
     },
   },
-}
+};
 </script>

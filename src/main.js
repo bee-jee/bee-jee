@@ -1,10 +1,10 @@
 import Vue from 'vue';
+import katex from 'katex';
 import './styles/main.scss';
 import store from './vuex/store';
 import router from './router/routes';
 import VueRouter from 'vue-router';
 import {
-  BDropdownItem,
   BNavItemDropdown,
   BNavbarToggle,
   BCollapse,
@@ -18,7 +18,8 @@ import {
 } from '@fortawesome/free-regular-svg-icons';
 import {
   faCog, faPlus, faChevronLeft, faChevronRight,
-  faArrowsAlt,
+  faArrowsAlt, faTimes, faShareAlt,
+  faChevronDown,
 } from '@fortawesome/free-solid-svg-icons';
 import App from './App.vue';
 import VueNativeSock from 'vue-native-websocket';
@@ -28,13 +29,14 @@ import './helpers/ws';
 import WS from './helpers/ws';
 
 library.add(faTrashAlt, faCog, faPlus, faChevronLeft, faChevronRight, faEdit,
-  faArrowsAlt);
+  faArrowsAlt, faTimes, faShareAlt, faChevronDown,
+);
 Vue.config.productionTip = false;
+window.katex = katex;
 
 // This will register bootstrap tags such as <b-modal>
 // to be available to all components
 Vue.component('b-nav-item-dropdown', BNavItemDropdown);
-Vue.component('b-dropdown-item', BDropdownItem);
 Vue.component('b-navbar-toggle', BNavbarToggle);
 Vue.component('b-collapse', BCollapse);
 Vue.component('b-navbar-nav', BNavbarNav);

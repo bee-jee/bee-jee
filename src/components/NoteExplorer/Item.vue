@@ -2,9 +2,8 @@
   <div class="position-relative">
     <router-link
       :to="`/${note._id}`"
-      class="note-explorer-item px-3 py-1"
+      class="note-explorer-item py-1 px-3"
       :class="{active: selectedNoteId === note._id}"
-      @click="handleClickNoteItem(note)"
       :title="note.title"
     >
       <div class="note-item-title position-relative mr-1">
@@ -25,7 +24,7 @@
 
 <script>
 import { mapGetters } from 'vuex';
-import noteMixins from '../helpers/noteMixins';
+import noteMixins from '../../helpers/noteMixins';
 
 export default {
   props: ['note'],
@@ -38,9 +37,6 @@ export default {
     ]),
   },
   methods: {
-    handleClickNoteItem(note) {
-      this.$store.dispatch('setSelectedNote', note);
-    },
     handleClickDeleteNote(note) {
       this.$store.dispatch('setToDeleteNote', note);
     },

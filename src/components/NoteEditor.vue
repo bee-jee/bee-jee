@@ -10,8 +10,13 @@
       <div class="d-inline-block text-left">
         <span class="ql-formats">
           <span class="ql-picker" @click="handleShowEditTitle">
-            <span class="ql-picker-label" role="button">Edit title</span>
+            <span class="ql-picker-label" role="button" title="Edit title">Title</span>
           </span>
+        </span>
+        <span class="ql-formats">
+          <button type="button" @click="handleShowEditShare" title="Share">
+            <i class="fas fa-share-alt"></i>
+          </button>
         </span>
         <span class="ql-formats">
           <select class="ql-size"></select>
@@ -24,7 +29,8 @@
         </span>
         <span class="ql-formats">
           <button class="ql-blockquote"></button>
-          <button class="ql-code-block"></button>
+          <button class="ql-code-block" title="Code block"></button>
+          <button class="ql-code" title="Inline code"></button>
         </span>
         <span class="ql-formats">
           <select class="ql-header"></select>
@@ -40,7 +46,6 @@
           <button class="ql-script" value="super"></button>
         </span>
         <span class="ql-formats">
-          <button class="ql-direction" value="rtl"></button>
           <select class="ql-align"></select>
         </span>
         <span class="ql-formats">
@@ -58,13 +63,29 @@
         </span>
       </div>
     </div>
-    <div v-if="note && note._id" class="note-editor-container" ref="editorContainer">
+    <div
+      v-if="note && note._id"
+      class="note-editor-container position-relative"
+      ref="editorContainer"
+    >
       <editor :note="note" :key="note._id"></editor>
+      <transition name="fade">
+        <div class="loading-spinner-overlay" v-if="isLoadingSelectedNote"></div>
+      </transition>
+      <transition name="fade">
+        <div class="loading-spinner" v-if="isLoadingSelectedNote">
+          <div class="spinner-border text-success" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>
+      </transition>
     </div>
 
     <modal name="editTitle" height="auto" draggable=".modal-mover" :adaptive="true">
       <form @submit.prevent="handleEditTitle" class="p-3">
-        <h5><i class="fas fa-arrows-alt modal-mover"></i> Edit title</h5>
+        <h5>
+          <i class="fas fa-arrows-alt modal-mover"></i> Edit title
+        </h5>
         <div class="form-group">
           <input
             type="text"
@@ -72,7 +93,7 @@
             v-model="editedTitle"
             :class="{ 'is-invalid': editTitleErrors.has('title') }"
           />
-          <div v-if="isUpdatingNoteTitle">Loading . . .</div>
+          <div v-if="isUpdatingNote">Loading . . .</div>
           <span
             class="invalid-feedback"
             v-for="error in editTitleErrors.getErrors('title')"
@@ -85,6 +106,16 @@
         </div>
       </form>
     </modal>
+
+    <modal name="share" height="auto" :adaptive="true">
+      <form @submit.prevent="handleChangeShare" class="p-3">
+        <share-selector class="form-group" :errors="editShareErrors" v-model="permission" />
+        <div class="text-right">
+          <button type="button" class="btn btn-secondary mr-2" @click="handleCloseEditShare">Cancel</button>
+          <button class="btn btn-primary">Save changes</button>
+        </div>
+      </form>
+    </modal>
   </div>
 </template>
 
@@ -93,15 +124,19 @@ import Editor from './Editor';
 import { ResizeSensor } from 'css-element-queries';
 import { mapGetters } from 'vuex';
 import ValidationErrors from '../helpers/validationErrors';
+import ShareSelector from './Note/ShareSelector';
 
 function getElementHeight(el) {
   let height, margin;
-  if (document.all) { // IE
+  if (document.all) {
+    // IE
     height = el.currentStyle.height;
     margin = parseInt(el.currentStyle.marginTop, 10) + parseInt(el.currentStyle.marginBottom, 10);
-  } else { // Mozilla
+  } else {
+    // Mozilla
     height = parseFloat(document.defaultView.getComputedStyle(el, '').height);
-    margin = parseInt(document.defaultView.getComputedStyle(el, '').getPropertyValue('margin-top')) +
+    margin =
+      parseInt(document.defaultView.getComputedStyle(el, '').getPropertyValue('margin-top')) +
       parseInt(document.defaultView.getComputedStyle(el, '').getPropertyValue('margin-bottom'));
   }
   return height + margin;
@@ -110,26 +145,25 @@ function getElementHeight(el) {
 export default {
   components: {
     Editor,
+    ShareSelector,
   },
   data() {
     return {
       editedTitle: '',
       editTitleErrors: new ValidationErrors(),
+      permission: {},
+      editShareErrors: new ValidationErrors(),
     };
   },
   computed: {
-    ...mapGetters([
-      'isUpdatingNoteTitle',
-    ]),
+    ...mapGetters(['isUpdatingNote', 'isLoadingSelectedNote']),
     note() {
       return this.$store.getters.selectedNote;
     },
   },
   created() {
     if (this.$route.params.id) {
-      this.$store.dispatch('setSelectedNote', {
-        _id: this.$route.params.id,
-      });
+      this.setSelectedNote(this.$route.params.id);
     }
   },
   methods: {
@@ -143,14 +177,21 @@ export default {
       this.editedTitle = this.note.title;
       this.editTitleErrors.reset();
     },
+    handleShowEditShare() {
+      this.$modal.show('share');
+    },
+    handleCloseEditShare() {
+      this.$modal.hide('share');
+    },
     handleCloseEditTitle() {
       this.$modal.hide('editTitle');
     },
     handleEditTitle() {
-      this.$store.dispatch('editNoteTitle', {
-        _id: this.note._id,
-        title: this.editedTitle,
-      })
+      this.$store
+        .dispatch('editNoteTitle', {
+          _id: this.note._id,
+          title: this.editedTitle,
+        })
         .then(() => {
           this.handleCloseEditTitle();
         })
@@ -158,11 +199,42 @@ export default {
           this.editTitleErrors.setErrors(err.response.data.errors);
         });
     },
+    handleChangeShare() {
+      const { permission } = this;
+      this.$store
+        .dispatch('editNoteShare', {
+          _id: this.note._id,
+          permission,
+        })
+        .then(() => {
+          this.handleCloseEditShare();
+        })
+        .catch((err) => {
+          this.editShareErrors.setErrors(err.response.data.errors);
+        });
+    },
+    setSelectedNote(id) {
+      this.$store.dispatch('setSelectedNote', {
+        _id: id,
+      });
+    },
+    populatePermission(note) {
+      this.permission = {
+        visibility: note.visibility,
+        sharedUsers: (note.sharedUsers || []).map((sharedUser) => ({
+          username: sharedUser.user ? sharedUser.user.username : '',
+          permission: sharedUser.permission,
+        })),
+      };
+    },
   },
   mounted() {
     new ResizeSensor(this.$refs.toolbar, () => {
       this.calculateContainerSize();
     });
+    if (this.note) {
+      this.populatePermission(this.note);
+    }
   },
   watch: {
     note(newNote, oldNote) {
@@ -179,14 +251,13 @@ export default {
           _id: newNote._id,
         });
       }
+      this.populatePermission(newNote);
     },
     $route(to) {
       if (to.params.id) {
-        this.$store.dispatch('setSelectedNote', {
-          _id: to.params.id,
-        });
+        this.setSelectedNote(to.params.id);
       }
     },
   },
-}
+};
 </script>

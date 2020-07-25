@@ -57,6 +57,7 @@ class App implements ConfigManager {
     mongoose.connect(uri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
+      useFindAndModify: false,
     });
     this.initialiseMiddlewares();
     this.initialiseControllers(controllers);

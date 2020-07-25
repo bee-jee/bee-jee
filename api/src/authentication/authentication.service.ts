@@ -39,7 +39,7 @@ const OAuthModel = {
     }
     return undefined;
   },
-  async getUserFromClient(client: Client): Promise<User | Falsey> {
+  async getUserFromClient(client: Client): Promise<(User & { _id: any }) | Falsey> {
     const clientDb = await OAuthClientModel.findOne({
       clientId: client.clientId,
       clientSecret: client.clientSecret,

@@ -1,5 +1,5 @@
 <template>
-  <div class="col-12 utility-bar py-2">
+  <div class="col-12 utility-bar p-1">
     <div class="row">
       <div class="col-auto">
         <small class="text-success" v-if="websocketIsConnected && isLoggedIn">

@@ -43,8 +43,30 @@
     }
     .note-explorer-item-delete {
         position: absolute;
-        right: 0.5rem;
+        right: 1rem;
         top: 0.25rem;
+    }
+}
+
+.pane-header {
+    @extend .btn;
+    width: 100%;
+    text-align: left;
+    font-size: 80%;
+    display: flex;
+    line-height: 1rem;
+    overflow: hidden;
+
+    .chevron {
+        width: 12px;
+        flex-shrink: 0;
+        line-height: 1.5rem;
+    }
+    span {
+        line-height: 1.5rem;
+    }
+    .actions {
+        flex: 1;
     }
 }
 

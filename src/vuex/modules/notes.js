@@ -18,7 +18,8 @@ export const state = {
   toDeleteNoteId: '',
   isLoading: false,
   isCreatingNote: false,
-  isUpdatingNoteTitle: false,
+  isLoadingSelectedNote: false,
+  isUpdatingNote: false,
   isSyncing: false,
 };
 
@@ -30,8 +31,9 @@ export const getters = {
   allNotes: (state, getters) => state.allIds.map(id => getters.noteById(id)),
   isLoading: (state) => state.isLoading,
   isCreatingNote: (state) => state.isCreatingNote,
-  isUpdatingNoteTitle: (state) => state.isUpdatingNoteTitle,
-  isSyncing: (state) =>  state.isSyncing || state.isUpdatingNoteTitle,
+  isLoadingSelectedNote: (state) => state.isLoadingSelectedNote,
+  isUpdatingNote: (state) => state.isUpdatingNote,
+  isSyncing: (state) =>  state.isSyncing || state.isUpdatingNote,
 };
 
 export const actions = {
@@ -47,23 +49,30 @@ export const actions = {
       commit('setIsLoading', false);
     }
   },
-  async createNote({ commit }, { title, content, contentType }) {
+  async createNote({ commit }, { title, content, permission }) {
     commit('setIsCreatingNote', true);
     try {
       const resp = await Vue.prototype.$http.post('/note/create', {
         title,
         content: encodeDoc(content),
-        contentType,
+        ...permission,
       });
       commit('appendNote', resp.data);
-    } catch (err) {
-      console.error(err);
     } finally {
       commit('setIsCreatingNote', false);
     }
   },
-  setSelectedNote({ commit }, { _id }) {
+  async setSelectedNote({ commit }, { _id }) {
+    commit('setIsLoadingSelectedNote', true);
     commit('setSelectedNote', { _id });
+    try {
+      const resp = await Vue.prototype.$http.get(`/note/${_id}`);
+      commit('updateNote', resp.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      commit('setIsLoadingSelectedNote', false);
+    }
   },
   setToDeleteNote({ commit }, { _id }) {
     commit('setToDeleteNote', { _id });
@@ -76,15 +85,30 @@ export const actions = {
       console.error(err);
     }
   },
-  async editNoteTitle({ commit }, { _id, title }) {
+  async editNoteShare({ commit }, { _id, permission }) {
+    commit('setIsUpdatingNote', true);
     try {
-      commit('setIsUpdatingNoteTitle', true);
+      const resp = await Vue.prototype.$http.patch(`/note/${_id}`, {
+        ...permission,
+      });
+      commit('setNotePermission', {
+        _id,
+        visibility: resp.data.visibile,
+        sharedUsers: resp.data.sharedUsers,
+      });
+    } finally {
+      commit('setIsUpdatingNote', false);
+    }
+  },
+  async editNoteTitle({ commit }, { _id, title }) {
+    commit('setIsUpdatingNote', true);
+    try {
       const resp = await Vue.prototype.$http.patch(`/note/${_id}`, {
         title,
       });
       commit('setNoteTitle', { _id, title: resp.data.title });
     } finally {
-      commit('setIsUpdatingNoteTitle', false);
+      commit('setIsUpdatingNote', false);
     }
   },
   changeNoteContent({ getters, commit }, { _id, ops }) {
@@ -140,6 +164,10 @@ export const mutations = {
     // if Vue makes it reactive. The downside of this is that we
     // have to handle reactivity by ourselves.
     state.byIds[newNote._id] = Object.freeze(newNote);
+  },
+  updateNote(state, updatedNote) {
+    updatedNote.content = decodeDoc(updatedNote.content);
+    Vue.set(state.byIds, updatedNote._id, Object.freeze(updatedNote));
   },
   // setSelectedNote replaces the current selectedNoteId with the new one
   // the parameter can be an object, but we want to indicate that we only
@@ -198,8 +226,20 @@ export const mutations = {
       ...note,
     }));
   },
-  setIsUpdatingNoteTitle(state, value) {
-    state.isUpdatingNoteTitle = value;
+  setNotePermission(state, { _id, visibility, sharedUsers }) {
+    const { byIds } = state;
+    const note = byIds[_id];
+    Vue.set(state.byIds, _id, Object.freeze({
+      ...note,
+      visibility,
+      sharedUsers,
+    }));
+  },
+  setIsUpdatingNote(state, value) {
+    state.isUpdatingNote = value;
+  },
+  setIsLoadingSelectedNote(state, value) {
+    state.isLoadingSelectedNote = value;
   },
 };
 
