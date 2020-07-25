@@ -4,7 +4,7 @@ import config from './modules/config';
 import notes from './modules/notes';
 
 Vue.use(Vuex);
-
+//This is to test pull request
 const store = new Vuex.Store({
   modules: {
     notes,
