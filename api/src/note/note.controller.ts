@@ -163,29 +163,15 @@ class NoteController implements Controller, WsController {
       next(new InvalidObjectIdException(id));
       return;
     }
-    const note = await this.NoteModel.findOne({ _id: id })
-      .populate({
-        path: 'sharedUsers',
-        match: {
-          user: request.user._id,
-        },
-        populate: {
-          path: 'user',
-        },
-      });
-    if (note !== null) {
-      if (note.sharedUsers !== undefined) {
-        await Promise.all(
-          note.sharedUsers.map(async (sharedUser) => {
-            await this.UserSharedNoteModel.updateOne({
-              _id: sharedUser._id,
-            }, {
-              isViewed: true,
-            });
-          }),
-        );
-      }
-      response.send(note);
+    const sharedNote = await this.UserSharedNoteModel.findOneAndUpdate({
+      note: id,
+      user: request.user._id,
+    }, {
+      isViewed: true,
+    })
+      .populate('note');
+    if (sharedNote !== null) {
+      response.send(sharedNote);
     } else {
       next(new NoteNotFoundException(id));
     }

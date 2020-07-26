@@ -16,22 +16,18 @@ const options = {
   theme: 'snow',
   modules: {
     cursors: true,
-    toolbar: '#toolbar',
     imageResize: {
-      modules: [
-        'DisplaySize',
-        'Resize',
-      ],
+      modules: ['DisplaySize', 'Resize'],
     },
     imageDrop: true,
   },
-  readOnly: false,
 };
 
 export default {
-  props: [
-    'note',
-  ],
+  props: {
+    note: { type: Object },
+    readOnly: { type: Boolean, default: false },
+  },
   methods: {
     quillTextChange(delta, oldContents, source) {
       if (source === 'yjs') {
@@ -70,20 +66,16 @@ export default {
       this.quill.updateContents(delta, 'yjs');
     },
   },
-  data() {
-    return {
-      internalNote: {},
-    };
-  },
   mounted() {
     if (this.$refs.editor) {
+      options.readOnly = this.readOnly;
+      options.modules.toolbar = this.readOnly ? false : '#toolbar';
       this.quill = new Quill(this.$refs.editor, options);
       this.quillCursors = this.quill.getModule('cursors') || null;
       if (this.note !== undefined) {
         this.quill.setContents(this.note.content.getText('text').toDelta());
+        this.note.content.getText('text').observe(this.textObserver);
       }
-      this.internalNote = this.note;
-      this.internalNote.content.getText('text').observe(this.textObserver);
       this.quill.on('text-change', this.quillTextChange);
       this.quill.on('selection-change', this.quillSelectionChange);
 
@@ -95,7 +87,8 @@ export default {
             cursors.createCursor(id, name, color);
             if (index !== undefined && length !== undefined) {
               cursors.moveCursor(id, {
-                index, length,
+                index,
+                length,
               });
             }
             break;
@@ -108,7 +101,8 @@ export default {
           case 'updateUserCursor': {
             const { id, index, length } = mutation.payload;
             cursors.moveCursor(id, {
-              index, length,
+              index,
+              length,
             });
             break;
           }
@@ -116,11 +110,21 @@ export default {
       });
     }
   },
+  watch: {
+    note(newNote, oldNote) {
+      if (oldNote) {
+        oldNote.content.getText('text').unobserve(this.textObserver);
+      }
+      if (newNote) {
+        newNote.content.getText('text').observe(this.textObserver);
+      }
+    },
+  },
   beforeDestroy() {
     this.quill.off('text-change', this.quillTextChange);
     delete this.quill;
     this.quill = null;
-    this.internalNote.content.getText('text').unobserve(this.textObserver);
+    this.note.content.getText('text').unobserve(this.textObserver);
   },
-}
+};
 </script>

@@ -1,12 +1,10 @@
 <template>
   <div class="note-explorer">
-    <div class="col-12 p-0">
-      <div class="row no-gutters">
-        <div class="col-12 text-right">
-          <button type="button" class="btn px-2" @click="closeExplorer">
-            <i class="fas fa-chevron-left"></i>
-          </button>
-        </div>
+    <div class="p-0">
+      <div class="col-12 text-right">
+        <button type="button" class="btn px-2" @click="closeExplorer">
+          <i class="fas fa-chevron-left"></i>
+        </button>
       </div>
     </div>
     <note-explorer-content />
@@ -67,6 +65,7 @@ export default {
   },
   mounted() {
     this.$store.dispatch('fetchNotes');
+    this.$store.dispatch('fetchSharedNotes');
   },
   watch: {
     toDeleteNote(note) {

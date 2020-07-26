@@ -11,6 +11,8 @@ export const state = {
   // byIds contains the notes' information as an object
   // with the index is its _id
   byIds: {},
+  isLoadingSharedNotes: false,
+  sharedByIds: {},
   // Because the database we are using is mongoDB which stores
   // ID as an 12-byte value and when encoded as JSON will be a
   // hexidecimal string therefore the IDs will have string type
@@ -28,12 +30,19 @@ export const getters = {
   selectedNoteId: (state) => state.selectedNoteId,
   selectedNote: (state, getters) => state.selectedNoteId ? getters.noteById(state.selectedNoteId) : {},
   toDeleteNote: (state, getters) => state.toDeleteNoteId ? getters.noteById(state.toDeleteNoteId) : {},
-  allNotes: (state, getters) => state.allIds.map(id => getters.noteById(id)),
+  allMyNotes: (state, getters) => state.allIds
+    .filter(id => !(id in state.sharedByIds))
+    .map(id => getters.noteById(id)),
   isLoading: (state) => state.isLoading,
   isCreatingNote: (state) => state.isCreatingNote,
   isLoadingSelectedNote: (state) => state.isLoadingSelectedNote,
   isUpdatingNote: (state) => state.isUpdatingNote,
-  isSyncing: (state) =>  state.isSyncing || state.isUpdatingNote,
+  isSyncing: (state) => state.isSyncing || state.isUpdatingNote,
+  isLoadingSharedNotes: (state) => state.isLoadingSharedNotes,
+  sharedById: (state) => (id) => state.sharedByIds[id] || {},
+  allSharedNotes: (state, getters) => state.allIds
+    .filter((id) => id in state.sharedByIds)
+    .map(id => getters.noteById(id)),
 };
 
 export const actions = {
@@ -47,6 +56,17 @@ export const actions = {
       console.error(err);
     } finally {
       commit('setIsLoading', false);
+    }
+  },
+  async fetchSharedNotes({ commit }) {
+    commit('setIsLoadingSelectedNote', true);
+    try {
+      const resp = await Vue.prototype.$http.get('/note/shared');
+      commit('setSharedNotes', resp.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      commit('setIsLoadingSelectedNote', false);
     }
   },
   async createNote({ commit }, { title, content, permission }) {
@@ -68,6 +88,18 @@ export const actions = {
     try {
       const resp = await Vue.prototype.$http.get(`/note/${_id}`);
       commit('updateNote', resp.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      commit('setIsLoadingSelectedNote', false);
+    }
+  },
+  async setSelectedSharedNote({ commit }, { _id }) {
+    commit('setIsLoadingSelectedNote', true);
+    commit('setSelectedNote', { _id });
+    try {
+      const resp = await Vue.prototype.$http.get(`/note/shared/${_id}`);
+      commit('updateSharedNote', resp.data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -148,8 +180,11 @@ export const mutations = {
     if (state.selectedNoteId && state.byIds[state.selectedNoteId]) {
       unsubscribeContentUpdate(state.byIds[state.selectedNoteId]);
     }
-    state.allIds = allIds;
-    state.byIds = byIds;
+    state.allIds = state.allIds.concat(allIds);
+    state.byIds = {
+      ...state.byIds,
+      ...byIds,
+    };
     if (state.selectedNoteId && state.byIds[state.selectedNoteId]) {
       subscribeContentUpdate(state.byIds[state.selectedNoteId]);
     }
@@ -240,6 +275,48 @@ export const mutations = {
   },
   setIsLoadingSelectedNote(state, value) {
     state.isLoadingSelectedNote = value;
+  },
+  setIsLoadingSharedNotes(state, value) {
+    state.isLoadingSharedNotes = value;
+  },
+  setSharedNotes(state, sharedNotes) {
+    const allSharedIds = [];
+    const sharedByIds = {};
+    const byIds = {};
+    sharedNotes.forEach((sharedNote) => {
+      const note = sharedNote.note;
+      note.content = decodeDoc(note.content);
+      allSharedIds.push(note._id);
+      byIds[note._id] = Object.freeze(note);
+      sharedByIds[note._id] = Object.freeze(sharedNote);
+    });
+    // Before changing the state, we need to unsubscribe to content update
+    // on the selected note if available
+    if (state.selectedNoteId && state.byIds[state.selectedNoteId]) {
+      if (state.sharedByIds[state.selectedNoteId]
+        && state.sharedByIds[state.selectedNoteId].permission === 'write') {
+        unsubscribeContentUpdate(state.byIds[state.selectedNoteId]);
+      }
+    }
+    state.allIds = state.allIds.concat(allSharedIds);
+    state.byIds = {
+      ...state.byIds,
+      ...byIds,
+    };
+    state.sharedByIds = sharedByIds;
+    const { selectedNoteId } = state;
+    if (selectedNoteId && state.byIds[selectedNoteId]) {
+      if (sharedByIds[selectedNoteId]
+        && sharedByIds[selectedNoteId].permission === 'write') {
+        subscribeContentUpdate(state.byIds[selectedNoteId]);
+      }
+    }
+  },
+  updateSharedNote(state, sharedNote) {
+    const { note } = sharedNote;
+    note.content = decodeDoc(sharedNote.note.content);
+    Vue.set(state.byIds, note._id, Object.freeze(note));
+    Vue.set(state.sharedByIds, note._id, Object.freeze(sharedNote));
   },
 };
 

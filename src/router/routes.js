@@ -54,6 +54,11 @@ const routes = [
             name: 'settings',
             component: () => import('../components/Settings')
           },
+          {
+            path: '/view-shared/:id',
+            name: 'view-shared-note',
+            component: () => import('../components/NoteEditor/ViewShared'),
+          },
           // The route for viewing a single note, we don't have a route
           // for the index page because we have nothing to display on the
           // index page, so we just display a blank page

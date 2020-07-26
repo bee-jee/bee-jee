@@ -1,7 +1,7 @@
 <template>
   <div class="position-relative">
     <router-link
-      :to="`/${note._id}`"
+      :to="getNoteUrl(note)"
       class="note-explorer-item py-1 px-3"
       :class="{active: selectedNoteId === note._id}"
       :title="note.title"
@@ -27,7 +27,10 @@ import { mapGetters } from 'vuex';
 import noteMixins from '../../helpers/noteMixins';
 
 export default {
-  props: ['note'],
+  props: {
+    note: { type: Object, },
+    urlBuilder: { type: Function, default: undefined },
+  },
   mixins: [
     noteMixins,
   ],
@@ -39,6 +42,12 @@ export default {
   methods: {
     handleClickDeleteNote(note) {
       this.$store.dispatch('setToDeleteNote', note);
+    },
+    getNoteUrl(note) {
+      if (this.urlBuilder !== undefined) {
+        return this.urlBuilder(note);
+      }
+      return `/${note._id}`;
     },
   },
 }

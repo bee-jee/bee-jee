@@ -120,27 +120,12 @@
 </template>
 
 <script>
-import Editor from './Editor';
+import Editor from './NoteEditor/Editor';
 import { ResizeSensor } from 'css-element-queries';
 import { mapGetters } from 'vuex';
 import ValidationErrors from '../helpers/validationErrors';
 import ShareSelector from './Note/ShareSelector';
-
-function getElementHeight(el) {
-  let height, margin;
-  if (document.all) {
-    // IE
-    height = el.currentStyle.height;
-    margin = parseInt(el.currentStyle.marginTop, 10) + parseInt(el.currentStyle.marginBottom, 10);
-  } else {
-    // Mozilla
-    height = parseFloat(document.defaultView.getComputedStyle(el, '').height);
-    margin =
-      parseInt(document.defaultView.getComputedStyle(el, '').getPropertyValue('margin-top')) +
-      parseInt(document.defaultView.getComputedStyle(el, '').getPropertyValue('margin-bottom'));
-  }
-  return height + margin;
-}
+import { getElementHeight } from '../helpers/dom';
 
 export default {
   components: {
@@ -238,6 +223,7 @@ export default {
   },
   watch: {
     note(newNote, oldNote) {
+      this.populatePermission(newNote);
       if (newNote._id === oldNote._id) {
         return;
       }
@@ -251,7 +237,6 @@ export default {
           _id: newNote._id,
         });
       }
-      this.populatePermission(newNote);
     },
     $route(to) {
       if (to.params.id) {
