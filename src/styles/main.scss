@@ -5,6 +5,7 @@ $primary-light: $blue-light;
 
 @import "~bootstrap/scss/bootstrap.scss";
 @import "~bootstrap-vue/src/index.scss";
+@import "~katex/dist/katex.min.css";
 
 @import "./layout.scss";
 @import "./splitpanes.scss";
@@ -26,11 +27,17 @@ a {
     background: transparent !important;
     color: $black !important;
     padding: 0;
+    min-width: 1.5rem;
 
     &:focus,
     &:active:focus {
         outline: none !important;
         box-shadow: none !important;
+    }
+    &:active {
+        &.btn-grow {
+            transform: scale(1.5);
+        }
     }
     &:hover {
         &.btn-primary {

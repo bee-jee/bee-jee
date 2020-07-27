@@ -2,12 +2,7 @@
   <splitpanes @resize="resize" class="content">
     <pane min-size="15" :size="explorerSize" max-size="30" class="explorer" ref="explorer">
       <note-explorer />
-      <button
-        v-if="explorerClosed"
-        type="button"
-        class="btn open-explorer"
-        @click="openExplorer"
-      >
+      <button v-if="explorerClosed" type="button" class="btn open-explorer" @click="openExplorer">
         <i class="fas fa-chevron-right"></i>
       </button>
     </pane>
@@ -82,5 +77,5 @@ export default {
       this.updateExplorerMargin(this.explorerSize);
     },
   },
-}
+};
 </script>

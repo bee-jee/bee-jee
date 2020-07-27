@@ -5,11 +5,9 @@
 .note-explorer {
     height: 100%;
     background-color: $gray-100;
+    display: flex;
+    flex-direction: column;
 
-    .note-explorer-content {
-        height: calc(100% - 78px);
-        overflow: auto;
-    }
     .note-item-title {
         height: 1.5rem;
         overflow: hidden;
@@ -43,8 +41,58 @@
     }
     .note-explorer-item-delete {
         position: absolute;
-        right: 0.5rem;
+        right: 1rem;
         top: 0.25rem;
+    }
+}
+
+.pane-header {
+    @extend .btn;
+    width: 100%;
+    text-align: left;
+    font-size: 80%;
+    display: flex;
+    line-height: 1rem;
+    overflow: hidden;
+    border-radius: 0;
+    border-bottom: 1px solid rgba(97, 97, 97, 0.19);
+
+    .chevron {
+        width: 12px;
+        flex-shrink: 0;
+        line-height: 1.5rem;
+    }
+    span {
+        line-height: 1.5rem;
+    }
+    .actions {
+        flex: 1;
+    }
+}
+
+.pane-body {
+    overflow: auto;
+    flex: 1;
+}
+
+.note-explorer-content {
+    flex: 1;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.collapsible-pane {
+    transition: flex-grow 0.1s;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    &.collapsed {
+        flex-grow: 0.00001;
+    }
+    &.expanded {
+        flex-grow: 1;
     }
 }
 

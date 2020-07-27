@@ -1,17 +1,14 @@
 import { Document, Model } from 'mongoose';
 import Y from 'yjs';
 import { decodeDoc, encodeDoc } from '../../../common/collab';
-
-enum ContentType {
-  HTML = 'html',
-  MarkDown = 'markdown',
-}
+import { Visibility, UserSharedNote } from '../share/share.interface';
 
 export interface Note {
   author: string;
   title: string;
   content: string;
-  contentType: ContentType,
+  visibility: Visibility,
+  sharedUsers: (UserSharedNote & Document)[] | undefined;
   created: Date;
   updated: Date;
 }

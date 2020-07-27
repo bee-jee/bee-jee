@@ -5,6 +5,8 @@ const CONFIG_KEY = 'config';
 export const state = {
   explorerSize: 20,
   explorerClosed: false,
+  myNotesExpanded: true,
+  sharedNotesExpanded: false,
 };
 
 export const getters = {

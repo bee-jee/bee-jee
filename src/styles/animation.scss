@@ -1,4 +1,4 @@
-$transition-duration: 0.5s;
+$transition-duration: 0.1s;
 
 .slide-right-enter-active {
     -moz-transition-duration: $transition-duration;
@@ -35,4 +35,13 @@ $transition-duration: 0.5s;
     max-width: 0;
     display: block;
     height: 0;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity $transition-duration ease-in-out;
+}
+
+.fade-enter, .fade.leave-to {
+    opacity: 0;
 }

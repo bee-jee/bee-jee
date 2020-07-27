@@ -27,10 +27,16 @@ userSchema.virtual('fullName').get(function getFullName(this: User) {
   return `${this.firstName} ${this.lastName}`;
 });
 
+userSchema.virtual('sharedNotes', {
+  ref: 'UserSharedNote',
+  localField: '_id',
+  foreignField: 'user',
+});
+
 userSchema.virtual('notes', {
   ref: 'Note',
   localField: '_id',
-  foreignField: 'authorId',
+  foreignField: 'author',
 });
 
 const UserModel = model<User & Document>('User', userSchema);
