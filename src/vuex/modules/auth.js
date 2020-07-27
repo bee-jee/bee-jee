@@ -8,6 +8,7 @@ const state = {
   token: Cookie.get('token') || '',
   refreshToken: Cookie.get('refreshToken') || '',
   loginError: '',
+  logoutSource: '',
 };
 
 const getters = {
@@ -16,6 +17,7 @@ const getters = {
   token: state => state.token,
   refreshToken: state => state.refreshToken,
   loginError: state => state.loginError,
+  logoutSource: state => state.logoutSource,
 };
 
 const actions = {
@@ -36,7 +38,11 @@ const actions = {
       }
     }
   },
-  async logout({ commit }) {
+  async logout({ commit }, source) {
+    if (source === undefined) {
+      source = '';
+    }
+    commit('setLogoutSource', source);
     try {
       await Vue.prototype.$http.post('/auth/logout');
     } catch (err) {
@@ -105,6 +111,9 @@ const mutations = {
   },
   setLoginError(state, message) {
     state.loginError = message;
+  },
+  setLogoutSource(state, source) {
+    state.logoutSource = source;
   },
 };
 

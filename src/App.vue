@@ -38,6 +38,7 @@ export default {
   computed: {
     ...mapGetters([
       'isLoggedIn',
+      'logoutSource',
     ]),
   },
   data() {
@@ -63,7 +64,7 @@ export default {
   },
   watch: {
     isLoggedIn(newValue) {
-      if (!newValue) {
+      if (!newValue && this.logoutSource !== 'user') {
         this.showExpired = true;
       }
     },
