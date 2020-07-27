@@ -5,6 +5,8 @@ import store from '../vuex/store';
 import BaseLayout from '../components/layout/BaseLayout';
 import SidebarLayout from '../components/layout/SidebarLayout';
 import navigations from '../helpers/nav';
+import NoteViewShared from '../components/NoteEditor/ViewShared';
+import NoteEditor from '../components/NoteEditor';
 
 // which use vue-router
 const routes = [
@@ -57,7 +59,7 @@ const routes = [
           {
             path: '/view-shared/:id',
             name: 'view-shared-note',
-            component: () => import('../components/NoteEditor/ViewShared'),
+            component: NoteViewShared,
           },
           // The route for viewing a single note, we don't have a route
           // for the index page because we have nothing to display on the
@@ -65,7 +67,7 @@ const routes = [
           {
             path: '/:id?',
             name: 'note-edit',
-            component: () => import('../components/NoteEditor')
+            component: NoteEditor,
           },
         ],
       },
