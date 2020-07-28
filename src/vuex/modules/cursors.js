@@ -48,11 +48,12 @@ const actions = {
     });
   },
   changeCursor({ getters, commit }, { note, index, length }) {
+    const { index: currIndex, length: currLength } = getters.current;
     commit('setCurrent', {
       index,
       length,
     });
-    if (getters.current.id) {
+    if (getters.current.id && (index !== currIndex || length !== currLength)) {
       wsSend({
         action: Actions.CURSOR_UPDATED,
         payload: {

@@ -36,7 +36,7 @@ export default {
       // update content
       const ops = delta.ops;
       this.$store.dispatch('changeNoteContent', {
-        _id: this.note._id,
+        note: this.note,
         ops,
       });
     },

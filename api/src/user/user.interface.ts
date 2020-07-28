@@ -1,12 +1,11 @@
 export interface User {
   username: string;
   password: string | undefined;
-  email: string;
+  email?: string;
   firstName: string;
   lastName: string;
-  fullName: string;
+  fullName?: string;
   role: string;
-  sharedNotes?: string[];
   created: Date;
   updated: Date;
 }

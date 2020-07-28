@@ -52,7 +52,7 @@ class CursorController implements Controller {
         const cursor: Cursor = {
           id,
           color: Colors[userCount % Colors.length],
-          name: user.fullName,
+          name: user.fullName || '',
         };
         currCursors.set(id, cursor);
         this.noteCursors.set(idForCursors, currCursors);

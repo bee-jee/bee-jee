@@ -3,7 +3,7 @@
     <router-link
       :to="getNoteUrl(note)"
       class="note-explorer-item py-1 px-3"
-      :class="{active: selectedNoteId === note._id}"
+      :class="{active: selectedNote._id === note._id}"
       :title="note.title"
     >
       <div class="note-item-title position-relative mr-1">
@@ -36,7 +36,7 @@ export default {
   ],
   computed: {
     ...mapGetters([
-      'selectedNoteId',
+      'selectedNote',
     ]),
   },
   methods: {

@@ -14,8 +14,8 @@ export const getters = {
 export const actions = {
   [Actions.CONTENT_UPDATED]({ commit, getters }, data) {
     const { id, mergeChanges } = data.payload;
-    const note = getters.noteById(id);
-    if (note && note._id) {
+    const note = getters.selectedNote;
+    if (note._id && note._id === id) {
       const changes = stringToArray(mergeChanges);
       Y.applyUpdate(note.content, changes, 'ws');
       commit('setNoteContent', note);

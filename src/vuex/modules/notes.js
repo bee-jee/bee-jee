@@ -13,10 +13,10 @@ export const state = {
   byIds: {},
   isLoadingSharedNotes: false,
   sharedByIds: {},
+  selectedNote: {},
   // Because the database we are using is mongoDB which stores
   // ID as an 12-byte value and when encoded as JSON will be a
   // hexidecimal string therefore the IDs will have string type
-  selectedNoteId: '',
   toDeleteNoteId: '',
   isLoading: false,
   isCreatingNote: false,
@@ -27,8 +27,7 @@ export const state = {
 
 export const getters = {
   noteById: (state) => (id) => id in state.byIds ? state.byIds[id] : {},
-  selectedNoteId: (state) => state.selectedNoteId,
-  selectedNote: (state, getters) => state.selectedNoteId ? getters.noteById(state.selectedNoteId) : {},
+  selectedNote: (state) => state.selectedNote,
   toDeleteNote: (state, getters) => state.toDeleteNoteId ? getters.noteById(state.toDeleteNoteId) : {},
   allMyNotes: (state, getters) => state.allIds
     .filter(id => !(id in state.sharedByIds))
@@ -84,10 +83,11 @@ export const actions = {
   },
   async setSelectedNote({ commit }, { _id }) {
     commit('setIsLoadingSelectedNote', true);
-    commit('setSelectedNote', { _id });
     try {
       const resp = await Vue.prototype.$http.get(`/note/${_id}`);
-      commit('updateNote', resp.data);
+      const note = resp.data;
+      note.content = decodeDoc(note.content);
+      commit('setSelectedNote', note);
     } catch (err) {
       console.error(err);
     } finally {
@@ -96,10 +96,12 @@ export const actions = {
   },
   async setSelectedSharedNote({ commit }, { _id }) {
     commit('setIsLoadingSelectedNote', true);
-    commit('setSelectedNote', { _id });
     try {
       const resp = await Vue.prototype.$http.get(`/note/shared/${_id}`);
-      commit('updateSharedNote', resp.data);
+      const { data: sharedNote } = resp;
+      const { note } = sharedNote;
+      note.content = decodeDoc(note.content);
+      commit('setSelectedNote', note);
     } catch (err) {
       console.error(err);
     } finally {
@@ -143,8 +145,7 @@ export const actions = {
       commit('setIsUpdatingNote', false);
     }
   },
-  changeNoteContent({ getters, commit }, { _id, ops }) {
-    const note = getters.noteById(_id);
+  changeNoteContent({ commit }, { note, ops }) {
     note.content.getText('text').applyDelta(ops);
     commit('setNoteContent', note);
   },
@@ -175,19 +176,11 @@ export const mutations = {
       // have to handle reactivity by ourselves.
       byIds[note._id] = Object.freeze(note);
     });
-    // Before changing the state, we need to unsubscribe to content update
-    // on the selected note if available
-    if (state.selectedNoteId && state.byIds[state.selectedNoteId]) {
-      unsubscribeContentUpdate(state.byIds[state.selectedNoteId]);
-    }
     state.allIds = state.allIds.concat(allIds);
     state.byIds = {
       ...state.byIds,
       ...byIds,
     };
-    if (state.selectedNoteId && state.byIds[state.selectedNoteId]) {
-      subscribeContentUpdate(state.byIds[state.selectedNoteId]);
-    }
   },
   // appendNote will add the new note to the current state
   appendNote(state, newNote) {
@@ -200,22 +193,14 @@ export const mutations = {
     // have to handle reactivity by ourselves.
     state.byIds[newNote._id] = Object.freeze(newNote);
   },
-  updateNote(state, updatedNote) {
-    updatedNote.content = decodeDoc(updatedNote.content);
-    Vue.set(state.byIds, updatedNote._id, Object.freeze(updatedNote));
-  },
-  // setSelectedNote replaces the current selectedNoteId with the new one
-  // the parameter can be an object, but we want to indicate that we only
-  // want the _id field
-  setSelectedNote(state, { _id }) {
+  // setSelectedNote replaces the current selectedNote with the new one
+  setSelectedNote(state, note) {
     // Make sure we don't subscribe to the previous selected note
-    if (state.selectedNoteId && state.byIds[state.selectedNoteId]) {
-      unsubscribeContentUpdate(state.byIds[state.selectedNoteId]);
+    if (state.selectedNote._id) {
+      unsubscribeContentUpdate(state.selectedNote);
     }
-    state.selectedNoteId = _id;
-    if (state.byIds[_id]) {
-      subscribeContentUpdate(state.byIds[_id]);
-    }
+    state.selectedNote = note;
+    subscribeContentUpdate(note);
   },
   // The reason we want to store toDeleteNote in the state is that we can
   // have a single modal to confirm if the user wanted to delete the note.
@@ -249,16 +234,12 @@ export const mutations = {
       title,
     });
   },
-  setNoteContent(state, { _id }) {
+  setNoteContent(state, { _id, content }) {
     const { byIds } = state;
     const note = byIds[_id];
-    // The reason we want to Object.freeze the notes is because
-    // the note.content is a doc yjs object, and this object can
-    // have very high depth, which will cause maximum call stack
-    // if Vue makes it reactive. The downside of this is that we
-    // have to handle reactivity by ourselves.
     Vue.set(state.byIds, _id, Object.freeze({
       ...note,
+      content,
     }));
   },
   setNotePermission(state, { _id, visibility, sharedUsers }) {
@@ -290,33 +271,12 @@ export const mutations = {
       byIds[note._id] = Object.freeze(note);
       sharedByIds[note._id] = Object.freeze(sharedNote);
     });
-    // Before changing the state, we need to unsubscribe to content update
-    // on the selected note if available
-    if (state.selectedNoteId && state.byIds[state.selectedNoteId]) {
-      if (state.sharedByIds[state.selectedNoteId]
-        && state.sharedByIds[state.selectedNoteId].permission === 'write') {
-        unsubscribeContentUpdate(state.byIds[state.selectedNoteId]);
-      }
-    }
     state.allIds = state.allIds.concat(allSharedIds);
     state.byIds = {
       ...state.byIds,
       ...byIds,
     };
     state.sharedByIds = sharedByIds;
-    const { selectedNoteId } = state;
-    if (selectedNoteId && state.byIds[selectedNoteId]) {
-      if (sharedByIds[selectedNoteId]
-        && sharedByIds[selectedNoteId].permission === 'write') {
-        subscribeContentUpdate(state.byIds[selectedNoteId]);
-      }
-    }
-  },
-  updateSharedNote(state, sharedNote) {
-    const { note } = sharedNote;
-    note.content = decodeDoc(sharedNote.note.content);
-    Vue.set(state.byIds, note._id, Object.freeze(note));
-    Vue.set(state.sharedByIds, note._id, Object.freeze(sharedNote));
   },
 };
 
