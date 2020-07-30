@@ -12,7 +12,7 @@
     "test": "npm run vue:test",
     "vue:build": "vue-cli-service build --mode=production",
     "vue:lint": "vue-cli-service lint",
-    "vue:serve": "cross-env VUE_APP_API_URL=http://192.168.0.189:9000 vue-cli-service serve --mode=development",
+    "vue:serve": "cross-env VUE_APP_API_URL=http://localhost:9000 vue-cli-service serve --mode=development",
     "vue:test": "vue-cli-service test:unit"
   },
   "dependencies": {
