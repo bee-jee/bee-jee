@@ -170,14 +170,6 @@ export default {
         });
     },
     setExpanded(name, value) {
-      if (value) {
-        if (name !== 'myNotesExpanded') {
-          this.myNotesExpanded = false;
-        }
-        if (name !== 'sharedNotesExpanded') {
-          this.sharedNotesExpanded = false;
-        }
-      }
       this[name] = value;
     },
     handleShowCreateNote() {

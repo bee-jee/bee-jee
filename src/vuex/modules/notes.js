@@ -211,7 +211,7 @@ export const mutations = {
     if (state.selectedNote._id) {
       unsubscribeContentUpdate(state.selectedNote);
     }
-    state.selectedNote = note;
+    state.selectedNote = Object.freeze(note);
     subscribeContentUpdate(note);
   },
   // The reason we want to store toDeleteNote in the state is that we can
@@ -241,8 +241,15 @@ export const mutations = {
     // Set its title to the new title
     // Since the note object is Object.freezed therefore we have to create
     // a new object and freeze it.
-    byIds[_id] = Object.freeze({
-      ...note,
+    state.byIds = {
+      ...state.byIds,
+      [_id]: Object.freeze({
+        ...note,
+        title,
+      }),
+    };
+    state.selectedNote = Object.freeze({
+      ...state.selectedNote,
       title,
     });
   },
