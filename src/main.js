@@ -27,6 +27,10 @@ import Axios from 'axios';
 import { apiUrl } from './helpers/url';
 import './helpers/ws';
 import WS from './helpers/ws';
+import GeminiScrollbar from './components/utilities/GeminiScrollbar';
+import 'gemini-scrollbar/gemini-scrollbar.css';
+
+window.isIE11 = !!window.MSInputMethodContext && !!document.documentMode;
 
 library.add(faTrashAlt, faCog, faPlus, faChevronLeft, faChevronRight, faEdit,
   faArrowsAlt, faTimes, faShareAlt, faChevronDown,
@@ -41,6 +45,7 @@ Vue.component('b-navbar-toggle', BNavbarToggle);
 Vue.component('b-collapse', BCollapse);
 Vue.component('b-navbar-nav', BNavbarNav);
 Vue.component('b-navbar', BNavbar);
+Vue.component('gemini-scrollbar', GeminiScrollbar);
 Vue.use(VueRouter);
 Vue.use(VueNativeSock, process.env.VUE_APP_WS_URL, {
   store,

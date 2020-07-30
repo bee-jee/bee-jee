@@ -10,7 +10,7 @@
     "api:start": "nodemon",
     "start": "npm-run-all -p api:start vue:serve",
     "test": "npm run vue:test",
-    "vue:build": "vue-cli-service build --mode=production",
+    "vue:build": "vue-cli-service build --mode=production --modern",
     "vue:lint": "vue-cli-service lint",
     "vue:serve": "cross-env VUE_APP_API_URL=http://localhost:9000 vue-cli-service serve --mode=development",
     "vue:test": "vue-cli-service test:unit"
@@ -89,6 +89,7 @@
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-prettier": "^3.1.3",
     "eslint-plugin-vue": "^6.2.2",
+    "gemini-scrollbar": "^1.5.3",
     "katex": "^0.12.0",
     "nodemon": "^2.0.4",
     "npm-run-all": "^4.1.5",

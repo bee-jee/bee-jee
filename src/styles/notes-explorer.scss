@@ -2,6 +2,8 @@
     background: linear-gradient(to left, $background, transparent 15px);
 }
 
+$pane-height: 26px;
+
 .note-explorer {
     height: 100%;
     background-color: $gray-100;
@@ -83,17 +85,17 @@
 }
 
 .collapsible-pane {
-    transition: flex-grow 0.1s;
+    transition: flex-grow 0.3s ease-in-out;
     display: flex;
     flex-direction: column;
     overflow: hidden;
 
     &.collapsed {
-        flex: 0 0 auto;
+        flex: 0 0 $pane-height;
     }
     &.expanded {
         flex-grow: 1;
-        flex-basis: 0;
+        flex-basis: $pane-height;
     }
 }
 

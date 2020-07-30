@@ -14,9 +14,9 @@
       <span>{{title}}</span>
       <slot name="actions"></slot>
     </button>
-    <div class="pane-body" v-if="showBody">
+    <gemini-scrollbar class="pane-body" v-if="showBody">
       <slot></slot>
-    </div>
+    </gemini-scrollbar>
   </div>
 </template>
 
@@ -38,7 +38,7 @@ export default {
   },
   mounted() {
     this.$refs.pane.addEventListener('transitionstart', () => {
-      this.showBody = false;
+      this.showBody = true;
     });
     this.$refs.pane.addEventListener('transitionend', () => {
       this.showBody = this.expanded;

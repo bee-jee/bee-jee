@@ -68,7 +68,7 @@
       class="note-editor-container position-relative"
       ref="editorContainer"
     >
-      <editor :note="note" :key="note._id"></editor>
+      <editor :note="note" :key="note._id" @ready="handleEditorReady"></editor>
       <transition name="fade">
         <div class="loading-spinner-overlay" v-if="isLoadingSelectedNote"></div>
       </transition>
@@ -155,7 +155,9 @@ export default {
     calculateContainerSize() {
       const toolbarHeight = getElementHeight(this.$refs.toolbar) + 1;
       const container = this.$refs.editorContainer;
-      container.style.height = `calc(100% - ${toolbarHeight}px)`;
+      if (container) {
+        container.style.height = `calc(100% - ${toolbarHeight}px)`;
+      }
     },
     handleShowEditTitle() {
       this.$modal.show('editTitle');
@@ -211,6 +213,9 @@ export default {
           permission: sharedUser.permission,
         })),
       };
+    },
+    handleEditorReady() {
+      this.calculateContainerSize();
     },
   },
   mounted() {

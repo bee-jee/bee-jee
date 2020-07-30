@@ -108,6 +108,7 @@ export default {
           }
         }
       });
+      this.$emit('ready');
     }
   },
   watch: {

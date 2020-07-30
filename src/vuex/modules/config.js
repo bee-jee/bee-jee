@@ -26,7 +26,11 @@ export const actions = {
     const config = getters.config();
     if (key in config) {
       config[key] = value;
-      localStorage.setItem(CONFIG_KEY, lzstring.compress(JSON.stringify(config)));
+      // Unfortunately, IE11's local storage does not accept certain characters
+      // therefore, compressing is not acceptable
+      const item = window.isIE11
+        ? JSON.stringify(config) : lzstring.compress(JSON.stringify(config));
+      localStorage.setItem(CONFIG_KEY, item);
     }
     commit('setConfig', config);
   },
