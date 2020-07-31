@@ -246,6 +246,8 @@ export default {
     $route(to) {
       if (to.params.id) {
         this.setSelectedNote(to.params.id);
+      } else {
+        this.$store.commit('setSelectedNote', {});
       }
     },
   },

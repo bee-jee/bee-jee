@@ -173,6 +173,10 @@ export const mutations = {
   setIsSyncing(state, value) {
     state.isSyncing = value;
   },
+  resetAllNotes(state) {
+    state.allIds = [];
+    state.byIds = {};
+  },
   // setNotes will replace the current notes in the state to
   // the new ones
   setNotes(state, notes) {
@@ -212,7 +216,9 @@ export const mutations = {
       unsubscribeContentUpdate(state.selectedNote);
     }
     state.selectedNote = Object.freeze(note);
-    subscribeContentUpdate(note);
+    if (note._id) {
+      subscribeContentUpdate(note);
+    }
   },
   // The reason we want to store toDeleteNote in the state is that we can
   // have a single modal to confirm if the user wanted to delete the note.

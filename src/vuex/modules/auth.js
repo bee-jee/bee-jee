@@ -2,6 +2,11 @@ import Vue from 'vue';
 import Cookie from 'js-cookie';
 import WS from '../../helpers/ws';
 import { Actions } from '../../../common/collab';
+import { cleanEnv, bool } from 'envalid';
+
+const env = cleanEnv(process.env, {
+  VUE_APP_IS_HTTPS: bool({ default: false }),
+});
 
 const state = {
   user: {},
@@ -97,7 +102,7 @@ const mutations = {
     state.token = token;
     Cookie.set('token', token, {
       sameSite: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: env.VUE_APP_IS_HTTPS,
     });
     Vue.prototype.$http.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     WS.defaults['Authorization'] = token;
@@ -106,7 +111,7 @@ const mutations = {
     state.refreshToken = token;
     Cookie.set('refreshToken', token, {
       sameSite: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: env.VUE_APP_IS_HTTPS,
     });
   },
   setLoginError(state, message) {
