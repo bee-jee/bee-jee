@@ -4,6 +4,8 @@
       title="My notes"
       :expanded="myNotesExpanded"
       @setExpanded="(value) => { setExpanded('myNotesExpanded', value) }"
+      @scroll="handleMyNotesScroll"
+      :initialScrollTop="initialMyNotesScrollTop"
     >
       <div v-if="isLoading" class="px-3">Loading . . .</div>
       <div
@@ -27,6 +29,8 @@
       title="Shared notes"
       :expanded="sharedNotesExpanded"
       @setExpanded="(value) => setExpanded('sharedNotesExpanded', value)"
+      @scroll="handleSharedNotesScroll"
+      :initialScrollTop="initialSharedNotesScrollTop"
     >
       <div v-if="isLoadingSharedNotes" class="px-3">Loading . . .</div>
       <div v-if="allSharedNotes.length === 0" class="px-3">You don't have any shared notes</div>
@@ -86,6 +90,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import * as Y from 'yjs';
+import { debounce } from 'vue-debounce';
 import CollapsiblePane from './CollapsiblePane';
 import NoteExplorerItem from './Item';
 import ShareSelector from '../Note/ShareSelector';
@@ -104,6 +109,8 @@ export default {
       newNoteTitle: '',
       newNoteErrors: new ValidationErrors(),
       permission: {},
+      initialMyNotesScrollTop: 0,
+      initialSharedNotesScrollTop: 0,
     };
   },
   computed: {
@@ -175,6 +182,19 @@ export default {
     handleShowCreateNote() {
       this.$modal.show('createNote');
     },
+    saveConfig: debounce((self, key, value) => {
+      self.$store.dispatch('setConfig', { key, value });
+    }, '500ms'),
+    handleMyNotesScroll(e) {
+      this.saveConfig(this, 'myNotesScrollTop', e.target.scrollTop);
+    },
+    handleSharedNotesScroll(e) {
+      this.saveConfig(this, 'sharedNotesScrollTop', e.target.scrollTop);
+    },
+  },
+  mounted() {
+    this.initialMyNotesScrollTop = this.$store.getters.config('myNotesScrollTop') || 0;
+    this.initialSharedNotesScrollTop = this.$store.getters.config('sharedNotesScrollTop') || 0;
   },
   mounted() {
       this.$store.dispatch('fetchNumOfUnviewedSharedNutes');

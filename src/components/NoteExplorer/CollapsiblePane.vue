@@ -14,7 +14,12 @@
       <span>{{title}}</span>
       <slot name="actions"></slot>
     </button>
-    <gemini-scrollbar class="pane-body" v-if="showBody">
+    <gemini-scrollbar
+      class="pane-body"
+      v-if="showBody"
+      @scroll="handleBodyScroll"
+      :initialScrollTop="initialScrollTop"
+    >
       <slot></slot>
     </gemini-scrollbar>
   </div>
@@ -29,6 +34,9 @@ export default {
   methods: {
     toggleExpanded() {
       this.$emit('setExpanded', !this.expanded);
+    },
+    handleBodyScroll(e) {
+      this.$emit('scroll', e);
     },
   },
   data() {
