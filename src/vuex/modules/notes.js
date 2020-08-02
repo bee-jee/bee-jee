@@ -112,6 +112,7 @@ export const actions = {
       const { data: sharedNote } = resp;
       const { note } = sharedNote;
       note.content = decodeDoc(note.content);
+      commit('updateSharedNote', sharedNote);
       commit('setSelectedNote', note);
     } catch (err) {
       console.error(err);
@@ -291,6 +292,10 @@ export const mutations = {
       ...byIds,
     };
     state.sharedByIds = sharedByIds;
+  },
+  updateSharedNote(state, sharedNote) {
+    const { note } = sharedNote;
+    state.sharedByIds[note._id] = Object.freeze(sharedNote);
   },
 };
 

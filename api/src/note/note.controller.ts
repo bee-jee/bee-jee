@@ -179,7 +179,7 @@ class NoteController implements Controller, WsController {
       user: request.user._id,
     }, {
       isViewed: true,
-    })
+    }, { new: true })
       .populate('note');
     if (sharedNote !== null) {
       response.send(sharedNote);
