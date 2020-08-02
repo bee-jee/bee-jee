@@ -25,6 +25,7 @@ export default {
   props: {
     title: { type: String },
     expanded: { type: Boolean, default: false },
+    // numOfUnviewed: {type: Number}
   },
   methods: {
     toggleExpanded() {
@@ -47,3 +48,13 @@ export default {
   },
 };
 </script>
+<style>
+.numOfUnviewed{
+    /* display: block; */
+    color: white;
+    background-color: orangered;
+    width: 20px;
+    text-align: center;
+    float: right;
+}
+</style>

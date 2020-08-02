@@ -152,6 +152,7 @@ export default {
     $route(to) {
       if (to.params.id) {
         this.setSelectedNote(to.params.id);
+        this.$store.dispatch('fetchNumOfUnviewedSharedNutes');
       }
     },
   },
