@@ -199,8 +199,13 @@ export const mutations = {
     if (state.selectedNote._id) {
       unsubscribeContentUpdate(state.selectedNote);
     }
-    state.selectedNote = note;
-    subscribeContentUpdate(note);
+    state.selectedNote = {
+      ...note,
+      contentVersion: 0,
+    };
+    if (note._id) {
+      subscribeContentUpdate(note);
+    }
   },
   // The reason we want to store toDeleteNote in the state is that we can
   // have a single modal to confirm if the user wanted to delete the note.
@@ -241,6 +246,9 @@ export const mutations = {
       ...note,
       content,
     }));
+  },
+  incrementSelectedNoteContentVersion(state) {
+    state.selectedNote.contentVersion++;
   },
   setNotePermission(state, { _id, visibility, sharedUsers }) {
     const { byIds } = state;

@@ -68,7 +68,7 @@
       class="note-editor-container position-relative"
       ref="editorContainer"
     >
-      <editor :note="note" :key="note._id" @ready="handleEditorReady"></editor>
+      <tiptap-editor :note="note" :key="note._id" @ready="handleEditorReady"></tiptap-editor>
       <transition name="fade">
         <div class="loading-spinner-overlay" v-if="isLoadingSelectedNote"></div>
       </transition>
@@ -120,7 +120,7 @@
 </template>
 
 <script>
-import Editor from './NoteEditor/Editor';
+import TiptapEditor from './NoteEditor/TiptapEditor';
 import { ResizeSensor } from 'css-element-queries';
 import { mapGetters } from 'vuex';
 import ValidationErrors from '../helpers/validationErrors';
@@ -129,7 +129,7 @@ import { getElementHeight } from '../helpers/dom';
 
 export default {
   components: {
-    Editor,
+    TiptapEditor,
     ShareSelector,
   },
   data() {

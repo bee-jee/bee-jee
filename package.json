@@ -51,6 +51,8 @@
     "sanitize-html": "^1.26.0",
     "source-map-support": "^0.5.19",
     "splitpanes": "^2.2.1",
+    "tiptap": "^1.29.3",
+    "tiptap-extensions": "^1.31.3",
     "tslib": "^2.0.0",
     "vue": "^2.6.11",
     "vue-js-modal": "^2.0.0-rc.6",
@@ -58,6 +60,8 @@
     "vue-router": "^3.3.4",
     "vuex": "^3.4.0",
     "ws": "^7.3.0",
+    "y-prosemirror": "^0.3.5",
+    "y-protocols": "^1.0.0",
     "yjs": "^13.2.0"
   },
   "devDependencies": {
@@ -95,8 +99,11 @@
     "npm-run-all": "^4.1.5",
     "prettier": "^2.0.5",
     "sass-loader": "^8.0.2",
+    "svgo": "^1.1.0",
+    "svgo-loader": "^2.1.0",
     "ts-node": "^8.10.1",
     "typescript": "^3.9.3",
+    "vue-cli-plugin-svg-sprite": "~1.0.0",
     "vue-template-compiler": "^2.6.11"
   },
   "browserslist": {

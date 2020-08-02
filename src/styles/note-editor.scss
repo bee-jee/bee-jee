@@ -12,14 +12,34 @@
     overflow: auto;
     border: none;
     font-size: 1rem;
+}
 
-    .ql-editor {
-        min-height: 100%;
-        height: auto;
-        width: 100%;
-        max-width: 794px;
-        margin: 0 auto 6rem auto;
-        box-shadow: 0 1px 3px 1px rgba(60, 64, 67, .15);
+.editor {
+    pre {
+        padding: 0.7rem 1rem;
+        border-radius: 5px;
+        background: $black;
+        color: $white;
+        font-size: 0.8rem;
+        overflow-x: auto;
+  
+        code {
+            display: block;
+        }
+    }
+}
+
+.ProseMirror {
+    min-height: 100%;
+    height: auto;
+    width: 100%;
+    max-width: 794px;
+    margin: 0 auto 6rem auto;
+    box-shadow: 0 1px 3px 1px rgba(60, 64, 67, .15);
+    padding: 0.5rem;
+
+    &:focus {
+        outline: none;
     }
 }
 
@@ -35,26 +55,42 @@
     resize: none;
 }
 
-.ql-toolbar button svg {
-    // Fix issue with active button cannot be clicked
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-}
-
-.ql-toolbar.ql-snow {
+$hover-background: darken($primary, 25%);
+.menubar {
     border: none;
     border-bottom: 1px solid #eee;
     padding: 0.5rem 0.5rem 0.5rem 36px;
 
-    .ql-formats {
-        text-align: left;
+    &__button {
+        padding: .5rem;
+        font-weight: 700;
+        display: inline-block;
+        background: transparent;
+        border: 0;
+        color: #000;
+        margin-right: 0.25rem;
+        border-radius: 5px;
 
         &:last-of-type {
             margin-right: 0;
+        }
+
+        &.active {
+            color: $hover-background;
+
+            .icon {
+                &.fill {
+                    fill: $hover-background !important;
+                }
+
+                &.stroke {
+                    stroke: $hover-background !important;
+                }
+            }
+        }
+
+        &:hover {
+            background-color: $light;
         }
     }
 }
@@ -69,8 +105,6 @@
         .ql-picker-label.ql-active,
         .ql-picker-item:hover,
         .ql-picker-item.ql-selected {
-            $hover-background: darken($primary, 7.5%);
-
             color: $hover-background !important;
 
             .ql-fill {

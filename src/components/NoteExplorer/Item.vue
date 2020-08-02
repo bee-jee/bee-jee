@@ -11,7 +11,8 @@
       </div>
       <p
         class="note-item-summary text-muted"
-        v-html="getNoteContent(note) ? getNoteContent(note) : 'No content'"
+        :key="noteContentKey"
+        v-html="noteContent"
       ></p>
     </router-link>
     <div class="note-explorer-item-delete">
@@ -38,6 +39,17 @@ export default {
     ...mapGetters([
       'selectedNote',
     ]),
+    noteContentKey() {
+      if (this.note._id === this.selectedNote._id) {
+        return `${this.note._id}-${this.selectedNote.contentVersion}`;
+      }
+      return this.note._id;
+    },
+    noteContent() {
+      const note = this.note._id === this.selectedNote._id
+        ? this.selectedNote : this.note;
+      return this.getNoteContent(note) || 'No content';
+    },
   },
   methods: {
     handleClickDeleteNote(note) {
