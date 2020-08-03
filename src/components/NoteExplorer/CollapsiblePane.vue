@@ -24,8 +24,7 @@
 export default {
   props: {
     title: { type: String },
-    expanded: { type: Boolean, default: false },
-    // numOfUnviewed: {type: Number}
+    expanded: { type: Boolean, default: false }
   },
   methods: {
     toggleExpanded() {

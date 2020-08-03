@@ -38,7 +38,7 @@
       />
 
       <template v-slot:actions>
-        <span v-if="numOfUnviewed > 0" class="numOfUnviewed">{{numOfUnviewed}}</span>
+        <span v-if="numOfUnviewed > 0" class="badge badge-warning">{{numOfUnviewed}}</span>
       </template>
     </collapsible-pane>
 
