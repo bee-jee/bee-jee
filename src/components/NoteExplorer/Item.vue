@@ -56,14 +56,3 @@ export default {
   },
 }
 </script>
-<style>
-.unviewed{
-    /* display: inline-block; */
-    color: white;
-    background-color: orangered;
-    width: 40px;
-    text-align: center;
-    margin-right: 20px;
-    float: right;
-}
-</style>
