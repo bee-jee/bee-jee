@@ -8,6 +8,7 @@
     >
       <div class="note-item-title position-relative mr-1">
         <b>{{note.title ? note.title : 'No title'}}</b>
+        <span v-if="sharedNote.isViewed==false" class="badge badge-warning">New</span>
       </div>
       <p
         class="note-item-summary text-muted"
@@ -38,6 +39,9 @@ export default {
     ...mapGetters([
       'selectedNote',
     ]),
+    sharedNote() {
+      return this.$store.getters.sharedById(this.note._id);
+    },
   },
   methods: {
     handleClickDeleteNote(note) {

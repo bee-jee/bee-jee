@@ -24,7 +24,7 @@
 export default {
   props: {
     title: { type: String },
-    expanded: { type: Boolean, default: false },
+    expanded: { type: Boolean, default: false }
   },
   methods: {
     toggleExpanded() {
