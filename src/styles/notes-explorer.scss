@@ -41,7 +41,7 @@ $pane-height: 26px;
         max-height: 3rem;
         overflow: hidden;
     }
-    .note-explorer-item-delete {
+    .note-explorer-item-actions {
         position: absolute;
         right: 1rem;
         top: 0.25rem;
@@ -50,6 +50,7 @@ $pane-height: 26px;
 
 .pane-header {
     @extend .btn;
+    @extend .px-1;
     width: 100%;
     text-align: left;
     font-size: 80%;
@@ -62,13 +63,12 @@ $pane-height: 26px;
     .chevron {
         width: 12px;
         flex-shrink: 0;
-        line-height: 1.5rem;
-    }
-    span {
-        line-height: 1.5rem;
     }
     .actions {
         flex: 1;
+    }
+    .btn-icon {
+        margin-top: -5px;
     }
 }
 

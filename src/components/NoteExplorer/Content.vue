@@ -17,9 +17,7 @@
       <template v-slot:actions>
         <div class="actions text-right">
           <button type="button" class="btn btn-icon btn-grow" @click.stop="handleShowCreateNote">
-            <small>
-              <i class="fas fa-plus"></i>
-            </small>
+            <i class="fas fa-plus fa-xs"></i>
           </button>
         </div>
       </template>
@@ -42,7 +40,7 @@
       />
 
       <template v-slot:actions>
-        <span v-if="numOfUnviewed > 0" class="badge badge-warning">{{numOfUnviewed}}</span>
+        <span v-if="numOfUnviewed > 0" class="badge badge-warning ml-1">{{numOfUnviewed}}</span>
       </template>
     </collapsible-pane>
 
@@ -193,11 +191,9 @@ export default {
     },
   },
   mounted() {
+      this.$store.dispatch('fetchNumOfUnviewedSharedNutes');
     this.initialMyNotesScrollTop = this.$store.getters.config('myNotesScrollTop') || 0;
     this.initialSharedNotesScrollTop = this.$store.getters.config('sharedNotesScrollTop') || 0;
-  },
-  mounted() {
-      this.$store.dispatch('fetchNumOfUnviewedSharedNutes');
   }
 };
 </script>

@@ -8,14 +8,14 @@
     >
       <div class="note-item-title position-relative mr-1">
         <b>{{note.title ? note.title : 'No title'}}</b>
-        <span v-if="sharedNote.isViewed==false" class="badge badge-warning">New</span>
       </div>
       <p
         class="note-item-summary text-muted"
         v-html="getNoteContent(note) ? getNoteContent(note) : 'No content'"
       ></p>
     </router-link>
-    <div class="note-explorer-item-delete">
+    <div class="note-explorer-item-actions">
+      <span v-if="sharedNote.isViewed==false" class="badge badge-warning">New</span>
       <button class="btn-icon btn-danger" @click="handleClickDeleteNote(note)">
         <i class="far fa-trash-alt fa-sm"></i>
       </button>
