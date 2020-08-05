@@ -1,18 +1,21 @@
 <template>
   <div class="position-relative">
-    <router-link
-      :to="getNoteUrl(note)"
-      class="note-explorer-item py-1 px-3"
-      :class="{active: selectedNote._id === note._id}"
-      :title="note.title"
-    >
-      <div class="note-item-title position-relative mr-1">
-        <b>{{note.title ? note.title : 'No title'}}</b>
-      </div>
-      <p
-        class="note-item-summary text-muted"
-        v-html="getNoteContent(note) ? getNoteContent(note) : 'No content'"
-      ></p>
+    <router-link :to="getNoteUrl(note)" v-slot="{href, navigate}">
+      <a
+        :href="href"
+        @mousedown="navigate"
+        class="note-explorer-item py-1 px-3"
+        :class="{active: selectedNote._id === note._id}"
+        :title="note.title"
+      >
+        <div class="note-item-title position-relative mr-1">
+          <b>{{note.title ? note.title : 'No title'}}</b>
+        </div>
+        <p
+          class="note-item-summary text-muted"
+          v-html="getNoteContent(note) ? getNoteContent(note) : 'No content'"
+        ></p>
+      </a>
     </router-link>
     <div class="note-explorer-item-actions">
       <span v-if="sharedNote.isViewed==false" class="badge badge-warning">New</span>
@@ -29,16 +32,12 @@ import noteMixins from '../../helpers/noteMixins';
 
 export default {
   props: {
-    note: { type: Object, },
+    note: { type: Object },
     urlBuilder: { type: Function, default: undefined },
   },
-  mixins: [
-    noteMixins,
-  ],
+  mixins: [noteMixins],
   computed: {
-    ...mapGetters([
-      'selectedNote',
-    ]),
+    ...mapGetters(['selectedNote']),
     sharedNote() {
       return this.$store.getters.sharedById(this.note._id);
     },
@@ -54,5 +53,5 @@ export default {
       return `/${note._id}`;
     },
   },
-}
+};
 </script>

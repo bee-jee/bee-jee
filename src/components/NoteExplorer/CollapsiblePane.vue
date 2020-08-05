@@ -29,7 +29,8 @@
 export default {
   props: {
     title: { type: String },
-    expanded: { type: Boolean, default: false }
+    expanded: { type: Boolean, default: false },
+    initialScrollTop: { type: Number, defatul: 0 },
   },
   methods: {
     toggleExpanded() {
