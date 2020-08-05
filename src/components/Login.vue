@@ -3,7 +3,6 @@
     <form class="form-login" @submit.prevent="login">
       <img class="mb-4" src="../images/BeeJee-logo-small.png" alt="BeeJee" width="72" height="72" />
       <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
-      <p class="text-danger" v-if="error">{{error}}</p>
       <div class="mb-4">
         <label for="inputUsername" class="sr-only">Username</label>
         <input
@@ -26,7 +25,12 @@
         />
         <div class="text-danger" v-if="loginError">{{loginError}}</div>
       </div>
-      <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+      <button class="btn btn-lg btn-primary btn-block" type="submit">
+        <span class="spinner-border text-success" role="status" v-if="isLoggingIn">
+          <span class="sr-only">Loading...</span>
+        </span>
+        <template v-else>Sign in</template>
+      </button>
     </form>
   </div>
 </template>
@@ -38,11 +42,13 @@ export default {
     return {
       username: '',
       password: '',
-      error: null,
     };
   },
   methods: {
     login() {
+      if (this.isLoggingIn) {
+        return;
+      }
       const { username, password } = this;
       const self = this;
       this.$store.dispatch('login', { username, password })
@@ -57,6 +63,7 @@ export default {
     ...mapGetters([
       'loginError',
       'isLoggedIn',
+      'isLoggingIn',
     ]),
   },
 }

@@ -14,6 +14,7 @@ const state = {
   refreshToken: Cookie.get('refreshToken') || '',
   loginError: '',
   logoutSource: '',
+  isLoggingIn: false,
 };
 
 const getters = {
@@ -23,10 +24,12 @@ const getters = {
   refreshToken: state => state.refreshToken,
   loginError: state => state.loginError,
   logoutSource: state => state.logoutSource,
+  isLoggingIn: state => state.isLoggingIn,
 };
 
 const actions = {
   async login({ commit }, { username, password }) {
+    commit('setIsLoggingIn', true);
     try {
       const resp = await Vue.prototype.$http.post(`/auth/login`, {
         username,
@@ -41,6 +44,8 @@ const actions = {
       } else {
         commit('setLoginError', err.message);
       }
+    } finally {
+      commit('setIsLoggingIn', false);
     }
   },
   async logout({ commit }, source) {
@@ -119,6 +124,9 @@ const mutations = {
   },
   setLogoutSource(state, source) {
     state.logoutSource = source;
+  },
+  setIsLoggingIn(state, value) {
+    state.isLoggingIn = value;
   },
 };
 
