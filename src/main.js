@@ -29,7 +29,8 @@ import './helpers/ws';
 import WS from './helpers/ws';
 import GeminiScrollbar from './components/utilities/GeminiScrollbar';
 import 'gemini-scrollbar/gemini-scrollbar.css';
-import Icon from './components/Icon';
+import Icon from './components/utilities/Icon';
+import MtIcon from './components/utilities/MtIcon';
 
 window.isIE11 = !!window.MSInputMethodContext && !!document.documentMode;
 
@@ -48,6 +49,7 @@ Vue.component('b-navbar-nav', BNavbarNav);
 Vue.component('b-navbar', BNavbar);
 Vue.component('gemini-scrollbar', GeminiScrollbar);
 Vue.component('icon', Icon);
+Vue.component('mt-icon', MtIcon);
 Vue.use(VueRouter);
 Vue.use(VueNativeSock, process.env.VUE_APP_WS_URL, {
   store,

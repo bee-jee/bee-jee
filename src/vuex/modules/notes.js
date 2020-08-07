@@ -238,6 +238,9 @@ export const mutations = {
       ...note,
       title,
     });
+    if (_id === state.selectedNote._id) {
+      state.selectedNote.title = title;
+    }
   },
   setNoteContent(state, { _id, content }) {
     const { byIds } = state;

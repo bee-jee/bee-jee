@@ -1,37 +1,57 @@
 <template>
   <div class="editor h-100">
     <editor-menu-bar :editor="editor" v-slot="{ commands, isActive }">
-      <div class="menubar">
+      <div class="menubar" v-if="!readOnly">
+        <button
+          class="menubar__button"
+          @click="$parent.handleShowEditTitle"
+          title="Change title"
+          v-if="isOwner"
+        >Edit title</button>
+
+        <button
+          class="menubar__button"
+          @click="$parent.handleShowEditShare"
+          title="Share"
+          v-if="isOwner"
+        >
+          <i class="fas fa-share-alt"></i>
+        </button>
+
         <button
           class="menubar__button"
           :class="{ 'active': isActive.bold() }"
           @click="commands.bold"
+          title="Bold"
         >
-          <icon name="bold" title="Bold" />
+          <mt-icon :path="mdiFormatBold"></mt-icon>
         </button>
 
         <button
           class="menubar__button"
           :class="{ 'active': isActive.italic() }"
           @click="commands.italic"
+          title="Italic"
         >
-          <icon name="italic" title="Italic" />
+          <mt-icon :path="mdiFormatItalic" />
         </button>
 
         <button
           class="menubar__button"
           :class="{ 'active': isActive.strike() }"
           @click="commands.strike"
+          title="Strikethrough"
         >
-          <icon name="strikethrough" title="Strikethrough" />
+          <mt-icon :path="mdiFormatStrikethroughVariant" :classNames="['sm']" />
         </button>
 
         <button
           class="menubar__button"
           :class="{ 'active': isActive.underline() }"
           @click="commands.underline"
+          title="Underline"
         >
-          <icon name="underline" title="Underline" />
+          <mt-icon :path="mdiFormatUnderline" />
         </button>
 
         <button
@@ -56,16 +76,18 @@
           class="menubar__button"
           :class="{ 'active': isActive.bullet_list() }"
           @click="commands.bullet_list"
+          title="Unordered list"
         >
-          <icon name="unordered-list" title="Unordered list" />
+          <mt-icon :path="mdiFormatListBulleted" />
         </button>
 
         <button
           class="menubar__button"
           :class="{ 'active': isActive.ordered_list() }"
           @click="commands.ordered_list"
+          title="Ordered list"
         >
-          <icon name="ordered-list" title="Ordered list" />
+          <mt-icon :path="mdiFormatListNumbered" />
         </button>
 
         <button
@@ -80,6 +102,42 @@
           <icon name="hr" title="Horizontal line" />
         </button>
 
+        <button
+          class="menubar__button"
+          :class="{ 'active': isActive.paragraph({ align: 'left' }) }"
+          @click="commands.paragraph({ align: 'left' })"
+          title="Align left"
+        >
+          <mt-icon :path="mdiFormatAlignLeft" />
+        </button>
+
+        <button
+          class="menubar__button"
+          :class="{ 'active': isActive.paragraph({ align: 'center' }) }"
+          @click="commands.paragraph({ align: 'center' })"
+          title="Align center"
+        >
+          <mt-icon :path="mdiFormatAlignCenter" />
+        </button>
+
+        <button
+          class="menubar__button"
+          :class="{ 'active': isActive.paragraph({ align: 'right' }) }"
+          @click="commands.paragraph({ align: 'right' })"
+          title="Align right"
+        >
+          <mt-icon :path="mdiFormatAlignRight" />
+        </button>
+
+        <button
+          class="menubar__button"
+          :class="{ 'active': isActive.paragraph({ align: 'justify' }) }"
+          @click="commands.paragraph({ align: 'justify' })"
+          title="Align justify"
+        >
+          <mt-icon :path="mdiFormatAlignJustify" />
+        </button>
+
         <button class="menubar__button" @click="commands.undo">
           <icon name="undo" title="Undo" />
         </button>
@@ -89,12 +147,12 @@
         </button>
       </div>
     </editor-menu-bar>
-    <editor-content :editor="editor" ref="editor" class="ql-container ql-snow" />
+    <editor-content :editor="editor" ref="editor" class="contenteditable-wrapper" />
   </div>
 </template>
 
 <script>
-import { Editor, EditorContent, EditorMenuBar } from 'tiptap';
+import { Editor, EditorContent, EditorMenuBar, Doc, Text } from 'tiptap';
 import {
   Blockquote,
   Bold,
@@ -102,24 +160,39 @@ import {
   Code,
   CodeBlock,
   HardBreak,
-  Heading,
   History,
   HorizontalRule,
   Italic,
   Link,
-  ListItem,
-  OrderedList,
   Strike,
   TodoItem,
   TodoList,
   Underline,
 } from 'tiptap-extensions';
+import {
+  mdiFormatBold,
+  mdiFormatItalic,
+  mdiFormatStrikethroughVariant,
+  mdiFormatUnderline,
+  mdiFormatListBulleted,
+  mdiFormatListNumbered,
+  mdiFormatAlignLeft,
+  mdiFormatAlignCenter,
+  mdiFormatAlignRight,
+  mdiFormatAlignJustify,
+} from '@mdi/js';
 import Realtime from '../../tiptap/Realtime';
+import { Paragraph } from '../../tiptap/nodes/paragraph';
+import { Heading } from '../../tiptap/nodes/heading';
+import { ListItem } from '../../tiptap/nodes/listItem';
+import { OrderedList } from '../../tiptap/nodes/orderedList';
+import TextSelection from '../../tiptap/marks/textSelection';
 
 export default {
   props: {
     note: { type: Object },
     readOnly: { type: Boolean, default: false },
+    isOwner: { type: Boolean, default: true },
   },
   components: {
     EditorContent,
@@ -128,15 +201,28 @@ export default {
   data() {
     return {
       editor: null,
+      mdiFormatBold,
+      mdiFormatItalic,
+      mdiFormatStrikethroughVariant,
+      mdiFormatUnderline,
+      mdiFormatListBulleted,
+      mdiFormatListNumbered,
+      mdiFormatAlignLeft,
+      mdiFormatAlignCenter,
+      mdiFormatAlignRight,
+      mdiFormatAlignJustify,
     };
   },
   mounted() {
     const extensions = [
+      new Doc(),
+      new Text(),
+      new Paragraph(),
+      new Heading({ levels: [1, 2, 3] }),
       new Blockquote(),
       new BulletList(),
       new CodeBlock(),
       new HardBreak(),
-      new Heading({ levels: [1, 2, 3] }),
       new HorizontalRule(),
       new ListItem(),
       new OrderedList(),
@@ -149,12 +235,14 @@ export default {
       new Strike(),
       new Underline(),
       new History(),
+      new TextSelection(),
     ];
     const { note } = this;
     if (note) {
       extensions.push(new Realtime(note));
     }
     const editor = new Editor({
+      useBuiltInExtensions: false,
       extensions,
       editable: !this.readOnly,
       onUpdate: () => {

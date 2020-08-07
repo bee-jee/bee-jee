@@ -1,7 +1,7 @@
 <template>
   <svg :class="className" xmlns="http://www.w3.org/2000/svg">
     <title v-if="title">{{ title }}</title>
-    <use :xlink:href="iconPath" xmlns:xlink="http://www.w3.org/1999/xlink"/>
+    <use :xlink:href="iconPath" xmlns:xlink="http://www.w3.org/1999/xlink" />
   </svg>
 </template>
 
@@ -11,11 +11,11 @@ export default {
   props: {
     name: {
       type: String,
-      required: true
+      required: true,
     },
     title: {
       type: String,
-      default: null
+      default: null,
     },
     classNames: {
       type: Array,
@@ -38,12 +38,12 @@ export default {
 </script>
 
 <style>
-  .icon {
-    position: relative;
-    top: -.1rem;
-    fill: currentColor;
-    stroke: currentColor;
-    height: 1rem;
-    width: 1rem;
-  }
+.icon {
+  position: relative;
+  top: -0.1rem;
+  fill: currentColor;
+  stroke: currentColor;
+  height: 1rem;
+  width: 1rem;
+}
 </style>

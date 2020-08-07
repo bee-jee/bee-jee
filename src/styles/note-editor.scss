@@ -1,20 +1,22 @@
 @import '~quill/dist/quill.snow.css';
 
-.note-editor {
+.note-editor,
+.note-editor-container {
     height: 100%;
 }
 
-.note-editor-container {
-    height: calc(100% - 43px);
-}
-
-.ql-container.ql-snow {
+.contenteditable-wrapper {
     overflow: auto;
     border: none;
     font-size: 1rem;
+    flex-grow: 1;
+    background-color: $gray-200;
 }
 
 .editor {
+    display: flex;
+    flex-direction: column;
+
     pre {
         padding: 0.7rem 1rem;
         border-radius: 5px;
@@ -34,12 +36,18 @@
     height: auto;
     width: 100%;
     max-width: 794px;
-    margin: 0 auto 6rem auto;
-    box-shadow: 0 1px 3px 1px rgba(60, 64, 67, .15);
-    padding: 0.5rem;
+    margin: 1rem auto 6rem auto;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16),
+        0 3px 6px rgba(0, 0, 0, 0.23);
+    padding: 0.74rem 1rem;
+    background-color: $white;
 
     &:focus {
         outline: none;
+    }
+
+    p {
+        margin-bottom: 0.5rem;
     }
 }
 
@@ -59,11 +67,11 @@ $hover-background: darken($primary, 25%);
 .menubar {
     border: none;
     border-bottom: 1px solid #eee;
-    padding: 0.5rem 0.5rem 0.5rem 36px;
+    padding: 0 0.5rem 0 36px;
+    flex-basis: auto;
 
     &__button {
         padding: .5rem;
-        font-weight: 700;
         display: inline-block;
         background: transparent;
         border: 0;
@@ -91,37 +99,6 @@ $hover-background: darken($primary, 25%);
 
         &:hover {
             background-color: $light;
-        }
-    }
-}
-
-.ql-snow {
-    .ql-toolbar,
-    &.ql-toolbar {
-        button:hover,
-        button:focus,
-        button.ql-active,
-        .ql-picker-label:hover,
-        .ql-picker-label.ql-active,
-        .ql-picker-item:hover,
-        .ql-picker-item.ql-selected {
-            color: $hover-background !important;
-
-            .ql-fill {
-                fill: $hover-background !important;
-            }
-
-            .ql-stroke {
-                stroke: $hover-background !important;
-            }
-        }
-
-        .ql-picker {
-            &.ql-expanded {
-                .ql-picker-options {
-                    border: 0;
-                }
-            }
         }
     }
 }
