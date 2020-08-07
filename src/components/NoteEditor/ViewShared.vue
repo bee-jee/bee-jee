@@ -44,10 +44,11 @@ export default {
     },
   },
   methods: {
-    setSelectedNote(id) {
-      this.$store.dispatch('setSelectedSharedNote', {
+    async setSelectedNote(id) {
+      await this.$store.dispatch('setSelectedSharedNote', {
         _id: id,
       });
+      await this.$store.dispatch('fetchNumOfUnviewedSharedNutes');
     },
   },
   created() {

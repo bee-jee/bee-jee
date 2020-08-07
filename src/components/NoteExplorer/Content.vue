@@ -36,6 +36,10 @@
         :note="note"
         :urlBuilder="(note) => `/view-shared/${note._id}`"
       />
+
+      <template v-slot:actions>
+        <span v-if="numOfUnviewed > 0" class="badge badge-warning">{{numOfUnviewed}}</span>
+      </template>
     </collapsible-pane>
 
     <modal
@@ -103,7 +107,13 @@ export default {
     };
   },
   computed: {
+    numOfUnviewed(){
+      // return 3;
+      // console.log(this.$store.getters.numOfAllUnviewedNotes);
+      return this.$store.getters.numOfAllUnviewedNotes;
+    },
     sharedNotes() {
+      // console.log(this.$store.getters.allSharedNotes);
       return this.$store.getters.allSharedNotes;
     },
     myNotesExpanded: {
@@ -174,5 +184,8 @@ export default {
       this.$modal.show('createNote');
     },
   },
+  mounted() {
+      this.$store.dispatch('fetchNumOfUnviewedSharedNutes');
+  }
 };
 </script>

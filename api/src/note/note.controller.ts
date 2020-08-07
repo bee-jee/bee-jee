@@ -101,6 +101,7 @@ class NoteController implements Controller, WsController {
     this.router.patch(`${this.path}/:id`, authMiddleware, validationMiddleware(EditNoteDto, true), this.editNote);
     this.router.get(`${this.path}/shared/`, authMiddleware, this.getSharedNotes);
     this.router.get(`${this.path}/shared/:id`, visiMiddleware(), this.getSharedNote);
+    this.router.get(`${this.path}/numOfUnviewed`, authMiddleware, this.getNumOfUnviewedSharedNotes);
     this.router.get(`${this.path}/:id`, authMiddleware, this.getNoteById);
     this.router.delete(`${this.path}/:id`, authMiddleware, this.deleteNote);
   }
@@ -156,6 +157,16 @@ class NoteController implements Controller, WsController {
     }
   };
 
+  private getNumOfUnviewedSharedNotes = async (request: RequestWithUser, response: Response) => {
+    const numOfUnviewedSharedNotes = await this.UserSharedNoteModel.countDocuments({
+      user: request.user._id,
+      isViewed: false,
+    });
+    response.send({
+      num: numOfUnviewedSharedNotes,
+    });
+  };
+
   private getSharedNote = async (request: RequestWithUser, response: Response,
     next: NextFunction) => {
     const { id } = request.params;
@@ -168,7 +179,7 @@ class NoteController implements Controller, WsController {
       user: request.user._id,
     }, {
       isViewed: true,
-    })
+    }, { new: true })
       .populate('note');
     if (sharedNote !== null) {
       response.send(sharedNote);

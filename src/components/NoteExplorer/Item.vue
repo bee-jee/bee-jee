@@ -8,6 +8,7 @@
     >
       <div class="note-item-title position-relative mr-1">
         <b>{{note.title ? note.title : 'No title'}}</b>
+        <span v-if="sharedNote.isViewed==false" class="badge badge-warning">New</span>
       </div>
       <p
         class="note-item-summary text-muted"
@@ -49,6 +50,9 @@ export default {
       const note = this.note._id === this.selectedNote._id
         ? this.selectedNote : this.note;
       return this.getNoteContent(note) || 'No content';
+    },
+    sharedNote() {
+      return this.$store.getters.sharedById(this.note._id);
     },
   },
   methods: {

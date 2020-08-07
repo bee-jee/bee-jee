@@ -23,6 +23,7 @@ export const state = {
   isLoadingSelectedNote: false,
   isUpdatingNote: false,
   isSyncing: false,
+  numOfAllUnviewedNotes: ''
 };
 
 export const getters = {
@@ -39,6 +40,7 @@ export const getters = {
   isSyncing: (state) => state.isSyncing || state.isUpdatingNote,
   isLoadingSharedNotes: (state) => state.isLoadingSharedNotes,
   sharedById: (state) => (id) => state.sharedByIds[id] || {},
+  numOfAllUnviewedNotes:(state)=> state.numOfAllUnviewedNotes,
   allSharedNotes: (state, getters) => state.allIds
     .filter((id) => id in state.sharedByIds)
     .map(id => getters.noteById(id)),
@@ -66,6 +68,15 @@ export const actions = {
       console.error(err);
     } finally {
       commit('setIsLoadingSelectedNote', false);
+    }
+  },
+  async fetchNumOfUnviewedSharedNutes({ commit }){
+    try {
+      const resp = await Vue.prototype.$http.get('/note/numOfUnviewed');
+      // console.log(resp.data.num);
+      commit('setNumOfAllUnviewedNotes', resp.data.num);
+    }catch (err) {
+      console.error(err);
     }
   },
   async createNote({ commit }, { title, content, permission }) {
@@ -101,6 +112,7 @@ export const actions = {
       const { data: sharedNote } = resp;
       const { note } = sharedNote;
       note.content = decodeDoc(note.content);
+      commit('updateSharedNote', sharedNote);
       commit('setSelectedNote', note);
     } catch (err) {
       console.error(err);
@@ -271,6 +283,9 @@ export const mutations = {
   setIsLoadingSharedNotes(state, value) {
     state.isLoadingSharedNotes = value;
   },
+  setNumOfAllUnviewedNotes(state, value){
+    state.numOfAllUnviewedNotes = value;
+  },
   setSharedNotes(state, sharedNotes) {
     const allSharedIds = [];
     const sharedByIds = {};
@@ -288,6 +303,10 @@ export const mutations = {
       ...byIds,
     };
     state.sharedByIds = sharedByIds;
+  },
+  updateSharedNote(state, sharedNote) {
+    const { note } = sharedNote;
+    state.sharedByIds[note._id] = Object.freeze(sharedNote);
   },
 };
 
