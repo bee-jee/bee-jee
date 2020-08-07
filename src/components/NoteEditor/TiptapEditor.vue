@@ -104,7 +104,7 @@
 
         <button
           class="menubar__button"
-          :class="{ 'active': isActive.paragraph({ align: 'left' }) }"
+          :class="{ 'active': isAlign(isActive, { align: 'left' }) }"
           @click="commands.paragraph({ align: 'left' })"
           title="Align left"
         >
@@ -113,7 +113,7 @@
 
         <button
           class="menubar__button"
-          :class="{ 'active': isActive.paragraph({ align: 'center' }) }"
+          :class="{ 'active': isAlign(isActive, { align: 'center' }) }"
           @click="commands.paragraph({ align: 'center' })"
           title="Align center"
         >
@@ -122,7 +122,7 @@
 
         <button
           class="menubar__button"
-          :class="{ 'active': isActive.paragraph({ align: 'right' }) }"
+          :class="{ 'active': isAlign(isActive, { align: 'right' }) }"
           @click="commands.paragraph({ align: 'right' })"
           title="Align right"
         >
@@ -131,7 +131,7 @@
 
         <button
           class="menubar__button"
-          :class="{ 'active': isActive.paragraph({ align: 'justify' }) }"
+          :class="{ 'active': isAlign(isActive, { align: 'justify' }) }"
           @click="commands.paragraph({ align: 'justify' })"
           title="Align justify"
         >
@@ -187,6 +187,7 @@ import { Heading } from '../../tiptap/nodes/heading';
 import { ListItem } from '../../tiptap/nodes/listItem';
 import { OrderedList } from '../../tiptap/nodes/orderedList';
 import TextSelection from '../../tiptap/marks/textSelection';
+import MarkdownPreview from '../../tiptap/MarkdownPreview';
 
 export default {
   props: {
@@ -236,6 +237,7 @@ export default {
       new Underline(),
       new History(),
       new TextSelection(),
+      new MarkdownPreview(),
     ];
     const { note } = this;
     if (note) {
@@ -248,11 +250,19 @@ export default {
       onUpdate: () => {
         this.$store.commit('incrementSelectedNoteContentVersion');
       },
+      disableInputRules: true,
+      disablePasteRules: true,
     });
     this.editor = editor;
   },
   beforeDestroy() {
     this.editor.destroy();
+  },
+  methods: {
+    isAlign(isActive, value) {
+      return isActive.paragraph(value)
+        || isActive.heading(value);
+    },
   },
 };
 </script>

@@ -1,6 +1,7 @@
 import { Node } from 'tiptap';
 import { LIST_ITEM } from './names';
 import { isAlign } from './paragraph';
+import { splitListItem, sinkListItem, liftListItem } from 'tiptap-commands';
 
 export const ATTRIBUTE_LIST_STYLE_TYPE = 'data-list-style-type';
 
@@ -48,6 +49,14 @@ export class ListItem extends Node {
         }
         return ['li', attrs, 0];
       },
+    };
+  }
+
+  keys({ type }) {
+    return {
+      Enter: splitListItem(type),
+      Tab: sinkListItem(type),
+      'Shift-Tab': liftListItem(type),
     };
   }
 }

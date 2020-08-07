@@ -102,3 +102,22 @@ $hover-background: darken($primary, 25%);
         }
     }
 }
+
+[data-decor-strong] {
+    font-weight: 700;
+}
+[data-decor-em] {
+    font-style: italic;
+}
+[data-decor-heading] {
+    font-size: 130%;
+    font-weight: 700;
+}
+[data-decor-codespan] {
+    background-color: $light;
+    font-family: monospace;
+    padding: 5px;
+}
+[data-decor-code] {
+    font-family: monospace;
+}
