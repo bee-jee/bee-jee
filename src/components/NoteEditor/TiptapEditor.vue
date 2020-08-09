@@ -188,6 +188,7 @@ import { ListItem } from '../../tiptap/nodes/listItem';
 import { OrderedList } from '../../tiptap/nodes/orderedList';
 import TextSelection from '../../tiptap/marks/textSelection';
 import MarkdownPreview from '../../tiptap/MarkdownPreview';
+import Cursor from '../../tiptap/Cursor';
 
 export default {
   props: {
@@ -242,6 +243,7 @@ export default {
     const { note } = this;
     if (note) {
       extensions.push(new Realtime(note));
+      extensions.push(new Cursor({ note, store: this.$store }));
     }
     const editor = new Editor({
       useBuiltInExtensions: false,

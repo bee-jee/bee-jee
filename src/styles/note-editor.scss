@@ -103,6 +103,29 @@ $hover-background: darken($primary, 25%);
     }
 }
 
+.user-cursor {
+    > div {
+        position: absolute;
+        top: -2em;
+        font-size: 0.75rem;
+        font-style: normal;
+        font-weight: 400;
+        line-height: normal;
+        -webkit-user-select: none;
+        user-select: none;
+        color: #fff;
+        padding: 4px;
+        border-radius: 2px;
+        width: auto;
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    &:hover > div {
+        opacity: 1;
+    }
+}
+
 [data-decor-strong] {
     font-weight: 700;
 }
