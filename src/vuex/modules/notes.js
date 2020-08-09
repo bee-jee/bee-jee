@@ -173,6 +173,10 @@ export const mutations = {
   setIsSyncing(state, value) {
     state.isSyncing = value;
   },
+  resetAllNotes(state) {
+    state.allIds = [];
+    state.byIds = {};
+  },
   // setNotes will replace the current notes in the state to
   // the new ones
   setNotes(state, notes) {
@@ -211,8 +215,10 @@ export const mutations = {
     if (state.selectedNote._id) {
       unsubscribeContentUpdate(state.selectedNote);
     }
-    state.selectedNote = note;
-    subscribeContentUpdate(note);
+    state.selectedNote = Object.freeze(note);
+    if (note._id) {
+      subscribeContentUpdate(note);
+    }
   },
   // The reason we want to store toDeleteNote in the state is that we can
   // have a single modal to confirm if the user wanted to delete the note.
@@ -241,8 +247,15 @@ export const mutations = {
     // Set its title to the new title
     // Since the note object is Object.freezed therefore we have to create
     // a new object and freeze it.
-    byIds[_id] = Object.freeze({
-      ...note,
+    state.byIds = {
+      ...state.byIds,
+      [_id]: Object.freeze({
+        ...note,
+        title,
+      }),
+    };
+    state.selectedNote = Object.freeze({
+      ...state.selectedNote,
       title,
     });
   },

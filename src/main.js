@@ -28,7 +28,6 @@ import { apiUrl } from './helpers/url';
 import './helpers/ws';
 import WS from './helpers/ws';
 import GeminiScrollbar from './components/utilities/GeminiScrollbar';
-import 'gemini-scrollbar/gemini-scrollbar.css';
 
 window.isIE11 = !!window.MSInputMethodContext && !!document.documentMode;
 

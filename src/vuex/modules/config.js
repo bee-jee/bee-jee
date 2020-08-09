@@ -6,7 +6,9 @@ export const state = {
   explorerSize: 20,
   explorerClosed: false,
   myNotesExpanded: true,
+  myNotesScrollTop: 0,
   sharedNotesExpanded: false,
+  sharedNotesScrollTop: 0,
 };
 
 export const getters = {
@@ -18,7 +20,7 @@ export const actions = {
     let config = {};
     const saved = localStorage.getItem(CONFIG_KEY);
     if (saved) {
-      config = JSON.parse(lzstring.decompress(saved));
+      config = JSON.parse(window.isIE11 ? saved : lzstring.decompress(saved));
     }
     commit('setConfig', config);
   },

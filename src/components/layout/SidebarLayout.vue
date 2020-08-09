@@ -14,6 +14,7 @@
 
 <script>
 import { Splitpanes, Pane } from 'splitpanes';
+import { debounce } from 'vue-debounce';
 import NoteExplorer from '../NoteExplorer';
 
 export default {
@@ -42,12 +43,15 @@ export default {
   },
   methods: {
     resize(panes) {
-      this.$store.dispatch('setConfig', {
-        key: 'explorerSize',
-        value: panes[0].size,
-      });
+      this.saveExplorerSize(this, panes[0].size);
       this.updateExplorerMargin(panes[0].size);
     },
+    saveExplorerSize: debounce((self, size) => {
+      self.$store.dispatch('setConfig', {
+        key: 'explorerSize',
+        value: size,
+      });
+    }, '500ms'),
     updateExplorerMargin(size) {
       const explorerPane = this.$refs.explorer;
       if (!size) {

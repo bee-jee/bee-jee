@@ -64,8 +64,12 @@ export default {
     },
   },
   mounted() {
+    this.$store.commit('resetAllNotes');
     this.$store.dispatch('fetchNotes');
     this.$store.dispatch('fetchSharedNotes');
+  },
+  beforeDestroy() {
+    this.$store.commit('setSelectedNote', {});
   },
   watch: {
     toDeleteNote(note) {

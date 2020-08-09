@@ -2,6 +2,11 @@ import Vue from 'vue';
 import Cookie from 'js-cookie';
 import WS from '../../helpers/ws';
 import { Actions } from '../../../common/collab';
+import { cleanEnv, bool } from 'envalid';
+
+const env = cleanEnv(process.env, {
+  VUE_APP_IS_HTTPS: bool({ default: false }),
+});
 
 const state = {
   user: {},
@@ -9,6 +14,7 @@ const state = {
   refreshToken: Cookie.get('refreshToken') || '',
   loginError: '',
   logoutSource: '',
+  isLoggingIn: false,
 };
 
 const getters = {
@@ -18,10 +24,12 @@ const getters = {
   refreshToken: state => state.refreshToken,
   loginError: state => state.loginError,
   logoutSource: state => state.logoutSource,
+  isLoggingIn: state => state.isLoggingIn,
 };
 
 const actions = {
   async login({ commit }, { username, password }) {
+    commit('setIsLoggingIn', true);
     try {
       const resp = await Vue.prototype.$http.post(`/auth/login`, {
         username,
@@ -36,6 +44,8 @@ const actions = {
       } else {
         commit('setLoginError', err.message);
       }
+    } finally {
+      commit('setIsLoggingIn', false);
     }
   },
   async logout({ commit }, source) {
@@ -97,7 +107,7 @@ const mutations = {
     state.token = token;
     Cookie.set('token', token, {
       sameSite: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: env.VUE_APP_IS_HTTPS,
     });
     Vue.prototype.$http.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     WS.defaults['Authorization'] = token;
@@ -106,7 +116,7 @@ const mutations = {
     state.refreshToken = token;
     Cookie.set('refreshToken', token, {
       sameSite: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: env.VUE_APP_IS_HTTPS,
     });
   },
   setLoginError(state, message) {
@@ -114,6 +124,9 @@ const mutations = {
   },
   setLogoutSource(state, source) {
     state.logoutSource = source;
+  },
+  setIsLoggingIn(state, value) {
+    state.isLoggingIn = value;
   },
 };
 

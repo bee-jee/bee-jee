@@ -4,7 +4,7 @@
     ref="pane"
     :class="{ collapsed: !expanded, expanded: expanded }"
   >
-    <button class="pane-header px-1 py-0 font-weight-bold" @click="toggleExpanded">
+    <button class="pane-header font-weight-bold" @click="toggleExpanded">
       <span v-if="expanded" key="expanded" class="chevron">
         <i class="fas fa-sm fa-chevron-down"></i>
       </span>
@@ -14,7 +14,12 @@
       <span>{{title}}</span>
       <slot name="actions"></slot>
     </button>
-    <gemini-scrollbar class="pane-body" v-if="showBody">
+    <gemini-scrollbar
+      class="pane-body"
+      v-if="showBody"
+      @scroll="handleBodyScroll"
+      :initialScrollTop="initialScrollTop"
+    >
       <slot></slot>
     </gemini-scrollbar>
   </div>
@@ -24,11 +29,15 @@
 export default {
   props: {
     title: { type: String },
-    expanded: { type: Boolean, default: false }
+    expanded: { type: Boolean, default: false },
+    initialScrollTop: { type: Number, defatul: 0 },
   },
   methods: {
     toggleExpanded() {
       this.$emit('setExpanded', !this.expanded);
+    },
+    handleBodyScroll(e) {
+      this.$emit('scroll', e);
     },
   },
   data() {
