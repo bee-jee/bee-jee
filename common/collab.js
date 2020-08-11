@@ -8,7 +8,7 @@ export const Actions = Object.freeze({
   USER_LEFT: 'userLeft',
   CURSOR_UPDATED: 'cursorUpdated',
   CONTENT_UPDATED: 'contentUpdated',
-  NOT_AUTHENTICATED: 'noteAuthenticated',
+  NOT_AUTHENTICATED: 'notAuthenticated',
 });
 
 // Colors are the possible colors that a room (note) can assign

@@ -15,6 +15,7 @@ const state = {
   loginError: '',
   logoutSource: '',
   isLoggingIn: false,
+  isCheckingLoggedin: false,
 };
 
 const getters = {
@@ -25,6 +26,7 @@ const getters = {
   loginError: state => state.loginError,
   logoutSource: state => state.logoutSource,
   isLoggingIn: state => state.isLoggingIn,
+  isCheckingLoggedin: state => state.isCheckingLoggedin,
 };
 
 const actions = {
@@ -65,6 +67,10 @@ const actions = {
     delete WS.defaults['Authorization'];
   },
   async checkLoggedIn({ commit, getters, dispatch }) {
+    if (getters.isCheckingLoggedin) {
+      return;
+    }
+    commit('setIsCheckingLoggedin', true);
     const finaliseUser = async (user) => {
       commit('setUser', user);
       if (!user._id) {
@@ -79,7 +85,7 @@ const actions = {
           });
           commit('setToken', resp.data.accessToken);
           commit('setRefreshToken', resp.data.refreshToken);
-          commit('setUser', resp.data.user);
+          finaliseUser(resp.data.user);
         } catch(err) {
           await dispatch('logout');
         }
@@ -92,6 +98,8 @@ const actions = {
       await finaliseUser(resp.data);
     } catch (err) {
       await tryRefreshToken();
+    } finally {
+      commit('setIsCheckingLoggedin', false);
     }
   },
   async [Actions.NOT_AUTHENTICATED]({ dispatch }) {
@@ -127,6 +135,9 @@ const mutations = {
   },
   setIsLoggingIn(state, value) {
     state.isLoggingIn = value;
+  },
+  setIsCheckingLoggedin(state, value) {
+    state.isCheckingLoggedin = value;
   },
 };
 
