@@ -147,12 +147,16 @@
         </button>
       </div>
     </editor-menu-bar>
-    <editor-content :editor="editor" ref="editor" class="contenteditable-wrapper" />
+    <div class="contenteditable-wrapper position-relative">
+      <div class="editor-top-shadow" ref="editorTopShadow"></div>
+      <div ref="editor">
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-import { Editor, EditorContent, EditorMenuBar, Doc, Text } from 'tiptap';
+import { Editor, EditorMenuBar, Doc, Text } from 'tiptap';
 import {
   Blockquote,
   Bold,
@@ -181,6 +185,7 @@ import {
   mdiFormatAlignRight,
   mdiFormatAlignJustify,
 } from '@mdi/js';
+import GeminiScrollbar from 'gemini-scrollbar';
 import Realtime from '../../tiptap/Realtime';
 import { Paragraph } from '../../tiptap/nodes/paragraph';
 import { Heading } from '../../tiptap/nodes/heading';
@@ -190,6 +195,8 @@ import TextSelection from '../../tiptap/marks/textSelection';
 import MarkdownPreview from '../../tiptap/MarkdownPreview';
 import Cursor from '../../tiptap/Cursor';
 
+const SHADOW_SCROLL_TOP_THRESHOLD = 200;
+
 export default {
   props: {
     note: { type: Object },
@@ -197,7 +204,6 @@ export default {
     isOwner: { type: Boolean, default: true },
   },
   components: {
-    EditorContent,
     EditorMenuBar,
   },
   data() {
@@ -264,6 +270,33 @@ export default {
     isAlign(isActive, value) {
       return isActive.paragraph(value)
         || isActive.heading(value);
+    },
+    initialiseScrollbar() {
+      this.scrollbar = new GeminiScrollbar({
+        element: this.$refs.editor,
+        createElements: true,
+      });
+      this.scrollbar.create();
+      this.scrollbar.update();
+      this.scrollbar.getViewElement().onscroll = (e) => {
+        const shadowPercentage = Math.min(e.target.scrollTop / SHADOW_SCROLL_TOP_THRESHOLD, 1);
+        this.$refs.editorTopShadow.style.opacity = shadowPercentage;
+      };
+    },
+  },
+  watch: {
+    editor: {
+      immediate: true,
+      handler(editor) {
+        if (editor && editor.element) {
+          const el = this.$refs.editor;
+          this.$nextTick(() => {
+            el.appendChild(editor.element.firstChild);
+            editor.setParentComponent(this);
+            this.initialiseScrollbar();
+          });
+        }
+      },
     },
   },
 };

@@ -28,7 +28,6 @@ import { apiUrl } from './helpers/url';
 import './helpers/ws';
 import WS from './helpers/ws';
 import GeminiScrollbar from './components/utilities/GeminiScrollbar';
-import 'gemini-scrollbar/gemini-scrollbar.css';
 import Icon from './components/utilities/Icon';
 import MtIcon from './components/utilities/MtIcon';
 
