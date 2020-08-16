@@ -6,7 +6,7 @@ import websocket from './modules/websocket';
 import auth from './modules/auth';
 import cursors from './modules/cursors';
 import user from './modules/user';
-import layout from './modules/layout';
+import app from './modules/app';
 
 Vue.use(Vuex);
 
@@ -18,7 +18,7 @@ const store = new Vuex.Store({
     auth,
     cursors,
     user,
-    layout,
+    app,
   },
 });
 

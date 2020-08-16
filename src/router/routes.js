@@ -107,6 +107,7 @@ router.beforeEach((to, from, next) => {
       checkLoggedIn(() => {
         next();
       }, () => {
+        store.commit('setWantsUrl', to);
         next('/login');
       });
     }
