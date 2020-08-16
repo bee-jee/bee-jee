@@ -121,7 +121,7 @@ $hover-background: darken($primary, 25%);
         opacity: 0;
         transition: opacity 0.3s;
     }
-    &:hover > div {
+    &.hover > div {
         opacity: 1;
     }
 }

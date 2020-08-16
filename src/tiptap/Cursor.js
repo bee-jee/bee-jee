@@ -15,6 +15,19 @@ const cursorBuilder = ({ color, name, left, top, width, height }) => {
   cursor.style.height = `${height}px`;
   cursor.classList.add('user-cursor');
   cursor.insertBefore(userDiv, null);
+  let timeout = null;
+  cursor.onmouseover = () => {
+    cursor.classList.add('hover');
+    if (timeout) {
+      clearTimeout(timeout);
+      timeout = null;
+    }
+  };
+  cursor.onmouseout = () => {
+    timeout = setTimeout(() => {
+      cursor.classList.remove('hover');
+    }, 1500);
+  };
   return cursor;
 };
 
@@ -142,7 +155,7 @@ export default class Cursor extends Extension {
 
   createDecorations(doc, view) {
     const decorations = [];
-    this.cursors.forEach((value, key) => {
+    this.cursors.forEach((value) => {
       const { index, length, color, name } = value;
       if (index === undefined) {
         return;
@@ -152,8 +165,8 @@ export default class Cursor extends Extension {
       const { left, top, bottom } = view.coordsAtPos(to);
       decorations.push(Decoration.widget(
         to,
-        () => cursorBuilder({ color, name, left, top, width: 3, height: bottom - top }),
-        { key, side: 10 },
+        () => cursorBuilder({ color, name, left, top, width: 2, height: bottom - top }),
+        { side: 10 },
       ));
       decorations.push(Decoration.inline(Math.min(from, to), Math.max(from, to), {
         style: `background-color: ${tinycolor(color).setAlpha(0.3).toString()}`,
