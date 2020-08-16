@@ -60,7 +60,7 @@ export default {
         })
         .then((wantsUrl) => {
           if (!wantsUrl) {
-            wantsUrl = '/login';
+            wantsUrl = '/';
           }
           if (self.isLoggedIn) {
             self.$router.push(wantsUrl);
