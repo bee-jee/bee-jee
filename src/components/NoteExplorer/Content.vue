@@ -69,7 +69,7 @@
               class="invalid-feedback"
             >{{newNoteErrors.getFirst('newNoteTitle')}}</p>
           </div>
-          <share-selector class="form-group" :errors="newNoteErrors" v-model="permission" />
+          <share-selector class="form-group" :errors="newNoteErrors" v-model="permission" :note="{}" />
           <div v-if="isCreatingNote">Loading . . .</div>
           <div class="text-right">
             <button

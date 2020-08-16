@@ -4,8 +4,10 @@ import { expect } from 'chai';
 import visiMiddleware from '../src/middleware/visibility.middleware';
 import RequestWithUser from '../src/interfaces/requestWithUser.interface';
 import { Visibility } from '../src/share/share.interface';
-import NoteModel from '../src/note/note.model';
 import NoPermissionException from '../src/exceptions/NoPermissionException';
+import dbHandler from './dbHandler';
+import UserModel from '../src/user/user.model';
+import NoteModel from '../src/note/note.model';
 
 describe('Note visibility', () => {
   let middleware: RequestHandler | null = null;
@@ -14,22 +16,43 @@ describe('Note visibility', () => {
     [, middleware] = visiMiddleware();
   });
 
+  afterEach(async () => {
+    await dbHandler.clear();
+  });
+
+  before(async () => {
+    await dbHandler.connect();
+  });
+
+  after(async () => {
+    await dbHandler.close();
+  });
+
   it('should call next without error', async () => {
     const nextSpy = sinon.spy();
-    const personB = {
-      _id: 'b',
-    };
-    const aNote1 = {
-      _id: 'an1',
+    const personB = await UserModel.create({
+      username: 'personB',
+      password: 'abcdefg',
+      firstName: 'Person',
+      lastName: 'B',
+      role: 'user',
+      created: new Date(),
+      updated: new Date(),
+    });
+    const aNote1 = await NoteModel.create({
       visibility: Visibility.AnyOneWithLink,
-      populate: async () => { },
-    };
+      title: '',
+      author: personB._id,
+      created: new Date(),
+      updated: new Date(),
+      content: '',
+      sharedUsers: [],
+    });
 
-    NoteModel.findById = (): any => aNote1;
     await (middleware as RequestHandler)({
       user: personB,
       params: {
-        id: 'an1',
+        id: aNote1._id,
       } as any,
     } as RequestWithUser, {} as Response, nextSpy);
     expect(nextSpy.calledOnce).equal(true);
@@ -37,10 +60,11 @@ describe('Note visibility', () => {
 
     nextSpy.resetHistory();
     aNote1.visibility = Visibility.Private;
+    await aNote1.save();
     await (middleware as RequestHandler)({
       user: personB,
       params: {
-        id: 'an1',
+        id: aNote1._id,
       } as any,
     } as RequestWithUser, {} as Response, nextSpy);
     expect(nextSpy.calledOnce).equal(true);

@@ -8,6 +8,7 @@ import NoPermissionException from '../exceptions/NoPermissionException';
 import { Permission, Visibility } from '../share/share.interface';
 import NoteModel from '../note/note.model';
 import NoteNotFoundException from '../exceptions/NoteNotFound';
+import UserSharedNoteModel from '../share/share.model';
 
 async function getUserPermission(user: User & Document, note: Note & Document)
   : Promise<[boolean, Permission]> {
@@ -53,6 +54,21 @@ function visiMiddleware(): RequestHandler[] {
       if (!haveAccess) {
         next(new NoPermissionException());
         return;
+      }
+      if (note.visibility === Visibility.AnyOneWithLink) {
+        const { user } = req;
+        if (user._id !== note.author) {
+          await UserSharedNoteModel.findOneAndUpdate({
+            note: note._id,
+            user: user._id,
+          }, {
+            note: note._id,
+            user: user._id,
+            permission: Permission.Write,
+          }, {
+            upsert: true,
+          });
+        }
       }
       next();
     },

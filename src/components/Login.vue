@@ -54,7 +54,16 @@ export default {
       this.$store.dispatch('login', { username, password })
         .then(function () {
           if (self.isLoggedIn) {
-            self.$router.push('/');
+            return self.$store.dispatch('popWantsUrl');
+          }
+          return Promise.resolve(null);
+        })
+        .then((wantsUrl) => {
+          if (!wantsUrl) {
+            wantsUrl = '/login';
+          }
+          if (self.isLoggedIn) {
+            self.$router.push(wantsUrl);
           }
         });
     },

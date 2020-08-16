@@ -17,6 +17,18 @@
       >{{error}}</span>
     </div>
     <user-share v-if="visibility === 'users'" v-model="sharedUsers" />
+    <input
+      type="text"
+      class="form-control"
+      readonly
+      v-if="visibility === 'anyone_with_link' && note._id"
+      :value="getViewSharedUrl(note)"
+      ref="link"
+      @click="selectLink"
+    />
+    <small v-if="visibility === 'anyone_with_link' && !note._id" class="text-info">
+      The link will be available after the note is created
+    </small>
   </div>
 </template>
 
@@ -24,7 +36,7 @@
 import UserShare from './UserShare';
 
 export default {
-  props: ['value', 'errors'],
+  props: ['value', 'errors', 'note'],
   components: {
     UserShare,
   },
@@ -69,6 +81,21 @@ export default {
         visibility: this.visibility,
         sharedUsers: this.sharedUsers,
       });
+    },
+    getViewSharedUrl(note) {
+      if (!note._id) {
+        return '';
+      }
+      const route = this.$router.resolve({
+        name: 'view-shared-note',
+        params: {
+          id: note._id,
+        },
+      });
+      return `${location.origin}${location.pathname}${location.query || ''}${route.href}`;
+    },
+    selectLink(e) {
+      e.target.select();
     },
   },
   mounted() {
