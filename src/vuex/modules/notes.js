@@ -173,6 +173,10 @@ export const mutations = {
   setIsSyncing(state, value) {
     state.isSyncing = value;
   },
+  resetAllNotes(state) {
+    state.allIds = [];
+    state.byIds = {};
+  },
   // setNotes will replace the current notes in the state to
   // the new ones
   setNotes(state, notes) {
@@ -246,8 +250,15 @@ export const mutations = {
     // Set its title to the new title
     // Since the note object is Object.freezed therefore we have to create
     // a new object and freeze it.
-    byIds[_id] = Object.freeze({
-      ...note,
+    state.byIds = {
+      ...state.byIds,
+      [_id]: Object.freeze({
+        ...note,
+        title,
+      }),
+    };
+    state.selectedNote = Object.freeze({
+      ...state.selectedNote,
       title,
     });
     if (_id === state.selectedNote._id) {

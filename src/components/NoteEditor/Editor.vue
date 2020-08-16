@@ -7,6 +7,7 @@ import Quill from 'quill';
 import QuillCursors from 'quill-cursors';
 import ImageResize from 'quill-image-resize';
 import { ImageDrop } from 'quill-image-drop-module';
+import GeminiScrollbar from 'gemini-scrollbar';
 
 Quill.register('modules/cursors', QuillCursors);
 Quill.register('modules/imageResize', ImageResize);
@@ -65,6 +66,14 @@ export default {
       });
       this.quill.updateContents(delta, 'yjs');
     },
+    initialiseScrollbar() {
+      this.scrollbar = new GeminiScrollbar({
+        element: this.$refs.editor,
+        createElements: true,
+      });
+      this.scrollbar.create();
+      this.scrollbar.update();
+    },
   },
   mounted() {
     if (this.$refs.editor) {
@@ -109,6 +118,7 @@ export default {
         }
       });
       this.$emit('ready');
+      this.initialiseScrollbar();
     }
   },
   watch: {

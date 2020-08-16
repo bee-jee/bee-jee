@@ -13,6 +13,7 @@ $primary-light: $blue-light;
 @import "./note-editor.scss";
 @import "./modal.scss";
 @import "./animation.scss";
+@import "./scrollbar.scss";
 
 a {
     color: #7ed6f8;
@@ -28,6 +29,7 @@ a {
     color: $black !important;
     padding: 0;
     min-width: 1.5rem;
+    line-height: 1;
 
     &:focus,
     &:active:focus {

@@ -61,20 +61,15 @@ export function authWsMiddleware(ws: WebsocketWithBeeJee, payload: any, next: Ws
     });
     const oauthResponse = new OAuth2Server.Response();
     oauthServer.authenticate(oauthRequest, oauthResponse)
-      .then((token) => {
-        UserModel.findById(token.user)
-          .then((user: (User & Document) | null) => {
-            if (user !== null) {
-              next({
-                user,
-              });
-            } else {
-              sendNotAuthorised(ws);
-            }
-          })
-          .catch(() => {
-            sendNotAuthorised(ws);
+      .then((token) => UserModel.findById(token.user))
+      .then((user: (User & Document) | null) => {
+        if (user !== null) {
+          next({
+            user,
           });
+        } else {
+          sendNotAuthorised(ws);
+        }
       })
       .catch(() => {
         sendNotAuthorised(ws);

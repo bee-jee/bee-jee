@@ -46,7 +46,12 @@
 
     <modal name="share" height="auto" :adaptive="true">
       <form @submit.prevent="handleChangeShare" class="p-3">
-        <share-selector class="form-group" :errors="editShareErrors" v-model="permission" />
+        <share-selector
+          class="form-group"
+          :errors="editShareErrors"
+          v-model="permission"
+          :note="note"
+        />
         <div class="text-right">
           <button type="button" class="btn btn-secondary mr-2" @click="handleCloseEditShare">Cancel</button>
           <button class="btn btn-primary">Save changes</button>
@@ -168,6 +173,8 @@ export default {
     $route(to) {
       if (to.params.id) {
         this.setSelectedNote(to.params.id);
+      } else {
+        this.$store.commit('setSelectedNote', {});
       }
     },
   },

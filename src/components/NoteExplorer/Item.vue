@@ -16,8 +16,9 @@
         v-html="noteContent"
       ></p>
     </router-link>
-    <div class="note-explorer-item-delete">
-      <button class="btn-icon btn-danger" @click="handleClickDeleteNote(note)">
+    <div class="note-explorer-item-actions">
+      <span v-if="sharedNote.isViewed==false" class="badge badge-warning">New</span>
+      <button class="btn-icon btn-danger" @click="handleClickDeleteNote(note)" v-if="note.author === user._id">
         <i class="far fa-trash-alt fa-sm"></i>
       </button>
     </div>
@@ -30,15 +31,14 @@ import noteMixins from '../../helpers/noteMixins';
 
 export default {
   props: {
-    note: { type: Object, },
+    note: { type: Object },
     urlBuilder: { type: Function, default: undefined },
   },
-  mixins: [
-    noteMixins,
-  ],
+  mixins: [noteMixins],
   computed: {
     ...mapGetters([
       'selectedNote',
+      'user',
     ]),
     noteContentKey() {
       if (this.note._id === this.selectedNote._id) {
@@ -66,5 +66,5 @@ export default {
       return `/${note._id}`;
     },
   },
-}
+};
 </script>

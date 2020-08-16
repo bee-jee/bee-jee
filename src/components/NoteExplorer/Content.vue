@@ -4,6 +4,8 @@
       title="My notes"
       :expanded="myNotesExpanded"
       @setExpanded="(value) => { setExpanded('myNotesExpanded', value) }"
+      @scroll="handleMyNotesScroll"
+      :initialScrollTop="initialMyNotesScrollTop"
     >
       <div v-if="isLoading" class="px-3">Loading . . .</div>
       <div
@@ -15,9 +17,7 @@
       <template v-slot:actions>
         <div class="actions text-right">
           <button type="button" class="btn btn-icon btn-grow" @click.stop="handleShowCreateNote">
-            <small>
-              <i class="fas fa-plus"></i>
-            </small>
+            <i class="fas fa-plus fa-xs"></i>
           </button>
         </div>
       </template>
@@ -27,6 +27,8 @@
       title="Shared notes"
       :expanded="sharedNotesExpanded"
       @setExpanded="(value) => setExpanded('sharedNotesExpanded', value)"
+      @scroll="handleSharedNotesScroll"
+      :initialScrollTop="initialSharedNotesScrollTop"
     >
       <div v-if="isLoadingSharedNotes" class="px-3">Loading . . .</div>
       <div v-if="allSharedNotes.length === 0" class="px-3">You don't have any shared notes</div>
@@ -38,7 +40,7 @@
       />
 
       <template v-slot:actions>
-        <span v-if="numOfUnviewed > 0" class="badge badge-warning">{{numOfUnviewed}}</span>
+        <span v-if="numOfUnviewed > 0" class="badge badge-warning ml-1">{{numOfUnviewed}}</span>
       </template>
     </collapsible-pane>
 
@@ -67,7 +69,7 @@
               class="invalid-feedback"
             >{{newNoteErrors.getFirst('newNoteTitle')}}</p>
           </div>
-          <share-selector class="form-group" :errors="newNoteErrors" v-model="permission" />
+          <share-selector class="form-group" :errors="newNoteErrors" v-model="permission" :note="{}" />
           <div v-if="isCreatingNote">Loading . . .</div>
           <div class="text-right">
             <button
@@ -86,6 +88,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import * as Y from 'yjs';
+import { debounce } from 'vue-debounce';
 import CollapsiblePane from './CollapsiblePane';
 import NoteExplorerItem from './Item';
 import ShareSelector from '../Note/ShareSelector';
@@ -104,6 +107,8 @@ export default {
       newNoteTitle: '',
       newNoteErrors: new ValidationErrors(),
       permission: {},
+      initialMyNotesScrollTop: 0,
+      initialSharedNotesScrollTop: 0,
     };
   },
   computed: {
@@ -170,22 +175,25 @@ export default {
         });
     },
     setExpanded(name, value) {
-      if (value) {
-        if (name !== 'myNotesExpanded') {
-          this.myNotesExpanded = false;
-        }
-        if (name !== 'sharedNotesExpanded') {
-          this.sharedNotesExpanded = false;
-        }
-      }
       this[name] = value;
     },
     handleShowCreateNote() {
       this.$modal.show('createNote');
     },
+    saveConfig: debounce((self, key, value) => {
+      self.$store.dispatch('setConfig', { key, value });
+    }, '500ms'),
+    handleMyNotesScroll(e) {
+      this.saveConfig(this, 'myNotesScrollTop', e.target.scrollTop);
+    },
+    handleSharedNotesScroll(e) {
+      this.saveConfig(this, 'sharedNotesScrollTop', e.target.scrollTop);
+    },
   },
   mounted() {
       this.$store.dispatch('fetchNumOfUnviewedSharedNutes');
+    this.initialMyNotesScrollTop = this.$store.getters.config('myNotesScrollTop') || 0;
+    this.initialSharedNotesScrollTop = this.$store.getters.config('sharedNotesScrollTop') || 0;
   }
 };
 </script>
