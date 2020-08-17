@@ -1,7 +1,7 @@
 <template>
   <div class="editor h-100">
     <editor-menu-bar :editor="editor" v-slot="{ commands, isActive }">
-      <div class="menubar" v-if="!readOnly">
+      <div class="menubar d-flex justify-content-center" v-if="!readOnly">
         <button
           class="menubar__button"
           @click="$parent.handleShowEditTitle"
@@ -138,12 +138,12 @@
           <mt-icon :path="mdiFormatAlignJustify" />
         </button>
 
-        <button class="menubar__button" @click="commands.undo">
-          <icon name="undo" title="Undo" />
+        <button class="menubar__button" @click="commands.undo" title="Undo">
+          <mt-icon :path="mdiUndoVariant" />
         </button>
 
-        <button class="menubar__button" @click="commands.redo">
-          <icon name="redo" title="Redo" />
+        <button class="menubar__button" @click="commands.redo" title="Redo">
+          <mt-icon :path="mdiRedoVariant" />
         </button>
       </div>
     </editor-menu-bar>
@@ -184,6 +184,8 @@ import {
   mdiFormatAlignCenter,
   mdiFormatAlignRight,
   mdiFormatAlignJustify,
+  mdiUndoVariant,
+  mdiRedoVariant,
 } from '@mdi/js';
 import GeminiScrollbar from 'gemini-scrollbar';
 import Realtime from '../../tiptap/Realtime';
@@ -219,6 +221,8 @@ export default {
       mdiFormatAlignCenter,
       mdiFormatAlignRight,
       mdiFormatAlignJustify,
+      mdiUndoVariant,
+      mdiRedoVariant,
     };
   },
   mounted() {

@@ -67,7 +67,7 @@ $hover-background: darken($primary, 25%);
 .menubar {
     border: none;
     border-bottom: 1px solid #eee;
-    padding: 0 0.5rem 0 36px;
+    padding: 0 36px;
     flex-basis: auto;
 
     &__button {
