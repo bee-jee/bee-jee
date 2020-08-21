@@ -19,6 +19,7 @@
       v-if="showBody"
       @scroll="handleBodyScroll"
       :initialScrollTop="initialScrollTop"
+      ref="scrollView"
     >
       <slot></slot>
     </gemini-scrollbar>
@@ -38,6 +39,9 @@ export default {
     },
     handleBodyScroll(e) {
       this.$emit('scroll', e);
+    },
+    scroll(fn) {
+      this.$refs.scrollView.scroll(fn);
     },
   },
   data() {
