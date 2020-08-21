@@ -17,9 +17,26 @@ function getXmlText(xml) {
   return '';
 }
 
+function toPartialArray(fragment, length) {
+  const contents = [];
+  let node = fragment._start;
+  while (node !== null && length > 0) {
+    if (node.countable && !node.deleted) {
+      const content = node.content.getContent();
+      for (let i = 0; i < content.length; i++) {
+        contents.push(content[i]);
+      }
+    }
+    node = node.right;
+    length--;
+  }
+  return contents;
+}
+
 export function getNoteContent(note) {
   if (!note || !note.content) {
     return '';
   }
-  return note.content.getXmlFragment('xmlContent').toArray().map(getXmlText).join('');
+  return toPartialArray(note.content.getXmlFragment('xmlContent'), 5)
+    .map(getXmlText).join('');
 }

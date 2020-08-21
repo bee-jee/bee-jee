@@ -1,6 +1,8 @@
 import { Extension, Plugin } from 'tiptap';
 import { Decoration, DecorationSet } from 'prosemirror-view';
 import tinycolor from 'tinycolor2';
+import { setMeta } from 'y-prosemirror';
+import { relativeCoordsAt } from './utils/coords';
 
 const cursorBuilder = ({ color, name, left, top, width, height }) => {
   const userDiv = document.createElement('div');
@@ -8,7 +10,7 @@ const cursorBuilder = ({ color, name, left, top, width, height }) => {
   userDiv.insertBefore(document.createTextNode(name), null);
   const cursor = document.createElement('div');
   cursor.style.backgroundColor = color;
-  cursor.style.position = 'fixed';
+  cursor.style.position = 'absolute';
   cursor.style.left = `${left}px`;
   cursor.style.top = `${top}px`;
   cursor.style.width = `${width}px`;
@@ -69,11 +71,6 @@ export default class Cursor extends Extension {
           },
         },
         view: (view) => {
-          const setMeta = (key, value) => {
-            const { tr } = view.state;
-            tr.setMeta(key, value);
-            view.dispatch(tr);
-          };
           const unsubscribe = store.subscribe((mutation) => {
             switch (mutation.type) {
               case 'appendUserCursor': {
@@ -85,13 +82,13 @@ export default class Cursor extends Extension {
                     length,
                   });
                 }
-                setMeta(cursorPluginKey, { view, updated: true });
+                setMeta(view, cursorPluginKey, { view, updated: true });
                 break;
               }
               case 'removeUserCursor': {
                 const { id } = mutation.payload;
                 this.removeCursor(id);
-                setMeta(cursorPluginKey, { view, updated: true });
+                setMeta(view, cursorPluginKey, { view, updated: true });
                 break;
               }
               case 'updateUserCursor': {
@@ -100,7 +97,7 @@ export default class Cursor extends Extension {
                   index,
                   length,
                 });
-                setMeta(cursorPluginKey, { view, updated: true });
+                setMeta(view, cursorPluginKey, { view, updated: true });
                 break;
               }
             }
@@ -162,7 +159,7 @@ export default class Cursor extends Extension {
       }
       const from = index;
       const to = index + length;
-      const { left, top, bottom } = view.coordsAtPos(to);
+      let { left, top, bottom } = relativeCoordsAt(view, to);
       decorations.push(Decoration.widget(
         to,
         () => cursorBuilder({ color, name, left, top, width: 2, height: bottom - top }),

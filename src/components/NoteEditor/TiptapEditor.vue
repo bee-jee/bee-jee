@@ -147,10 +147,9 @@
         </button>
       </div>
     </editor-menu-bar>
-    <div class="contenteditable-wrapper position-relative">
-      <div class="editor-top-shadow" ref="editorTopShadow"></div>
-      <div ref="editor">
-      </div>
+    <div class="editor-top-shadow" ref="editorTopShadow"></div>
+    <div class="editor-container position-relative" ref="editorContainer">
+      <div ref="editor" class="h-100"></div>
     </div>
   </div>
 </template>
@@ -196,6 +195,7 @@ import { OrderedList } from '../../tiptap/nodes/orderedList';
 import TextSelection from '../../tiptap/marks/textSelection';
 import MarkdownPreview from '../../tiptap/MarkdownPreview';
 import Cursor from '../../tiptap/Cursor';
+import { Image } from '../../tiptap/nodes/image';
 
 const SHADOW_SCROLL_TOP_THRESHOLD = 200;
 
@@ -249,6 +249,7 @@ export default {
       new History(),
       new TextSelection(),
       new MarkdownPreview(),
+      new Image(),
     ];
     const { note } = this;
     if (note) {
@@ -261,6 +262,10 @@ export default {
       editable: !this.readOnly,
       onUpdate: () => {
         this.$store.commit('incrementSelectedNoteContentVersion');
+        if (this.scrollbar) {
+          this.scrollbar.update();
+          this.updateTopShadow();
+        }
       },
       disableInputRules: true,
       disablePasteRules: true,
@@ -277,15 +282,19 @@ export default {
     },
     initialiseScrollbar() {
       this.scrollbar = new GeminiScrollbar({
-        element: this.$refs.editor,
+        element: this.$refs.editorContainer,
         createElements: true,
       });
       this.scrollbar.create();
       this.scrollbar.update();
-      this.scrollbar.getViewElement().onscroll = (e) => {
-        const shadowPercentage = Math.min(e.target.scrollTop / SHADOW_SCROLL_TOP_THRESHOLD, 1);
-        this.$refs.editorTopShadow.style.opacity = shadowPercentage;
+      this.scrollbar.getViewElement().onscroll = () => {
+        this.updateTopShadow();
       };
+    },
+    updateTopShadow() {
+      const target = this.scrollbar.getViewElement();
+      const shadowPercentage = Math.min(target.scrollTop / SHADOW_SCROLL_TOP_THRESHOLD, 1);
+      this.$refs.editorTopShadow.style.opacity = shadowPercentage;
     },
   },
   watch: {
