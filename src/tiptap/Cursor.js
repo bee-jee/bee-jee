@@ -6,6 +6,7 @@ import { relativeCoordsAt } from './utils/coords';
 
 const cursorBuilder = ({ color, name, left, top, width, height }) => {
   const userDiv = document.createElement('div');
+  userDiv.classList.add('d-none');
   userDiv.setAttribute('style', `background-color: ${color}`);
   userDiv.insertBefore(document.createTextNode(name), null);
   const cursor = document.createElement('div');
@@ -20,6 +21,7 @@ const cursorBuilder = ({ color, name, left, top, width, height }) => {
   let timeout = null;
   cursor.onmouseover = () => {
     cursor.classList.add('hover');
+    userDiv.classList.remove('d-none');
     if (timeout) {
       clearTimeout(timeout);
       timeout = null;
@@ -28,6 +30,7 @@ const cursorBuilder = ({ color, name, left, top, width, height }) => {
   cursor.onmouseout = () => {
     timeout = setTimeout(() => {
       cursor.classList.remove('hover');
+      userDiv.classList.add('d-none');
     }, 1500);
   };
   return cursor;
