@@ -215,7 +215,10 @@ export const mutations = {
     if (state.selectedNote._id) {
       unsubscribeContentUpdate(state.selectedNote);
     }
-    state.selectedNote = Object.freeze(note);
+    state.selectedNote = {
+      ...note,
+      contentVersion: 0,
+    };
     if (note._id) {
       subscribeContentUpdate(note);
     }
@@ -258,6 +261,9 @@ export const mutations = {
       ...state.selectedNote,
       title,
     });
+    if (_id === state.selectedNote._id) {
+      state.selectedNote.title = title;
+    }
   },
   setNoteContent(state, { _id, content }) {
     const { byIds } = state;
@@ -266,6 +272,9 @@ export const mutations = {
       ...note,
       content,
     }));
+  },
+  incrementSelectedNoteContentVersion(state) {
+    state.selectedNote.contentVersion++;
   },
   setNotePermission(state, { _id, visibility, sharedUsers }) {
     const { byIds } = state;

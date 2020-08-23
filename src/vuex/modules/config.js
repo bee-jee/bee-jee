@@ -6,9 +6,7 @@ export const state = {
   explorerSize: 20,
   explorerClosed: false,
   myNotesExpanded: true,
-  myNotesScrollTop: 0,
   sharedNotesExpanded: false,
-  sharedNotesScrollTop: 0,
 };
 
 export const getters = {

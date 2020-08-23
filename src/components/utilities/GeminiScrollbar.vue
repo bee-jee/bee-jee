@@ -73,5 +73,10 @@ export default {
     }
     this.geminiScrollbar = null;
   },
+  methods: {
+    scroll(fn) {
+      fn(this.geminiScrollbar.getViewElement());
+    },
+  },
 };
 </script>

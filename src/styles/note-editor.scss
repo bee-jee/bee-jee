@@ -1,25 +1,57 @@
 @import '~quill/dist/quill.snow.css';
 
-.note-editor {
+.note-editor,
+.note-editor-container {
     height: 100%;
 }
 
-.note-editor-container {
-    height: calc(100% - 43px);
-}
-
-.ql-container.ql-snow {
+.editor-container {
     overflow: auto;
     border: none;
     font-size: 1rem;
+    flex-grow: 1;
+    background-color: $gray-200;
+}
 
-    .ql-editor {
-        min-height: 100%;
-        height: auto;
-        width: 100%;
-        max-width: 794px;
-        margin: 0 auto 6rem auto;
-        box-shadow: 0 1px 3px 1px rgba(60, 64, 67, .15);
+.editor {
+    display: flex;
+    flex-direction: column;
+
+    pre {
+        padding: 0.7rem 1rem;
+        border-radius: 5px;
+        background: $black;
+        color: $white;
+        font-size: 0.8rem;
+        overflow-x: auto;
+  
+        code {
+            display: block;
+        }
+    }
+
+    img {
+        max-width: 100%;
+    }
+}
+
+.ProseMirror {
+    min-height: 100%;
+    height: auto;
+    width: 100%;
+    max-width: 794px;
+    margin: 1rem auto 6rem auto;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16),
+        0 3px 6px rgba(0, 0, 0, 0.23);
+    padding: 0.74rem 1rem;
+    background-color: $white;
+
+    &:focus {
+        outline: none;
+    }
+
+    p {
+        margin-bottom: 0.5rem;
     }
 }
 
@@ -35,59 +67,107 @@
     resize: none;
 }
 
-.ql-toolbar button svg {
-    // Fix issue with active button cannot be clicked
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-}
-
-.ql-toolbar.ql-snow {
+$hover-background: darken($primary, 25%);
+.menubar {
     border: none;
     border-bottom: 1px solid #eee;
-    padding: 0.5rem 0.5rem 0.5rem 36px;
+    padding: 0 36px;
+    flex-basis: auto;
+    flex-wrap: wrap;
 
-    .ql-formats {
-        text-align: left;
+    &__button {
+        padding: .5rem;
+        display: inline-block;
+        background: transparent;
+        border: 0;
+        color: #000;
+        margin-right: 0.25rem;
+        border-radius: 5px;
 
         &:last-of-type {
             margin-right: 0;
         }
-    }
-}
 
-.ql-snow {
-    .ql-toolbar,
-    &.ql-toolbar {
-        button:hover,
-        button:focus,
-        button.ql-active,
-        .ql-picker-label:hover,
-        .ql-picker-label.ql-active,
-        .ql-picker-item:hover,
-        .ql-picker-item.ql-selected {
-            $hover-background: darken($primary, 7.5%);
+        &.active {
+            color: $hover-background;
 
-            color: $hover-background !important;
+            .icon {
+                &.fill {
+                    fill: $hover-background !important;
+                }
 
-            .ql-fill {
-                fill: $hover-background !important;
-            }
-
-            .ql-stroke {
-                stroke: $hover-background !important;
-            }
-        }
-
-        .ql-picker {
-            &.ql-expanded {
-                .ql-picker-options {
-                    border: 0;
+                &.stroke {
+                    stroke: $hover-background !important;
                 }
             }
         }
+
+        &:hover {
+            background-color: $light;
+        }
     }
+}
+
+.user-cursor {
+    > div {
+        position: absolute;
+        top: -2em;
+        font-size: 0.75rem;
+        font-style: normal;
+        font-weight: 400;
+        line-height: normal;
+        -webkit-user-select: none;
+        user-select: none;
+        color: #fff;
+        padding: 4px;
+        border-radius: 2px;
+        width: auto;
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    &.hover > div {
+        opacity: 1;
+    }
+}
+
+[data-decor-strong] {
+    font-weight: 700;
+}
+[data-decor-em] {
+    font-style: italic;
+}
+[data-decor-heading] {
+    font-size: 130%;
+    font-weight: 700;
+}
+[data-decor-codespan] {
+    background-color: $light;
+    font-family: monospace;
+    padding: 5px;
+}
+[data-decor-code] {
+    font-family: monospace;
+}
+.editor-top-shadow {
+    z-index: 1;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.5), 0 3px 6px rgba(0, 0, 0, 0.73);
+    height: 1px;
+    margin-top: -1px;
+}
+.img-resizer {
+    box-sizing: border-box;
+    z-index: 1;
+    box-shadow: 0 0 1px 1px $black;
+}
+.img-resize-preview {
+    background-color: $white;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.2;
+    pointer-events: none;
+    position: absolute;
+    z-index: 1;
 }

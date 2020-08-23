@@ -24,7 +24,8 @@ module.exports = {
         "no-param-reassign": [
           2, { "props": false }
         ],
-        "class-methods-use-this": 'off'
+        "class-methods-use-this": 'off',
+        "no-plusplus": 'off'
       },
       parserOptions: {
         project: './api/tsconfig.json'
