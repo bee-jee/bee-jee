@@ -12,7 +12,7 @@ const TAG_NAME_TO_LEVEL = {
   H6: 6,
 };
 
-export class Heading extends Node {
+class Heading extends Node {
   get name() {
     return HEADING;
   }
@@ -69,3 +69,5 @@ const toDOM = (node) => {
   dom[0] = `h${level}`;
   return dom;
 };
+
+export default Heading;

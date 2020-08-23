@@ -159,7 +159,6 @@ import { Editor, EditorMenuBar, Doc, Text } from 'tiptap';
 import {
   Blockquote,
   Bold,
-  BulletList,
   Code,
   CodeBlock,
   HardBreak,
@@ -187,15 +186,18 @@ import {
   mdiRedoVariant,
 } from '@mdi/js';
 import GeminiScrollbar from 'gemini-scrollbar';
-import Realtime from '../../tiptap/Realtime';
-import { Paragraph } from '../../tiptap/nodes/paragraph';
-import { Heading } from '../../tiptap/nodes/heading';
-import { ListItem } from '../../tiptap/nodes/listItem';
-import { OrderedList } from '../../tiptap/nodes/orderedList';
-import TextSelection from '../../tiptap/marks/textSelection';
-import MarkdownPreview from '../../tiptap/MarkdownPreview';
-import Cursor from '../../tiptap/Cursor';
-import { Image } from '../../tiptap/nodes/image';
+import {
+  Paragraph,
+  Heading,
+  ListItem,
+  OrderedList,
+  TextSelection,
+  MarkdownPreview,
+  Cursor,
+  Image,
+  BulletList,
+  Realtime,
+} from '../../tiptap';
 
 const SHADOW_SCROLL_TOP_THRESHOLD = 200;
 

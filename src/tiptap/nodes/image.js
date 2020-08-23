@@ -227,7 +227,7 @@ class ResizeBox {
   }
 }
 
-export class Image extends Node {
+class Image extends Node {
   selectedImg = null;
   imgPos = 0;
   boxes = {};
@@ -434,3 +434,5 @@ export class Image extends Node {
     return box.el;
   }
 }
+
+export default Image;
