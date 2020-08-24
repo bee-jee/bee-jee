@@ -11,6 +11,12 @@
     font-size: 1rem;
     flex-grow: 1;
     background-color: $gray-200;
+
+    .gm-scroll-view,
+    &.gm-prevented {
+        display: flex;
+        flex-direction: row;
+    }
 }
 
 .editor {
@@ -170,4 +176,7 @@ $hover-background: darken($primary, 25%);
     pointer-events: none;
     position: absolute;
     z-index: 1;
+}
+.editor-wrapper {
+    flex: 1;
 }

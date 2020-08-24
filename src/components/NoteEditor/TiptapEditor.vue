@@ -149,7 +149,7 @@
     </editor-menu-bar>
     <div class="editor-top-shadow" ref="editorTopShadow"></div>
     <div class="editor-container position-relative" ref="editorContainer">
-      <div ref="editor" class="h-100"></div>
+      <div ref="editor" class="editor-wrapper"></div>
     </div>
   </div>
 </template>

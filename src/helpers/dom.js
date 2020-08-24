@@ -15,8 +15,6 @@ export function getElementHeight(el) {
 }
 
 export function offset(el) {
-  const rect = el.getBoundingClientRect(),
-    scrollLeft = window.pageXOffset || document.documentElement.scrollLeft,
-    scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-  return { top: rect.top + scrollTop, left: rect.left + scrollLeft }
+  const rect = el.getBoundingClientRect();
+  return { top: rect.top, left: rect.left }
 }
