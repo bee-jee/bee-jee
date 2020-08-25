@@ -5,11 +5,9 @@ import store from './vuex/store';
 import router from './router/routes';
 import VueRouter from 'vue-router';
 import {
-  BNavItemDropdown,
-  BNavbarToggle,
   BCollapse,
-  BNavbarNav,
-  BNavbar,
+  BDropdown,
+  BDropdownItem,
 } from 'bootstrap-vue';
 import VModal from 'vue-js-modal';
 import { library } from '@fortawesome/fontawesome';
@@ -41,11 +39,9 @@ window.katex = katex;
 
 // This will register bootstrap tags such as <b-modal>
 // to be available to all components
-Vue.component('b-nav-item-dropdown', BNavItemDropdown);
-Vue.component('b-navbar-toggle', BNavbarToggle);
 Vue.component('b-collapse', BCollapse);
-Vue.component('b-navbar-nav', BNavbarNav);
-Vue.component('b-navbar', BNavbar);
+Vue.component('b-dropdown', BDropdown);
+Vue.component('b-dropdown-item', BDropdownItem);
 Vue.component('gemini-scrollbar', GeminiScrollbar);
 Vue.component('icon', Icon);
 Vue.component('mt-icon', MtIcon);

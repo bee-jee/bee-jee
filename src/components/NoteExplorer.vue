@@ -1,7 +1,28 @@
 <template>
   <div class="note-explorer">
-    <div class="p-0">
-      <div class="col-12 text-right">
+    <div class="row no-gutters">
+      <div class="col">
+        <b-dropdown
+          :text="user.fullName"
+          block
+          variant="link"
+          toggle-class="text-decoration-none text-left user-menu-toggle"
+        >
+          <router-link
+            v-for="navigation in allowedNavigations"
+            :key="navigation.id"
+            :to="navigation.href"
+            v-slot="{ href, navigate, isActive }"
+          >
+            <b-dropdown-item :href="href" :active="isActive" @click="navigate">{{navigation.label}}</b-dropdown-item>
+          </router-link>
+          <router-link to="/change-own-password" v-slot="{ href, navigate, isActive }">
+            <b-dropdown-item :href="href" :active="isActive" @click="navigate">Change password</b-dropdown-item>
+          </router-link>
+          <b-dropdown-item href="#" @click="logout">Logout</b-dropdown-item>
+        </b-dropdown>
+      </div>
+      <div class="col-auto">
         <button type="button" class="btn px-2" @click="closeExplorer">
           <i class="fas fa-chevron-left"></i>
         </button>
@@ -37,6 +58,7 @@
 import UtilityBar from './UtilityBar';
 import { mapGetters } from 'vuex';
 import NoteExplorerContent from './NoteExplorer/Content';
+import navigations from '../helpers/nav';
 
 export default {
   components: {
@@ -44,7 +66,12 @@ export default {
     NoteExplorerContent,
   },
   computed: {
-    ...mapGetters(['toDeleteNote']),
+    ...mapGetters(['toDeleteNote', 'user']),
+    allowedNavigations() {
+      return navigations.filter((navigation) => {
+        return navigation.hasAccess(this.user);
+      });
+    },
   },
   methods: {
     handleCloseDelete() {
@@ -60,6 +87,12 @@ export default {
       this.$store.dispatch('setConfig', {
         key: 'explorerClosed',
         value: true,
+      });
+    },
+    logout() {
+      const self = this;
+      this.$store.dispatch('logout', 'user').then(() => {
+        self.$router.push('/login');
       });
     },
   },

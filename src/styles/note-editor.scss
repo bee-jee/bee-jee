@@ -46,7 +46,7 @@
     height: auto;
     width: 100%;
     max-width: 794px;
-    margin: 1rem auto 6rem auto;
+    margin: 0 auto 6rem auto;
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16),
         0 3px 6px rgba(0, 0, 0, 0.23);
     padding: 0.74rem 1rem;
@@ -160,6 +160,7 @@ $hover-background: darken($primary, 25%);
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.5), 0 3px 6px rgba(0, 0, 0, 0.73);
     height: 1px;
     margin-top: -1px;
+    opacity: 0;
 }
 .img-resizer {
     box-sizing: border-box;

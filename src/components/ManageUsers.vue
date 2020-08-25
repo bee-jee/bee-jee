@@ -1,5 +1,5 @@
 <template>
-  <div class="content container">
+  <div class="content container py-2">
     <h4>Manage users</h4>
     <div class="mb-3">
       <router-link class="btn btn-primary" to="/users/form">Create user</router-link>
