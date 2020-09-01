@@ -4,13 +4,6 @@
       <div class="menubar d-flex justify-content-center" v-if="!readOnly">
         <button
           class="menubar__button"
-          @click="$parent.handleShowEditTitle"
-          title="Change title"
-          v-if="isOwner"
-        >Edit title</button>
-
-        <button
-          class="menubar__button"
           @click="$parent.handleShowEditShare"
           title="Share"
           v-if="isOwner"
@@ -149,7 +142,11 @@
     </editor-menu-bar>
     <div class="editor-top-shadow" ref="editorTopShadow"></div>
     <div class="editor-container position-relative" ref="editorContainer">
-      <div ref="editor" class="editor-wrapper"></div>
+      <div ref="editor" class="editor-wrapper">
+        <div class="editor-note-title">
+          <input type="text" v-model="editedNoteTitle" @input="changeTitle" :readonly="!isOwner" />
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -186,6 +183,7 @@ import {
   mdiRedoVariant,
 } from '@mdi/js';
 import GeminiScrollbar from 'gemini-scrollbar';
+import { debounce } from 'vue-debounce';
 import {
   Paragraph,
   Heading,
@@ -213,6 +211,7 @@ export default {
   data() {
     return {
       editor: null,
+      editedNoteTitle: '',
       mdiFormatBold,
       mdiFormatItalic,
       mdiFormatStrikethroughVariant,
@@ -257,6 +256,7 @@ export default {
     if (note) {
       extensions.push(new Realtime(note));
       extensions.push(new Cursor({ note, store: this.$store }));
+      this.editedNoteTitle = note.title;
     }
     const editor = new Editor({
       useBuiltInExtensions: false,
@@ -279,8 +279,7 @@ export default {
   },
   methods: {
     isAlign(isActive, value) {
-      return isActive.paragraph(value)
-        || isActive.heading(value);
+      return isActive.paragraph(value) || isActive.heading(value);
     },
     initialiseScrollbar() {
       this.scrollbar = new GeminiScrollbar({
@@ -298,6 +297,13 @@ export default {
       const shadowPercentage = Math.min(target.scrollTop / SHADOW_SCROLL_TOP_THRESHOLD, 1);
       this.$refs.editorTopShadow.style.opacity = shadowPercentage;
     },
+    changeTitle: debounce(function changeTitle() {
+      this.$store
+        .dispatch('editNoteTitle', {
+          _id: this.note._id,
+          title: this.editedNoteTitle,
+        });
+    }, 500),
   },
   watch: {
     editor: {
