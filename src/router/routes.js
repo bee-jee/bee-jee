@@ -39,11 +39,6 @@ const routes = [
         path: '/users/form/:id?',
         component: () => import('../components/ManageUsers/Create'),
       },
-      ...navigations.map((navigation) => navigation.toRoute()),
-      {
-        path: '/change-own-password',
-        component: () => import('../components/ChangeOwnPassword'),
-      },
       {
         path: '/',
         component: SidebarLayout,
@@ -55,6 +50,11 @@ const routes = [
             path: '/settings',
             name: 'settings',
             component: () => import('../components/Settings')
+          },
+          ...navigations.map((navigation) => navigation.toRoute()),
+          {
+            path: '/change-own-password',
+            component: () => import('../components/ChangeOwnPassword'),
           },
           {
             path: '/view-shared/:id',

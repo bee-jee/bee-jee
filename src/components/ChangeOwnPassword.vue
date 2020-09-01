@@ -1,5 +1,5 @@
 <template>
-  <div class="content container">
+  <div class="content container py-2">
     <h4>Change own password</h4>
     <form @submit.prevent="changePassword">
       <div v-if="successMessage" class="alert alert-success">{{successMessage}}</div>
@@ -13,6 +13,7 @@
             :class="{ 'is-invalid': formErrors.has('currentPassword') }"
             placeholder="Current password"
             id="currentPassword"
+            autocomplete="off"
           />
           <span
             v-for="error in formErrors.getErrors('currentPassword')"
@@ -31,6 +32,7 @@
             :class="{ 'is-invalid': formErrors.has('newPassword') }"
             placeholder="New password"
             id="newPassword"
+            autocomplete="off"
           />
           <span
             v-for="error in formErrors.getErrors('newPassword')"
@@ -49,6 +51,7 @@
             :class="{ 'is-invalid': formErrors.has('newPasswordConfirm') }"
             placeholder="Confirm new password"
             id="newPasswordConfirm"
+            autocomplete="off"
           />
           <span
             v-for="error in formErrors.getErrors('newPasswordConfirm')"

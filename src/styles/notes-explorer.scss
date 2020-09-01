@@ -109,3 +109,11 @@ $pane-height: 26px;
         margin: -0.5rem;
     }
 }
+
+.btn.btn-link.user-menu-toggle {
+    color: $black;
+
+    &:hover {
+        background-color: $primary-light;
+    }
+}
