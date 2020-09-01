@@ -144,7 +144,13 @@
     <div class="editor-container position-relative" ref="editorContainer">
       <div ref="editor" class="editor-wrapper">
         <div class="editor-note-title">
-          <input type="text" v-model="editedNoteTitle" @input="changeTitle" :readonly="!isOwner" />
+          <input
+            type="text"
+            v-model="editedNoteTitle"
+            @input="changeTitle"
+            placeholder="Enter note title here"
+            :readonly="!isOwner"
+          />
         </div>
       </div>
     </div>
@@ -298,11 +304,10 @@ export default {
       this.$refs.editorTopShadow.style.opacity = shadowPercentage;
     },
     changeTitle: debounce(function changeTitle() {
-      this.$store
-        .dispatch('editNoteTitle', {
-          _id: this.note._id,
-          title: this.editedNoteTitle,
-        });
+      this.$store.dispatch('editNoteTitle', {
+        _id: this.note._id,
+        title: this.editedNoteTitle,
+      });
     }, 500),
   },
   watch: {

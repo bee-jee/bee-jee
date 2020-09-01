@@ -80,6 +80,9 @@
         &:focus {
             outline: none;
         }
+        &::placeholder {
+            color: lighten($input-color, 40%);
+        }
     }
 }
 
