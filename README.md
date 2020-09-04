@@ -2,7 +2,7 @@
 [![Build Status](https://travis-ci.org/bee-jee/bee-jee.svg?branch=master)](https://travis-ci.org/bee-jee/bee-jee)
 
 BeeJee is a note taking app.
-This project is an attempt for us to learn React by building something alongside with doing tutorials.
+This project is an attempt for us to learn JS by building something alongside with doing tutorials.
 ## What does BeeJee mean?
 The word note in Chinese is 笔记 which is transcribed to BiJi in Pinyin, hence BeeJee is chosen which sounds similar to the Chinese word for note.
 ## Architecture
