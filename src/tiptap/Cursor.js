@@ -166,7 +166,7 @@ export default class Cursor extends Extension {
       decorations.push(Decoration.widget(
         to,
         () => cursorBuilder({ color, name, left, top, width: 2, height: bottom - top }),
-        { side: 10 },
+        { side: -1 },
       ));
       decorations.push(Decoration.inline(Math.min(from, to), Math.max(from, to), {
         style: `background-color: ${tinycolor(color).setAlpha(0.3).toString()}`,

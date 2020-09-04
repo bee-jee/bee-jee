@@ -8,6 +8,7 @@ import {
   BCollapse,
   BDropdown,
   BDropdownItem,
+  BDropdownDivider,
 } from 'bootstrap-vue';
 import VModal from 'vue-js-modal';
 import { library } from '@fortawesome/fontawesome';
@@ -42,6 +43,7 @@ window.katex = katex;
 Vue.component('b-collapse', BCollapse);
 Vue.component('b-dropdown', BDropdown);
 Vue.component('b-dropdown-item', BDropdownItem);
+Vue.component('b-dropdown-divider', BDropdownDivider);
 Vue.component('gemini-scrollbar', GeminiScrollbar);
 Vue.component('icon', Icon);
 Vue.component('mt-icon', MtIcon);

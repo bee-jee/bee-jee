@@ -6,8 +6,10 @@
           :text="user.fullName"
           block
           variant="link"
-          toggle-class="text-decoration-none text-left user-menu-toggle"
+          toggle-class="text-decoration-none text-left user-menu-toggle overflow-hidden"
         >
+          <b-dropdown-item disabled>{{user.fullName}}</b-dropdown-item>
+          <b-dropdown-divider></b-dropdown-divider>
           <router-link
             v-for="navigation in allowedNavigations"
             :key="navigation.id"
