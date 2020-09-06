@@ -16,7 +16,6 @@ export interface Note {
 export interface PendingNote {
   note: Note & Document;
   content: Y.Doc;
-  isDirty: boolean;
 }
 
 export function pendingNote(note: (Note & Document) | null): PendingNote | null {
@@ -26,7 +25,6 @@ export function pendingNote(note: (Note & Document) | null): PendingNote | null 
   return {
     note,
     content: decodeDoc(note.content),
-    isDirty: false,
   };
 }
 
@@ -35,12 +33,7 @@ export async function saveContent(model: Model<Note & Document, {}>,
   if (pending === null) {
     return;
   }
-  if (!pending.isDirty) {
-    return;
-  }
   const { note } = pending;
-  const newPending = pending;
-  newPending.isDirty = false;
   note.content = encodeDoc(pending.content);
   await model.updateOne({ _id: pending.note._id }, {
     content: note.content,

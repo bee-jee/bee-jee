@@ -48,15 +48,7 @@ class NoteController implements Controller, WsController {
     this.noteCache = new LRU({
       max: 100,
       maxAge: 60000,
-      dispose: (_, note) => {
-        saveContent(this.NoteModel, note);
-      },
     });
-    setInterval(() => {
-      this.noteCache.forEach((note: PendingNote | null) => {
-        saveContent(this.NoteModel, note);
-      });
-    }, 500);
     this.initialiseRoutes();
   }
 
@@ -78,7 +70,7 @@ class NoteController implements Controller, WsController {
           const changes = stringToArray(mergeChanges);
           if (changes !== null) {
             Y.applyUpdate(note.content, changes, 'websocket');
-            note.isDirty = true;
+            await saveContent(this.NoteModel, note);
             const websockets = App.noteWebsockets.get(`${note.note._id}`) || new Set<WebSocket>();
             broadcast(websockets, JSON.stringify({
               action: Actions.CONTENT_UPDATED,
