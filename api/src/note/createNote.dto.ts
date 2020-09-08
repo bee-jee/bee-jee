@@ -9,9 +9,6 @@ class CreateNoteDto {
   @Length(0, 255)
   public title: string;
 
-  @IsString()
-  public content: string;
-
   @IsString({ each: true })
   @IsOptional()
   public drawings: string[];

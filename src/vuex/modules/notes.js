@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import { encodeDoc, decodeDoc, arrayToString, Actions } from '../../../common/collab';
+import { decodeDoc, arrayToString, Actions } from '../../../common/collab';
 import { wsSend } from '../../helpers/ws';
 
 export const state = {
@@ -79,12 +79,11 @@ export const actions = {
       console.error(err);
     }
   },
-  async createNote({ commit }, { title, content, permission }) {
+  async createNote({ commit }, { title, permission }) {
     commit('setIsCreatingNote', true);
     try {
       const resp = await Vue.prototype.$http.post('/note/create', {
         title,
-        content: encodeDoc(content),
         ...permission,
       });
       commit('appendNote', resp.data);

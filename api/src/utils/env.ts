@@ -10,5 +10,6 @@ export default function validateEnv() {
     API_PORT: port(),
     OAUTH_CLIENT_ID: str(),
     OAUTH_CLIENT_SECRET: str(),
+    NOTE_CONTENT_PATH: str(),
   });
 }

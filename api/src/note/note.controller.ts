@@ -1,7 +1,6 @@
 import {
   Router, Response, NextFunction,
 } from 'express';
-import * as Y from 'yjs';
 import { isValidObjectId } from 'mongoose';
 import LRU from 'lru-cache';
 import WebSocket from 'ws';
@@ -12,24 +11,19 @@ import CreateNoteDto from './createNote.dto';
 import NoteNotFoundException from '../exceptions/NoteNotFound';
 import InvalidObjectIdException from '../exceptions/InvalidObjectIdException';
 import {
-  PendingNote, pendingNote, saveContent,
+  PendingNote, pendingNote,
 } from './note.interface';
 import broadcast from '../utils/ws';
-import { stringToArray, Actions } from '../../../common/collab';
+import { stringToArray, Actions, encodeDoc } from '../../../common/collab';
 import { authMiddleware, authWsMiddleware } from '../middleware/auth.middleware';
 import RequestWithUser from '../interfaces/requestWithUser.interface';
 import { MiddlewareData } from '../interfaces/websocket.interface';
 import App from '../app';
-import { Permission, UserWithPermission } from '../share/share.interface';
-import UserModel from '../user/user.model';
 import UserSharedNoteModel from '../share/share.model';
 import EditNoteDto from './editNote.dto';
 import visiMiddleware from '../middleware/visibility.middleware';
-
-interface SharedUsersRequest {
-  username: string;
-  permission: Permission;
-}
+import { NoteContentService as NoteService } from './noteContent.service';
+import ConfigManager from '../interfaces/config.interface';
 
 class NoteController implements Controller, WsController {
   public path = '/note';
@@ -38,11 +32,11 @@ class NoteController implements Controller, WsController {
 
   private NoteModel = NoteModel;
 
-  private UserModel = UserModel;
-
   private UserSharedNoteModel = UserSharedNoteModel;
 
   private noteCache: LRU<string, PendingNote | null>;
+
+  private noteService: NoteService;
 
   constructor() {
     this.noteCache = new LRU({
@@ -52,7 +46,9 @@ class NoteController implements Controller, WsController {
     this.initialiseRoutes();
   }
 
-  public boot() { }
+  public boot(config: ConfigManager) {
+    this.noteService = new NoteService(config);
+  }
 
   public subscribeToWs({ ws }: WsContext): void {
     ws.on('contentUpdated', async (payload) => {
@@ -69,8 +65,7 @@ class NoteController implements Controller, WsController {
         if (note !== null) {
           const changes = stringToArray(mergeChanges);
           if (changes !== null) {
-            Y.applyUpdate(note.content, changes, 'websocket');
-            await saveContent(this.NoteModel, note);
+            await this.noteService.storeNoteContentUpdate(note.note._id.toString(), changes);
             const websockets = App.noteWebsockets.get(`${note.note._id}`) || new Set<WebSocket>();
             broadcast(websockets, JSON.stringify({
               action: Actions.CONTENT_UPDATED,
@@ -100,24 +95,7 @@ class NoteController implements Controller, WsController {
 
   private createNote = async (request: RequestWithUser, response: Response) => {
     const postData: CreateNoteDto = request.body;
-    const userWithPermissions = await this.sharedUsersRequestToWithPermission(postData.sharedUsers);
-    delete postData.sharedUsers;
-    const createdNote = new this.NoteModel({
-      ...postData,
-      sharedUsers: userWithPermissions,
-      author: request.user._id,
-      created: Date.now(),
-      updated: Date.now(),
-    });
-    const savedNote = await createdNote.save();
-    await Promise.all(userWithPermissions.map(async (user) => {
-      const newUserSharedNote = new UserSharedNoteModel({
-        user: typeof user.user === 'string' ? user.user : user.user._id,
-        note: savedNote._id,
-        permission: user.permission,
-      });
-      await newUserSharedNote.save();
-    }));
+    const savedNote = await this.noteService.createNote(postData, request.user);
     response.send(savedNote);
   };
 
@@ -125,7 +103,10 @@ class NoteController implements Controller, WsController {
     const notes = await this.NoteModel.find({
       author: request.user._id,
     });
-    response.send(notes);
+    response.send(await Promise.all(notes.map(async (note) => {
+      note.content = encodeDoc(await this.noteService.getNoteContent(note._id.toString()));
+      return note;
+    })));
   };
 
   private getNoteById = async (request: RequestWithUser, response: Response,
@@ -143,6 +124,7 @@ class NoteController implements Controller, WsController {
         },
       });
     if (note !== null) {
+      note.content = encodeDoc(await this.noteService.getNoteContent(note._id.toString()));
       response.send(note);
     } else {
       next(new NoteNotFoundException(id));
@@ -198,7 +180,7 @@ class NoteController implements Controller, WsController {
       return;
     }
     const userWithPermissions = sharedUsers
-      ? await this.sharedUsersRequestToWithPermission(sharedUsers) : undefined;
+      ? await this.noteService.sharedUsersRequestToWithPermission(sharedUsers) : undefined;
     const data = {
       title,
       content,
@@ -261,24 +243,6 @@ class NoteController implements Controller, WsController {
     const note = pendingNote(await this.NoteModel.findById(id));
     this.noteCache.set(id, note);
     return note;
-  };
-
-  private sharedUsersRequestToWithPermission = async (sharedUsers: SharedUsersRequest[]) => {
-    const userWithPermissions: UserWithPermission[] = [];
-    (
-      await Promise.all(
-        sharedUsers.map(async ({ username, permission }) => ({
-          user: username.trim() === '' ? null : await this.UserModel.findOne({ username }),
-          permission,
-        })),
-      )
-    )
-      .forEach(({ user, permission }) => {
-        if (user !== null) {
-          userWithPermissions.push({ user, permission });
-        }
-      });
-    return userWithPermissions;
   };
 }
 
