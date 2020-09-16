@@ -28,19 +28,10 @@ export class ListItem extends Node {
         align: { default: null },
       },
 
-      // NOTE:
-      // This spec does not support nested lists (e.g. `'paragraph block*'`)
-      // as content because of the complexity of dealing with indentation
-      // (context: https://github.com/ProseMirror/prosemirror/issues/92).
-      content: 'paragraph',
+      content: 'paragraph block*',
 
       parseDOM: [{ tag: 'li', getAttrs }],
 
-      // NOTE:
-      // This method only defines the minimum HTML attributes needed when the node
-      // is serialized to HTML string. Usually this is called when user copies
-      // the node to clipboard.
-      // The actual DOM rendering logic is defined at `src/ui/ListItemNodeView.js`.
       toDOM(node) {
         const attrs = {};
         const { align } = node.attrs;

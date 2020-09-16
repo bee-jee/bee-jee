@@ -180,6 +180,12 @@ $hover-background: darken($primary, 25%);
 [data-decor-code] {
     font-family: monospace;
 }
+[data-decor-del] {
+    text-decoration: line-through;
+}
+[data-decor-list] {
+    margin-left: 0.5rem;
+}
 .editor-top-shadow {
     z-index: 1;
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.5), 0 3px 6px rgba(0, 0, 0, 0.73);

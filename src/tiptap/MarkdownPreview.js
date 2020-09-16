@@ -8,11 +8,14 @@ const getTokenLength = (token) => {
 
 const blockToText = (block) => {
   let text = '\n';
-  for (let i = 0; i < block.childCount; i++) {
-    const child = block.content.content[i];
-    text += nodeToText(child);
+  const childCount = block.childCount;
+  if (childCount > 0) {
+    for (let i = 0; i < childCount; i++) {
+      const child = block.content.content[i];
+      text += nodeToText(child);
+    }
+    text += '\n';
   }
-  text += '\n';
   return text;
 };
 
