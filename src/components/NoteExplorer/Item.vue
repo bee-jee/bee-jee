@@ -6,18 +6,18 @@
       :class="{active: selectedNote._id === note._id}"
       :title="note.title"
     >
-      <div class="note-item-title position-relative mr-1">
-        <b>{{note.title ? note.title : 'No title'}}</b>
-      </div>
-      <p
-        class="note-item-summary text-muted"
-        :key="noteContentKey"
-        v-html="noteContent"
-      ></p>
+      <div
+        class="note-item-title position-relative mr-1"
+        :class="{'font-weight-bold': selectedNote._id === note._id}"
+      >{{note.title ? note.title : 'No title'}}</div>
     </router-link>
     <div class="note-explorer-item-actions">
       <span v-if="sharedNote.isViewed==false" class="badge badge-warning">New</span>
-      <button class="btn-icon btn-danger" @click="handleClickDeleteNote(note)" v-if="note.author === user._id">
+      <button
+        class="btn-icon btn-danger"
+        @click="handleClickDeleteNote(note)"
+        v-if="note.author === user._id"
+      >
         <i class="far fa-trash-alt fa-sm"></i>
       </button>
     </div>
@@ -26,30 +26,17 @@
 
 <script>
 import { mapGetters } from 'vuex';
-import noteMixins from '../../helpers/noteMixins';
 
 export default {
   props: {
     note: { type: Object },
     urlBuilder: { type: Function, default: undefined },
   },
-  mixins: [noteMixins],
   computed: {
     ...mapGetters([
       'selectedNote',
       'user',
     ]),
-    noteContentKey() {
-      if (this.note._id === this.selectedNote._id) {
-        return `${this.note._id}-${this.selectedNote.contentVersion}`;
-      }
-      return this.note._id;
-    },
-    noteContent() {
-      const note = this.note._id === this.selectedNote._id
-        ? this.selectedNote : this.note;
-      return this.getNoteContent(note) || 'No content';
-    },
     sharedNote() {
       return this.$store.getters.sharedById(this.note._id);
     },
