@@ -2,11 +2,10 @@ import toCSSLineSpacing from '../ui/toCSSLineSpacing';
 import { Node } from 'tiptap';
 import setTextAlign from '../commands/textAlign';
 import { PARAGRAPH } from './names';
+import { MIN_INDENT_LEVEL } from '../commands/indentation';
 
 // This assumes that every 36pt maps to one indent level.
 export const INDENT_MARGIN_PT_SIZE = 36;
-export const MIN_INDENT_LEVEL = 0;
-export const MAX_INDENT_LEVEL = 7;
 export const ATTRIBUTE_INDENT = 'data-indent';
 
 export const EMPTY_CSS_VALUE = new Set(['', '0%', '0pt', '0px']);
@@ -16,20 +15,15 @@ export const isAlign = (value) => {
   return value === 'left' || value === 'right' || value === 'center' || value === 'justify';
 };
 
-const convertMarginLeftToIndentValue = (marginLeft) => {
-  const ptValue = convertToCSSPTValue(marginLeft);
-  return clamp(
-    MIN_INDENT_LEVEL,
-    Math.floor(ptValue / INDENT_MARGIN_PT_SIZE),
-    MAX_INDENT_LEVEL
-  );
-};
+
+const indentToMarginLeft = (indent) => {
+  return indent * INDENT_MARGIN_PT_SIZE;
+}
 
 const getAttrs = (dom) => {
   const {
     lineHeight,
     textAlign,
-    marginLeft,
     paddingTop,
     paddingBottom,
   } = dom.style;
@@ -38,10 +32,6 @@ const getAttrs = (dom) => {
   align = isAlign(align) ? align : null;
 
   let indent = parseInt(dom.getAttribute(ATTRIBUTE_INDENT), 10);
-
-  if (!indent && marginLeft) {
-    indent = convertMarginLeftToIndentValue(marginLeft);
-  }
 
   indent = indent || MIN_INDENT_LEVEL;
 
@@ -84,11 +74,12 @@ const toDOM = (node) => {
     style += `padding-bottom: ${paddingBottom};`;
   }
 
-  style && (attrs.style = style);
-
   if (indent) {
     attrs[ATTRIBUTE_INDENT] = String(indent);
+    style += `margin-left: ${indentToMarginLeft(indent)}pt`;
   }
+
+  style && (attrs.style = style);
 
   if (id) {
     attrs.id = id;
@@ -152,34 +143,4 @@ export class Paragraph extends Node {
       }
     };
   }
-}
-
-function clamp(min, val, max) {
-  if (val < min) {
-    return min;
-  }
-  if (val > max) {
-    return max;
-  }
-  return val;
-}
-
-const SIZE_PATTERN = /([\d.]+)(px|pt)/i;
-
-const PX_TO_PT_RATIO = 0.7518796992481203; // 1 / 1.33.
-
-function convertToCSSPTValue(styleValue) {
-  const matches = styleValue.match(SIZE_PATTERN);
-  if (!matches) {
-    return 0;
-  }
-  let value = parseFloat(matches[1]);
-  const unit = matches[2];
-  if (!value || !unit) {
-    return 0;
-  }
-  if (unit === 'px') {
-    value = PX_TO_PT_RATIO * value;
-  }
-  return value;
 }

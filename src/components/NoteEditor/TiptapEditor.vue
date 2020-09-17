@@ -195,6 +195,7 @@ import {
   Heading,
   ListItem,
   OrderedList,
+  Tab,
   TextSelection,
   MarkdownPreview,
   Cursor,
@@ -257,6 +258,7 @@ export default {
       new TextSelection(),
       new MarkdownPreview(),
       new Image(),
+      new Tab(),
     ];
     const { note } = this;
     if (note) {

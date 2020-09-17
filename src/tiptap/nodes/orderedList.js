@@ -1,8 +1,9 @@
 import { Node } from 'tiptap';
 import { ORDERED_LIST, LIST_ITEM } from './names';
-import { MIN_INDENT_LEVEL, ATTRIBUTE_INDENT } from './paragraph';
+import { ATTRIBUTE_INDENT } from './paragraph';
 import { ATTRIBUTE_LIST_STYLE_TYPE } from './listItem';
 import { toggleList } from '../utils/list';
+import { MIN_INDENT_LEVEL } from '../commands/indentation';
 
 export const ATTRIBUTE_COUNTER_RESET = 'data-counter-reset';
 export const ATTRIBUTE_FOLLOWING = 'data-following';

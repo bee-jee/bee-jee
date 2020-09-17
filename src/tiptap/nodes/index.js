@@ -4,3 +4,4 @@ export { ListItem } from './listItem';
 export { OrderedList } from './orderedList';
 export { default as Image } from './image';
 export { BulletList } from './bulletList';
+export { Tab } from './tab';
