@@ -7,13 +7,16 @@ const getTokenLength = (token) => {
 };
 
 const blockToText = (block) => {
-  let text = '\n';
+  let text = '';
   const childCount = block.childCount;
   if (childCount > 0) {
     for (let i = 0; i < childCount; i++) {
       const child = block.content.content[i];
       text += nodeToText(child);
     }
+  }
+  const blockSize = block.nodeSize - block.content.size;
+  for (let i = 0; i < blockSize; i++) {
     text += '\n';
   }
   return text;
@@ -25,6 +28,11 @@ const nodeToText = (node) => {
   } else if (node.isText) {
     return node.text;
   }
+  let text = '';
+  for (let i = 0; i < node.nodeSize; i++) {
+    text += '\n';
+  }
+  return text;
 }
 
 const getDocTextWithFillings = (doc) => {
