@@ -49,6 +49,15 @@
 
         <button
           class="menubar__button"
+          :class="{ 'is-active': isActive.code_block() }"
+          @click="commands.code_block"
+          title="Code block"
+        >
+          <mt-icon :path="mdiCodeTags" />
+        </button>
+
+        <button
+          class="menubar__button"
           :class="{ 'active': isActive.heading({ level: 1 }) }"
           @click="commands.heading({ level: 1 })"
         >H1</button>
@@ -173,6 +182,7 @@ import {
   TodoItem,
   TodoList,
   Underline,
+  TrailingNode,
 } from 'tiptap-extensions';
 import {
   mdiFormatBold,
@@ -187,6 +197,7 @@ import {
   mdiFormatAlignJustify,
   mdiUndoVariant,
   mdiRedoVariant,
+  mdiCodeTags,
 } from '@mdi/js';
 import GeminiScrollbar from 'gemini-scrollbar';
 import { debounce } from 'vue-debounce';
@@ -231,6 +242,7 @@ export default {
       mdiFormatAlignJustify,
       mdiUndoVariant,
       mdiRedoVariant,
+      mdiCodeTags,
     };
   },
   mounted() {
@@ -259,6 +271,10 @@ export default {
       new MarkdownPreview(),
       new Image(),
       new Tab(),
+      new TrailingNode({
+        node: 'paragraph',
+        notAfter: ['paragraph'],
+      }),
     ];
     const { note } = this;
     if (note) {
