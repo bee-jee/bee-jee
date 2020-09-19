@@ -7,9 +7,10 @@ module.exports = {
   transpileDependencies: [
     'yjs',
     'lib0',
-    'quill-image-drop-module',
     'isomorphic.js',
     'vue-native-websocket',
+    'y-prosemirror',
+    'highlight.js',
   ],
 
   chainWebpack: config => {

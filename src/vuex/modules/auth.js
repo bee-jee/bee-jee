@@ -2,11 +2,10 @@ import Vue from 'vue';
 import Cookie from 'js-cookie';
 import WS from '../../helpers/ws';
 import { Actions } from '../../../common/collab';
-import { cleanEnv, bool } from 'envalid';
 
-const env = cleanEnv(process.env, {
-  VUE_APP_IS_HTTPS: bool({ default: false }),
-});
+const env = {
+  VUE_APP_IS_HTTPS: !!process.env.VUE_APP_IS_HTTPS,
+};
 
 const state = {
   user: {},

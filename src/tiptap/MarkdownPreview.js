@@ -15,10 +15,7 @@ const blockToText = (block) => {
       text += nodeToText(child);
     }
   }
-  const blockSize = block.nodeSize - block.content.size;
-  for (let i = 0; i < blockSize; i++) {
-    text += '\n';
-  }
+  text += '\n'.repeat(block.nodeSize - block.content.size);
   return text;
 };
 
@@ -28,11 +25,7 @@ const nodeToText = (node) => {
   } else if (node.isText) {
     return node.text;
   }
-  let text = '';
-  for (let i = 0; i < node.nodeSize; i++) {
-    text += '\n';
-  }
-  return text;
+  return '\n'.repeat(node.nodeSize);
 }
 
 const getDocTextWithFillings = (doc) => {
@@ -76,6 +69,7 @@ export default class MarkdownPreview extends Extension {
 
   createDecorations(doc) {
     const text = getDocTextWithFillings(doc);
+    console.log(text);
     const ranges = tokensToRanges(marked.lexer(text));
     return DecorationSet.create(
       doc,
