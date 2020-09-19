@@ -5,10 +5,13 @@ import cors from 'cors';
 import WebSocket from 'ws';
 import http from 'http';
 import { CleanEnv } from 'envalid';
+import * as path from 'path';
 import { Controller, isWsController, WsContext } from './interfaces/controller.interface';
 import errorMiddleware from './middleware/error.middleware';
 import { WebsocketWithBeeJee } from './interfaces/websocket.interface';
 import ConfigManager from './interfaces/config.interface';
+
+export const ROOT_DIR = path.resolve(__dirname, '..', '..');
 
 class App implements ConfigManager {
   public app: express.Application;

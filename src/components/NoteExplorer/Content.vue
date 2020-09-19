@@ -94,7 +94,6 @@
 
 <script>
 import { mapGetters } from 'vuex';
-import * as Y from 'yjs';
 import CollapsiblePane from './CollapsiblePane';
 import NoteExplorerItem from './Item';
 import ShareSelector from '../Note/ShareSelector';
@@ -174,7 +173,6 @@ export default {
       this.$store
         .dispatch('createNote', {
           title: this.newNoteTitle,
-          content: new Y.Doc(),
           permission: this.permission,
         })
         .then(() => {
