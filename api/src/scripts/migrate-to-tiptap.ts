@@ -39,7 +39,7 @@ mongoose.connect(uri, {
       const notes = await NoteModel.find({});
       const promises: Promise<void>[] = [];
       notes.forEach((note) => {
-        const doc = decodeDoc(note.content);
+        const doc = decodeDoc(note.content || '');
         const text = doc.getText('text');
         if (text.length === 0) {
           return;
