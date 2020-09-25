@@ -40,6 +40,9 @@ export const Colors = Object.freeze([
  * @param {string} str 
  */
 export function stringToArray(str) {
+  if (!str) {
+    return [];
+  }
   const ret = new Uint8Array(str.length);
   for (let i = 0; i < str.length; i++) {
     ret[i] = str.charCodeAt(i);
@@ -69,6 +72,10 @@ export function encodeDoc(doc) {
  */
 export function decodeDoc(str) {
   const doc = new Y.Doc();
+  const bytes = stringToArray(str);
+  if (bytes.length === 0) {
+    return doc;
+  }
   Y.applyUpdate(doc, stringToArray(str));
   return doc;
 }

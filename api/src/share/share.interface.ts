@@ -19,7 +19,7 @@ export interface UserWithPermission {
 
 export interface UserSharedNote {
   user: string | (User & Document);
-  note: string;
+  note: any;
   permission: Permission;
   isViewed: boolean;
 }

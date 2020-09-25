@@ -32,14 +32,6 @@ const routes = [
     },
     children: [
       {
-        path: '/users/form/:id/change-password',
-        component: () => import('../components/ManageUsers/ChangePassword'),
-      },
-      {
-        path: '/users/form/:id?',
-        component: () => import('../components/ManageUsers/Create'),
-      },
-      {
         path: '/',
         component: SidebarLayout,
         children: [
@@ -50,6 +42,14 @@ const routes = [
             path: '/settings',
             name: 'settings',
             component: () => import('../components/Settings')
+          },
+          {
+            path: '/users/form/:id/change-password',
+            component: () => import('../components/ManageUsers/ChangePassword'),
+          },
+          {
+            path: '/users/form/:id?',
+            component: () => import('../components/ManageUsers/Create'),
           },
           ...navigations.map((navigation) => navigation.toRoute()),
           {

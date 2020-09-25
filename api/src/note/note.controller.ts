@@ -156,6 +156,9 @@ class NoteController implements Controller, WsController {
     }, { new: true })
       .populate('note');
     if (sharedNote !== null) {
+      sharedNote.note.content = encodeDoc(
+        await this.noteService.getNoteContent(sharedNote.note._id.toString()),
+      );
       response.send(sharedNote);
     } else {
       next(new NoteNotFoundException(id));
