@@ -4,7 +4,7 @@ import WS from '../../helpers/ws';
 import { Actions } from '../../../common/collab';
 
 const env = {
-  VUE_APP_IS_HTTPS: !!process.env.VUE_APP_IS_HTTPS,
+  VUE_APP_IS_HTTPS: process.env.VUE_APP_IS_HTTPS === '1' || process.env.VUE_APP_IS_HTTPS === 'true',
 };
 
 const state = {

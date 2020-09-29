@@ -103,10 +103,7 @@ class NoteController implements Controller, WsController {
     const notes = await this.NoteModel.find({
       author: request.user._id,
     });
-    response.send(await Promise.all(notes.map(async (note) => {
-      note.content = encodeDoc(await this.noteService.getNoteContent(note._id.toString()));
-      return note;
-    })));
+    response.send(notes);
   };
 
   private getNoteById = async (request: RequestWithUser, response: Response,
