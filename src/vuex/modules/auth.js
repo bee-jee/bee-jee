@@ -106,25 +106,24 @@ const actions = {
   },
 };
 
+const cookieOptions = {
+  sameSite: 'strict',
+  secure: env.VUE_APP_IS_HTTPS,
+};
+
 const mutations = {
   setUser(state, user) {
     state.user = user;
   },
   setToken(state, token) {
     state.token = token;
-    Cookie.set('token', token, {
-      sameSite: true,
-      secure: env.VUE_APP_IS_HTTPS,
-    });
+    Cookie.set('token', token, cookieOptions);
     Vue.prototype.$http.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     WS.defaults['Authorization'] = token;
   },
   setRefreshToken(state, token) {
     state.refreshToken = token;
-    Cookie.set('refreshToken', token, {
-      sameSite: true,
-      secure: env.VUE_APP_IS_HTTPS,
-    });
+    Cookie.set('refreshToken', token, cookieOptions);
   },
   setLoginError(state, message) {
     state.loginError = message;
