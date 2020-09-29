@@ -10,7 +10,7 @@ import NoteModel from '../note/note.model';
 import NoteNotFoundException from '../exceptions/NoteNotFound';
 import UserSharedNoteModel from '../share/share.model';
 
-async function getUserPermission(user: User & Document, note: Note & Document)
+export async function getUserPermission(user: User & Document, note: Note & Document)
   : Promise<[boolean, Permission]> {
   const visibility = note.visibility || Visibility.Private;
   if (visibility === Visibility.Private) {

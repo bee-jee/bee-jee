@@ -95,6 +95,31 @@ function clamp(min, value, max) {
   return value;
 }
 
+function uploadImageFiles(view, images, coords) {
+  const { schema, tr } = view.state;
+  let pos;
+  
+  if (coords) {
+    const dropPos = view.posAtCoords({ left: coords.x, top: coords.y });
+    pos = dropPos.pos;
+  } else {
+    pos = tr.selection.to;
+  }
+
+  images.forEach(image => {
+    const reader = new FileReader();
+
+    reader.onload = readerEvent => {
+      const node = schema.nodes.image.create({
+        src: readerEvent.target.result,
+      });
+      const transaction = tr.insert(pos, node);
+      view.dispatch(transaction);
+    }
+    reader.readAsDataURL(image);
+  });
+}
+
 const resizeDirection = {
   top_left: setSize,
   top: setHeight,
@@ -282,37 +307,44 @@ class Image extends Node {
             drop(view, event) {
               const hasFiles = event.dataTransfer
                 && event.dataTransfer.files
-                && event.dataTransfer.files.length
+                && event.dataTransfer.files.length;
 
               if (!hasFiles) {
-                return
+                return;
               }
 
               const images = Array
                 .from(event.dataTransfer.files)
-                .filter(file => (/image/i).test(file.type))
+                .filter(file => (/image/i).test(file.type));
 
               if (images.length === 0) {
-                return
+                return;
               }
 
-              event.preventDefault()
+              event.preventDefault();
+              uploadImageFiles(view, images, {
+                x: event.clientX,
+                y: event.clientY,
+              });
+            },
+            paste(view, event) {
+              if (!view.editable) {
+                return;
+              }
+              const hasFiles = event.clipboardData
+                && event.clipboardData.files
+                && event.clipboardData.files.length;
 
-              const { schema } = view.state
-              const coordinates = view.posAtCoords({ left: event.clientX, top: event.clientY })
+              if (!hasFiles) {
+                return;
+              }
 
-              images.forEach(image => {
-                const reader = new FileReader()
-
-                reader.onload = readerEvent => {
-                  const node = schema.nodes.image.create({
-                    src: readerEvent.target.result,
-                  })
-                  const transaction = view.state.tr.insert(coordinates.pos, node)
-                  view.dispatch(transaction)
-                }
-                reader.readAsDataURL(image)
-              })
+              const images = Array
+                .from(event.clipboardData.files)
+                .filter(file => (/image/i).test(file.type));
+              
+              event.preventDefault();
+              uploadImageFiles(view, images);
             },
           },
           onBlur: (view) => {
@@ -370,50 +402,52 @@ class Image extends Node {
           resizer.style.width = `${width}px`;
           resizer.style.height = `${height}px`;
 
-          const topLeftBox = this.createResizerBox(view, resizer, 'top_left', width, height);
-          topLeftBox.style.top = '0';
-          topLeftBox.style.left = '0';
-          topLeftBox.style.cursor = 'nw-resize';
+          if (view.editable) {
+            const topLeftBox = this.createResizerBox(view, resizer, 'top_left', width, height);
+            topLeftBox.style.top = '0';
+            topLeftBox.style.left = '0';
+            topLeftBox.style.cursor = 'nw-resize';
+  
+            const topBox = this.createResizerBox(view, resizer, 'top', width, height);
+            topBox.style.top = '0';
+            topBox.style.left = '50%';
+            topBox.style.cursor = 'n-resize';
+  
+            const topRightBox = this.createResizerBox(view, resizer, 'top_right', width, height);
+            topRightBox.style.top = '0';
+            topRightBox.style.left = '100%';
+            topRightBox.style.cursor = 'ne-resize';
+  
+            const rightBox = this.createResizerBox(view, resizer, 'right', width, height);
+            rightBox.style.top = '50%';
+            rightBox.style.left = '100%';
+            rightBox.style.cursor = 'e-resize';
+  
+            const bottomRightBox = this.createResizerBox(view, resizer, 'bottom_right', width, height);
+            bottomRightBox.style.top = '100%';
+            bottomRightBox.style.left = '100%';
+            bottomRightBox.style.cursor = 'se-resize';
+  
+            const bottomBox = this.createResizerBox(view, resizer, 'bottom', width, height);
+            bottomBox.style.top = '100%';
+            bottomBox.style.left = '50%';
+            bottomBox.style.cursor = 's-resize';
+  
+            const bottomLeftBox = this.createResizerBox(view, resizer, 'bottom_left', width, height);
+            bottomLeftBox.style.top = '100%';
+            bottomLeftBox.style.left = '0';
+            bottomLeftBox.style.cursor = 'sw-resize';
+  
+            const leftBox = this.createResizerBox(view, resizer, 'left', width, height);
+            leftBox.style.top = '50%';
+            leftBox.style.left = '0';
+            leftBox.style.cursor = 'w-resize';
 
-          const topBox = this.createResizerBox(view, resizer, 'top', width, height);
-          topBox.style.top = '0';
-          topBox.style.left = '50%';
-          topBox.style.cursor = 'n-resize';
-
-          const topRightBox = this.createResizerBox(view, resizer, 'top_right', width, height);
-          topRightBox.style.top = '0';
-          topRightBox.style.left = '100%';
-          topRightBox.style.cursor = 'ne-resize';
-
-          const rightBox = this.createResizerBox(view, resizer, 'right', width, height);
-          rightBox.style.top = '50%';
-          rightBox.style.left = '100%';
-          rightBox.style.cursor = 'e-resize';
-
-          const bottomRightBox = this.createResizerBox(view, resizer, 'bottom_right', width, height);
-          bottomRightBox.style.top = '100%';
-          bottomRightBox.style.left = '100%';
-          bottomRightBox.style.cursor = 'se-resize';
-
-          const bottomBox = this.createResizerBox(view, resizer, 'bottom', width, height);
-          bottomBox.style.top = '100%';
-          bottomBox.style.left = '50%';
-          bottomBox.style.cursor = 's-resize';
-
-          const bottomLeftBox = this.createResizerBox(view, resizer, 'bottom_left', width, height);
-          bottomLeftBox.style.top = '100%';
-          bottomLeftBox.style.left = '0';
-          bottomLeftBox.style.cursor = 'sw-resize';
-
-          const leftBox = this.createResizerBox(view, resizer, 'left', width, height);
-          leftBox.style.top = '50%';
-          leftBox.style.left = '0';
-          leftBox.style.cursor = 'w-resize';
-
-          const img = document.createElement('img');
-          img.classList.add('img-resize-preview');
-          img.src = this.selectedImg.attrs.src;
-          resizer.append(img);
+            const img = document.createElement('img');
+            img.classList.add('img-resize-preview');
+            img.src = this.selectedImg.attrs.src;
+            resizer.append(img);
+          }
 
           return resizer;
         },

@@ -21,9 +21,10 @@ import { MiddlewareData } from '../interfaces/websocket.interface';
 import App from '../app';
 import UserSharedNoteModel from '../share/share.model';
 import EditNoteDto from './editNote.dto';
-import visiMiddleware from '../middleware/visibility.middleware';
+import visiMiddleware, { getUserPermission } from '../middleware/visibility.middleware';
 import { NoteContentService as NoteService } from './noteContent.service';
 import ConfigManager from '../interfaces/config.interface';
+import { Permission } from '../share/share.interface';
 
 class NoteController implements Controller, WsController {
   public path = '/note';
@@ -63,6 +64,10 @@ class NoteController implements Controller, WsController {
         }
         const note = await this.findNoteByIdAndToPending(id);
         if (note !== null) {
+          const [havePermission, permission] = await getUserPermission(user, note.note);
+          if (!havePermission || permission !== Permission.Write) {
+            return;
+          }
           const changes = stringToArray(mergeChanges);
           if (changes !== null) {
             await this.noteService.storeNoteContentUpdate(note.note._id.toString(), changes);

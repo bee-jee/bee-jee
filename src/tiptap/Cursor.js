@@ -106,6 +106,9 @@ export default class Cursor extends Extension {
             }
           });
           const updateCursor = () => {
+            if (!view.editable) {
+              return;
+            }
             if (!view.hasFocus()) {
               store.dispatch('changeCursor', {
                 note,

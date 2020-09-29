@@ -69,15 +69,17 @@ export default class MarkdownPreview extends Extension {
 
   createDecorations(doc) {
     const text = getDocTextWithFillings(doc);
-    console.log(text);
     const ranges = tokensToRanges(marked.lexer(text));
     return DecorationSet.create(
       doc,
-      ranges.map(({ from, to, type }) => {
-        return Decoration.inline(from, to, {
-          [`data-decor-${type}`]: true,
-        });
-      }),
+      ranges.reduce((decors, { from, to, type }) => {
+        if (type !== 'space') {
+          decors.push(Decoration.inline(from, to, {
+            [`data-decor-${type}`]: true,
+          }));
+        }
+        return decors;
+      }, []),
     );
   }
 
