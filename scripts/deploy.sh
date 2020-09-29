@@ -9,7 +9,7 @@ cd build
 git init
 git add -A
 git commit -m "Deploy"
-git push -f ssh://git@$SFTP_IP:22$SFTP_FRONTEND_DEPLOY_DIR
+git push -f ssh://git@$SFTP_IP:22$SFTP_FRONTEND_DEPLOY_DIR master
 
 git config --global push.default matching
 git remote add deploy ssh://git@$SFTP_IP:22$SFTP_DEPLOY_DIR
