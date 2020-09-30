@@ -30,6 +30,15 @@ describe('Note visibility', () => {
 
   it('should call next without error', async () => {
     const nextSpy = sinon.spy();
+    const personA = await UserModel.create({
+      username: 'personA',
+      password: 'abcdefg',
+      firstName: 'Person',
+      lastName: 'A',
+      role: 'user',
+      created: new Date(),
+      updated: new Date(),
+    });
     const personB = await UserModel.create({
       username: 'personB',
       password: 'abcdefg',
@@ -62,7 +71,7 @@ describe('Note visibility', () => {
     aNote1.visibility = Visibility.Private;
     await aNote1.save();
     await (middleware as RequestHandler)({
-      user: personB,
+      user: personA,
       params: {
         id: aNote1._id,
       } as any,
