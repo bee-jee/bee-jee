@@ -2,7 +2,7 @@ import { Document } from 'mongoose';
 import { Visibility, UserSharedNote } from '../share/share.interface';
 
 export interface Note {
-  author: string;
+  author: any;
   title: string;
   content: string | undefined;
   visibility: Visibility,

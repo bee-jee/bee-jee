@@ -14,7 +14,7 @@ export async function getUserPermission(user: User & Document, note: Note & Docu
   : Promise<[boolean, Permission]> {
   const visibility = note.visibility || Visibility.Private;
   if (visibility === Visibility.Private) {
-    return [`${user._id}` === note.author, Permission.Write];
+    return [note.author.equals(user._id), Permission.Write];
   }
   if (visibility === Visibility.Users) {
     await note.populate({
