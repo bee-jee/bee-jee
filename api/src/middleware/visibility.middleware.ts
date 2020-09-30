@@ -12,6 +12,9 @@ import UserSharedNoteModel from '../share/share.model';
 
 export async function getUserPermission(user: User & Document, note: Note & Document)
   : Promise<[boolean, Permission]> {
+  if (note.author.equals(user._id)) {
+    return [true, Permission.Write];
+  }
   const visibility = note.visibility || Visibility.Private;
   if (visibility === Visibility.Private) {
     return [note.author.equals(user._id), Permission.Write];
