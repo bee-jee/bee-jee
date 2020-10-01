@@ -7,6 +7,7 @@ export const Actions = Object.freeze({
   USER_ENTERED: 'userEntered',
   USER_LEFT: 'userLeft',
   CURSOR_UPDATED: 'cursorUpdated',
+  CONTENT_SYNC_ALL: 'contentSyncAll',
   CONTENT_UPDATED: 'contentUpdated',
   NOT_AUTHENTICATED: 'notAuthenticated',
 });

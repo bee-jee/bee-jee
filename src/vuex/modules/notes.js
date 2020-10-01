@@ -1,5 +1,6 @@
 import Vue from 'vue';
-import { decodeDoc, arrayToString, Actions } from '../../../common/collab';
+import * as Y from 'yjs';
+import { arrayToString, Actions, stringToArray } from '../../../common/collab';
 import { wsSend } from '../../helpers/ws';
 
 export const state = {
@@ -96,7 +97,6 @@ export const actions = {
     try {
       const resp = await Vue.prototype.$http.get(`/note/${_id}`);
       const note = resp.data;
-      note.content = decodeDoc(note.content);
       commit('setSelectedNote', note);
     } catch (err) {
       console.error(err);
@@ -110,7 +110,6 @@ export const actions = {
       const resp = await Vue.prototype.$http.get(`/note/shared/${_id}`);
       const { data: sharedNote } = resp;
       const { note } = sharedNote;
-      note.content = decodeDoc(note.content);
       commit('updateSharedNote', sharedNote);
       commit('setSelectedNote', note);
     } catch (err) {
@@ -160,6 +159,22 @@ export const actions = {
     note.content.getText('text').applyDelta(ops);
     commit('setNoteContent', note);
   },
+  [Actions.CONTENT_SYNC_ALL]({ getters }, { payload }) {
+    const { selectedNote } = getters;
+    const update = stringToArray(payload);
+    Y.applyUpdate(selectedNote.content, update, 'ws');
+  },
+  async clearSelectedNoteContent({ commit, getters }) {
+    commit('setIsUpdatingNote', true);
+    const { selectedNote } = getters;
+    try {
+      await Vue.prototype.$http.delete(`/note/${selectedNote._id}/clearContent`);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      commit('setIsUpdatingNote', false);
+    }
+  },
 };
 
 export const mutations = {
@@ -182,7 +197,6 @@ export const mutations = {
     const allIds = [];
     const byIds = {};
     notes.forEach((note) => {
-      note.content = decodeDoc(note.content);
       allIds.push(note._id);
       // The reason we want to Object.freeze the notes is because
       // the note.content is a doc yjs object, and this object can
@@ -199,7 +213,6 @@ export const mutations = {
   },
   // appendNote will add the new note to the current state
   appendNote(state, newNote) {
-    newNote.content = decodeDoc(newNote.content);
     state.allIds.push(newNote._id);
     // The reason we want to Object.freeze the notes is because
     // the note.content is a doc yjs object, and this object can
@@ -210,6 +223,7 @@ export const mutations = {
   },
   // setSelectedNote replaces the current selectedNote with the new one
   setSelectedNote(state, note) {
+    note.content = new Y.Doc();
     // Make sure we don't subscribe to the previous selected note
     if (state.selectedNote._id) {
       unsubscribeContentUpdate(state.selectedNote);
@@ -305,7 +319,6 @@ export const mutations = {
     const byIds = {};
     sharedNotes.forEach((sharedNote) => {
       const note = sharedNote.note;
-      note.content = decodeDoc(note.content);
       allSharedIds.push(note._id);
       byIds[note._id] = Object.freeze(note);
       sharedByIds[note._id] = Object.freeze(sharedNote);

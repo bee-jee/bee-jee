@@ -2,27 +2,20 @@ import {
   Router, Response, NextFunction,
 } from 'express';
 import { isValidObjectId } from 'mongoose';
-import LRU from 'lru-cache';
-import WebSocket from 'ws';
 import { Controller, WsController, WsContext } from '../interfaces/controller.interface';
 import NoteModel from './note.model';
 import validationMiddleware from '../middleware/validation.middleware';
 import CreateNoteDto from './createNote.dto';
 import NoteNotFoundException from '../exceptions/NoteNotFound';
 import InvalidObjectIdException from '../exceptions/InvalidObjectIdException';
-import {
-  PendingNote, pendingNote,
-} from './note.interface';
-import broadcast from '../utils/ws';
-import { stringToArray, Actions, encodeDoc } from '../../../common/collab';
+import { stringToArray, Actions } from '../../../common/collab';
 import { authMiddleware, authWsMiddleware } from '../middleware/auth.middleware';
 import RequestWithUser from '../interfaces/requestWithUser.interface';
 import { MiddlewareData } from '../interfaces/websocket.interface';
-import App from '../app';
 import UserSharedNoteModel from '../share/share.model';
 import EditNoteDto from './editNote.dto';
 import visiMiddleware, { getUserPermission } from '../middleware/visibility.middleware';
-import { NoteContentService as NoteService } from './noteContent.service';
+import { NoteContentService as NoteService } from './note.service';
 import ConfigManager from '../interfaces/config.interface';
 import { Permission } from '../share/share.interface';
 
@@ -35,15 +28,9 @@ class NoteController implements Controller, WsController {
 
   private UserSharedNoteModel = UserSharedNoteModel;
 
-  private noteCache: LRU<string, PendingNote | null>;
-
   private noteService: NoteService;
 
   constructor() {
-    this.noteCache = new LRU({
-      max: 100,
-      maxAge: 60000,
-    });
     this.initialiseRoutes();
   }
 
@@ -52,38 +39,54 @@ class NoteController implements Controller, WsController {
   }
 
   public subscribeToWs({ ws }: WsContext): void {
-    ws.on('contentUpdated', async (payload) => {
+    ws.on(Actions.CONTENT_UPDATED, async (payload) => {
       authWsMiddleware(ws, payload, async ({ user }: MiddlewareData) => {
         if (!user) {
           return;
         }
         const { id, mergeChanges } = payload;
-        if (!isValidObjectId(id)) {
-          console.error(new InvalidObjectIdException(id));
-          return;
-        }
-        const note = await this.findNoteByIdAndToPending(id);
-        if (note !== null) {
-          const [havePermission, permission] = await getUserPermission(user, note.note);
+        const sharedNote = this.noteService.getWSSharedNote(id);
+        if (sharedNote) {
+          const [havePermission, permission] = await getUserPermission(user, sharedNote.note);
           if (!havePermission || permission !== Permission.Write) {
             return;
           }
-          const changes = stringToArray(mergeChanges);
-          if (changes !== null) {
-            await this.noteService.storeNoteContentUpdate(note.note._id.toString(), changes);
-            const websockets = App.noteWebsockets.get(`${note.note._id}`) || new Set<WebSocket>();
-            broadcast(websockets, JSON.stringify({
-              action: Actions.CONTENT_UPDATED,
-              payload: {
-                id,
-                mergeChanges,
-              },
-            }), {
-              except: ws,
-            });
-          }
+          this.noteService.applyChanges(ws, sharedNote, stringToArray(mergeChanges));
         }
       });
+    });
+
+    ws.on(Actions.ENTER_NOTE, async (payload: any) => {
+      authWsMiddleware(ws, payload, async (user: MiddlewareData) => {
+        if (!user) {
+          return;
+        }
+        const sharedNote = await this.noteService.getOrCreateWSSharedNote(payload._id);
+        if (sharedNote) {
+          sharedNote.conns.add(ws);
+          this.noteService.sendSyncAll(ws, sharedNote);
+        }
+      });
+    });
+
+    ws.on(Actions.USER_LEFT, () => {
+      this.noteService.closeConn(ws);
+    });
+
+    ws.on(Actions.CONTENT_SYNC_ALL, async (payload: any) => {
+      authWsMiddleware(ws, payload, async (user: MiddlewareData) => {
+        if (!user) {
+          return;
+        }
+        const sharedNote = this.noteService.getWSSharedNote(payload._id);
+        if (sharedNote) {
+          this.noteService.sendSyncAll(ws, sharedNote);
+        }
+      });
+    });
+
+    ws.on('close', () => {
+      this.noteService.closeConn(ws);
     });
   }
 
@@ -126,7 +129,6 @@ class NoteController implements Controller, WsController {
         },
       });
     if (note !== null) {
-      note.content = encodeDoc(await this.noteService.getNoteContent(note._id.toString()));
       response.send(note);
     } else {
       next(new NoteNotFoundException(id));
@@ -158,9 +160,6 @@ class NoteController implements Controller, WsController {
     }, { new: true })
       .populate('note');
     if (sharedNote !== null) {
-      sharedNote.note.content = encodeDoc(
-        await this.noteService.getNoteContent(sharedNote.note._id.toString()),
-      );
       response.send(sharedNote);
     } else {
       next(new NoteNotFoundException(id));
@@ -221,7 +220,8 @@ class NoteController implements Controller, WsController {
     }
   };
 
-  private deleteNote = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+  private deleteNote =
+  async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const { id } = request.params;
     if (!isValidObjectId(id)) {
       next(new InvalidObjectIdException(id));
@@ -229,6 +229,7 @@ class NoteController implements Controller, WsController {
     }
     const note = await this.NoteModel.findOneAndDelete({ _id: id, author: request.user._id });
     if (note !== null) {
+      await this.noteService.clearContent(note._id.toString());
       await this.UserSharedNoteModel.deleteMany({
         note: note._id,
       });
@@ -239,15 +240,6 @@ class NoteController implements Controller, WsController {
     } else {
       next(new NoteNotFoundException(id));
     }
-  };
-
-  private findNoteByIdAndToPending = async (id: string): Promise<PendingNote | null> => {
-    if (this.noteCache.has(id)) {
-      return this.noteCache.get(id) || null;
-    }
-    const note = pendingNote(await this.NoteModel.findById(id));
-    this.noteCache.set(id, note);
-    return note;
   };
 }
 

@@ -5,7 +5,7 @@ import { encodeStateAsUpdate } from 'yjs';
 import validateEnv from '../utils/env';
 import NoteModel from '../note/note.model';
 import { decodeDoc } from '../../../common/collab';
-import { buildNoteContentPath } from '../note/noteContent.service';
+import { buildNoteContentPath } from '../note/note.service';
 
 const {
   MONGO_USER,

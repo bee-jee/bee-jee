@@ -1,4 +1,6 @@
 import { Document } from 'mongoose';
+import WebSocket from 'ws';
+import { Doc } from 'yjs';
 import { Visibility, UserSharedNote } from '../share/share.interface';
 
 export interface Note {
@@ -11,15 +13,8 @@ export interface Note {
   updated: Date;
 }
 
-export interface PendingNote {
+export interface WSSharedNote {
   note: Note & Document;
-}
-
-export function pendingNote(note: (Note & Document) | null): PendingNote | null {
-  if (note === null) {
-    return null;
-  }
-  return {
-    note,
-  };
+  content: Doc | null;
+  conns: Set<WebSocket>;
 }
