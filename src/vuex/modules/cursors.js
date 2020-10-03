@@ -15,10 +15,11 @@ const getters = {
 };
 
 const actions = {
-  enterNote(context, { _id }) {
+  enterNote({ commit }, { _id }) {
     if (!_id ) {
       return;
     }
+    commit('setIsSyncing', true);
     wsSend({
       action: Actions.ENTER_NOTE,
       payload: {

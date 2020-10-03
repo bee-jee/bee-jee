@@ -212,17 +212,30 @@
     <div class="editor-top-shadow" ref="editorTopShadow"></div>
     <div class="editor-container position-relative" ref="editorContainer">
       <div ref="editor" class="editor-wrapper">
-        <div class="editor-note-title">
+        <div class="editor-note-title-container text-center p-0">
+          <span @click.prevent="showEditTitle" class="editor-note-title px-3 py-1">{{ titleDisplay }}</span>
+        </div>
+      </div>
+    </div>
+
+    <modal name="editTitle" height="auto" :adaptive="true" :focusTrap="true">
+      <form @submit.prevent="changeTitle" class="p-3">
+        <div class="form-group">
           <input
+            class="form-control"
             type="text"
             v-model="editedNoteTitle"
-            @input="changeTitle"
+            ref="noteTitleInput"
             placeholder="Enter note title here"
             :readonly="!isOwner"
           />
         </div>
-      </div>
-    </div>
+        <div class="text-right">
+          <button type="button" class="btn btn-secondary mr-2" @click="$modal.hide('editTitle')">Cancel</button>
+          <button class="btn btn-primary">Save changes</button>
+        </div>
+      </form>
+    </modal>
   </div>
 </template>
 
@@ -266,7 +279,6 @@ import {
   mdiGrid,
 } from '@mdi/js';
 import GeminiScrollbar from 'gemini-scrollbar';
-import { debounce } from 'vue-debounce';
 import { mapGetters } from 'vuex';
 import {
   Paragraph,
@@ -326,7 +338,13 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(['tableMenuPosition', 'allUserCursors']),
+    ...mapGetters(['tableMenuPosition', 'allUserCursors', 'isSyncing']),
+    titleDisplay() {
+      if (this.isSyncing) {
+        return `${this.note.title} - updating`;
+      }
+      return this.note.title;
+    },
   },
   mounted() {
     const extensions = [
@@ -419,12 +437,12 @@ export default {
       const shadowPercentage = Math.min(target.scrollTop / SHADOW_SCROLL_TOP_THRESHOLD, 1);
       this.$refs.editorTopShadow.style.opacity = shadowPercentage;
     },
-    changeTitle: debounce(function changeTitle() {
+    changeTitle() {
       this.$store.dispatch('editNoteTitle', {
         _id: this.note._id,
         title: this.editedNoteTitle,
       });
-    }, 500),
+    },
     onTableMenuHidden() {
       this.$store.commit('setPosition', { top: 0, left: 0 });
     },

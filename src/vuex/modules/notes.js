@@ -167,10 +167,11 @@ export const actions = {
     note.content.getText('text').applyDelta(ops);
     commit('setNoteContent', note);
   },
-  [Actions.CONTENT_SYNC_ALL]({ getters }, { payload }) {
+  [Actions.CONTENT_SYNC_ALL]({ getters, commit }, { payload }) {
     const { selectedNote } = getters;
     const update = stringToArray(payload);
     Y.applyUpdate(selectedNote.content, update, 'ws');
+    commit('setIsSyncing', false);
   },
   async clearSelectedNoteContent({ commit, getters }) {
     commit('setIsUpdatingNote', true);

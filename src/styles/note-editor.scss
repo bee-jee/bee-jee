@@ -41,7 +41,7 @@
 }
 
 .ProseMirror,
-.editor-note-title {
+.editor-note-title-container {
     width: 100%;
     max-width: 794px;
     margin-left: auto;
@@ -127,20 +127,13 @@
 }
 
 .editor-note-title {
-    input {
-        display: block;
-        width: 100%;
-        border: none;
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: $input-color;
+    cursor: pointer;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: $input-color;
 
-        &:focus {
-            outline: none;
-        }
-        &::placeholder {
-            color: lighten($input-color, 40%);
-        }
+    &:hover {
+        background-color: $gray-100;
     }
 }
 

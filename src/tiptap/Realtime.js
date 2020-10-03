@@ -8,6 +8,7 @@ import {
 import * as prosemirrorState from 'prosemirror-state';
 import * as PModel from 'prosemirror-model';
 import * as Y from 'yjs';
+import { IndexeddbPersistence } from 'y-indexeddb';
 
 /**
  * @param {any} tr
@@ -28,6 +29,7 @@ export default class Realtime extends Extension {
   constructor(note) {
     super();
     this.note = note;
+    this.persistence = new IndexeddbPersistence(note._id, note.content);
   }
 
   get name() {
