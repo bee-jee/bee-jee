@@ -1,5 +1,7 @@
 #!/bin/bash
 
+npm run vue:build
+
 echo "${SFTP_KEY}" | base64 --decode > /tmp/beejee.pem
 eval "$(ssh-agent -s)" # Start ssh-agent cache
 chmod 600 /tmp/beejee.pem # Allow read access to the private key
