@@ -21,6 +21,12 @@ export const actions = {
       commit('setNoteContent', note);
     }
   },
+  SOCKET_ONOPEN({ commit, getters, dispatch }, event) {
+    if (getters.selectedNote) {
+      dispatch('enterNote', getters.selectedNote);
+    }
+    commit('SOCKET_ONOPEN', event);
+  },
 };
 
 export const mutations = {
