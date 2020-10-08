@@ -53,6 +53,13 @@ Vue.use(VueNativeSock, process.env.VUE_APP_WS_URL, {
   format: 'JSON',
   reconnection: true,
   reconnectionDelay: 5000,
+  passToStoreHandler: function (eventName, event, next) {
+    if (eventName === 'SOCKET_onopen') {
+      store.dispatch('SOCKET_ONOPEN', event);
+      return;
+    }
+    next(eventName, event);
+  },
 });
 Vue.use(VModal);
 
