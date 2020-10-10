@@ -29,7 +29,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
 .mt-icon {
   position: relative;
   color: inherit;
