@@ -90,6 +90,16 @@
           <mt-icon :path="mdiFormatUnderline" />
         </button>
 
+        <group-button ref="colorText">
+          <template v-slot:button-content>
+            <mt-icon :path="mdiFormatColorText" />
+            <span class="color-under-bar" :style="{ background: getTextColor() }"></span>
+          </template>
+          <color-selector @select="selectColorText($event, commands)">
+            Default
+          </color-selector>
+        </group-button>
+
         <button
           class="menubar__button"
           :class="{ 'is-active': isActive.code_block() }"
@@ -99,29 +109,46 @@
           <mt-icon :path="mdiCodeTags" />
         </button>
 
-        <button
-          class="menubar__button"
-          :class="{ active: isActive.heading({ level: 1 }) }"
-          @click="commands.heading({ level: 1 })"
-        >
-          H1
-        </button>
+        <group-button toggle-class="button__text">
+          <template v-slot:button-content><strong>Heading</strong></template>
+          <b-dropdown-item :active="isActive.heading({ level: 1 })" @click="commands.heading({ level: 1 })">
+            <slot name="label">Heading 1</slot>
+          </b-dropdown-item>
+          <b-dropdown-item :active="isActive.heading({ level: 2 })" @click="commands.heading({ level: 2 })">
+            <slot name="label">Heading 2</slot>
+          </b-dropdown-item>
+          <b-dropdown-item :active="isActive.heading({ level: 3 })" @click="commands.heading({ level: 3 })">
+            <slot name="label">Heading 3</slot>
+          </b-dropdown-item>
+        </group-button>
 
-        <button
-          class="menubar__button"
-          :class="{ active: isActive.heading({ level: 2 }) }"
-          @click="commands.heading({ level: 2 })"
-        >
-          H2
-        </button>
-
-        <button
-          class="menubar__button"
-          :class="{ active: isActive.heading({ level: 3 }) }"
-          @click="commands.heading({ level: 3 })"
-        >
-          H3
-        </button>
+        <group-button toggle-class="button__text">
+          <template v-slot:button-content><strong>Align</strong></template>
+          <b-dropdown-item
+            :active="isAlign(isActive, { align: 'left' })"
+            @click="commands.paragraph({ align: 'left' })"
+          >
+            <slot name="label">Left</slot>
+          </b-dropdown-item>
+          <b-dropdown-item
+            :active="isAlign(isActive, { align: 'center' })"
+            @click="commands.paragraph({ align: 'center' })"
+          >
+            <slot name="label">Center</slot>
+          </b-dropdown-item>
+          <b-dropdown-item
+            :active="isAlign(isActive, { align: 'right' })"
+            @click="commands.paragraph({ align: 'right' })"
+          >
+            <slot name="label">Right</slot>
+          </b-dropdown-item>
+          <b-dropdown-item
+            :active="isAlign(isActive, { align: 'justify' })"
+            @click="commands.paragraph({ align: 'justify' })"
+          >
+            <slot name="label">Justify</slot>
+          </b-dropdown-item>
+        </group-button>
 
         <button
           class="menubar__button"
@@ -147,42 +174,6 @@
 
         <button class="menubar__button" @click="commands.horizontal_rule">
           <icon name="hr" title="Horizontal line" />
-        </button>
-
-        <button
-          class="menubar__button"
-          :class="{ active: isAlign(isActive, { align: 'left' }) }"
-          @click="commands.paragraph({ align: 'left' })"
-          title="Align left"
-        >
-          <mt-icon :path="mdiFormatAlignLeft" />
-        </button>
-
-        <button
-          class="menubar__button"
-          :class="{ active: isAlign(isActive, { align: 'center' }) }"
-          @click="commands.paragraph({ align: 'center' })"
-          title="Align center"
-        >
-          <mt-icon :path="mdiFormatAlignCenter" />
-        </button>
-
-        <button
-          class="menubar__button"
-          :class="{ active: isAlign(isActive, { align: 'right' }) }"
-          @click="commands.paragraph({ align: 'right' })"
-          title="Align right"
-        >
-          <mt-icon :path="mdiFormatAlignRight" />
-        </button>
-
-        <button
-          class="menubar__button"
-          :class="{ active: isAlign(isActive, { align: 'justify' }) }"
-          @click="commands.paragraph({ align: 'justify' })"
-          title="Align justify"
-        >
-          <mt-icon :path="mdiFormatAlignJustify" />
         </button>
 
         <button class="menubar__button" @click="commands.undo" title="Undo">
@@ -244,6 +235,7 @@ import {
   mdiFormatAlignCenter,
   mdiFormatAlignRight,
   mdiFormatAlignJustify,
+  mdiFormatColorText,
   mdiUndoVariant,
   mdiRedoVariant,
   mdiCodeTags,
@@ -270,6 +262,7 @@ import GroupButton from './GroupButton';
 import SubMenu from './SubMenu';
 import TableGridSizeEditor from './TableGridSizeEditor';
 import ColorSelector from './ColorSelector';
+import { getTextColor } from '../../tiptap/commands/color';
 
 const SHADOW_SCROLL_TOP_THRESHOLD = 200;
 
@@ -300,6 +293,7 @@ export default {
       mdiFormatAlignCenter,
       mdiFormatAlignRight,
       mdiFormatAlignJustify,
+      mdiFormatColorText,
       mdiUndoVariant,
       mdiRedoVariant,
       mdiCodeTags,
@@ -408,6 +402,17 @@ export default {
     }, 500),
     onTableMenuHidden() {
       this.$store.commit('setPosition', { top: 0, left: 0 });
+    },
+    selectColorText(hexColor, commands) {
+      this.$refs.colorText.hide();
+      commands.paragraph({
+        color: hexColor,
+      });
+    },
+    getTextColor() {
+      if (this.editor) {
+        return getTextColor(this.editor.state);
+      }
     },
   },
   watch: {

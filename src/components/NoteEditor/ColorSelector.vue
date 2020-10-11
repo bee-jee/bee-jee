@@ -1,6 +1,8 @@
 <template>
   <div role="menuitem" class="p-2">
-    <button class="mb-2 btn btn-primary btn-block text-center" @click="select(null)">Transparent</button>
+    <button class="mb-2 btn btn-primary btn-block text-center" @click="select(null)">
+      <slot>Transparent</slot>
+    </button>
 
     <div class="grid-row" v-for="(rows, i) in gridColors" :key="i">
       <div

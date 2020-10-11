@@ -3,6 +3,7 @@ import { Node } from 'tiptap';
 import setTextAlign from '../commands/textAlign';
 import { PARAGRAPH } from './names';
 import { MIN_INDENT_LEVEL } from '../commands/indentation';
+import { setTextColor } from '../commands/color';
 
 // This assumes that every 36pt maps to one indent level.
 export const INDENT_MARGIN_PT_SIZE = 36;
@@ -49,6 +50,7 @@ const toDOM = (node) => {
     paddingTop,
     paddingBottom,
     id,
+    color,
   } = node.attrs;
   const attrs = {};
 
@@ -79,6 +81,10 @@ const toDOM = (node) => {
     style += `margin-left: ${indentToMarginLeft(indent)}pt`;
   }
 
+  if (color) {
+    style += `color: ${color}`;
+  }
+
   style && (attrs.style = style);
 
   if (id) {
@@ -98,9 +104,7 @@ export const PragraphNodeSchema = {
     id: { default: null },
     indent: { default: null },
     lineSpacing: { default: null },
-    // TODO: Add UI to let user edit / clear padding.
     paddingBottom: { default: null },
-    // TODO: Add UI to let user edit / clear padding.
     paddingTop: { default: null },
   },
   content: 'inline*',
@@ -130,11 +134,13 @@ export class Paragraph extends Node {
   commands() {
     return (attrs) => (state, dispatch) => {
       const { schema, selection } = state;
-      const tr = setTextAlign(
-        state.tr.setSelection(selection),
-        schema,
-        attrs.align
-      );
+      let tr = {};
+      if ('align' in attrs) {
+        tr = setTextAlign(state.tr.setSelection(selection), schema, attrs.align);
+      }
+      if ('color' in  attrs) {
+        tr = setTextColor(state.tr.setSelection(selection), schema, attrs.color);
+      }
       if (tr.docChanged) {
         dispatch && dispatch(tr);
         return true;

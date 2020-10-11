@@ -2,7 +2,7 @@
   <div class="d-inline">
     <b-dropdown
       variant="link"
-      toggle-class="menubar__button text-decoration-none"
+      :toggle-class="`menubar__button text-decoration-none ${toggleClass}`"
       no-caret
       @shown="onMenuShown"
       @hidden="onMenuHidden"
@@ -27,6 +27,10 @@ export default {
       type: Object,
       default: () => ({ top: 0, left: 0 }),
     },
+    'toggleClass': {
+      type: String,
+      default: '',
+    },
   },
   methods: {
     onMenuShown() {
@@ -36,6 +40,9 @@ export default {
     },
     onMenuHidden() {
       this.$emit('hidden');
+    },
+    hide() {
+      this.$refs.menu.hide();
     },
   },
 };
