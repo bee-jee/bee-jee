@@ -305,6 +305,10 @@ $hover-background: darken($primary, 25%);
     &.hovered {
         background-color: rgba(152, 204, 253, 0.4);
     }
+
+    &:last-child {
+        margin-right: 0;
+    }
 }
 
 .table-cell-tooltip {
@@ -332,5 +336,12 @@ $hover-background: darken($primary, 25%);
     &:active {
         background-color: $gray-100;
         border-color: $gray-500;
+    }
+}
+
+.color-button {
+    &:hover {
+        outline: 1px solid $black;
+        outline-offset: 2px;
     }
 }

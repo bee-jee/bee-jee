@@ -25,6 +25,13 @@
 
           <b-dropdown-divider />
 
+          <sub-menu :disabled="!isActive.table()">
+            <template v-slot:label>Fill color...</template>
+            <color-selector @select="commands.tableBackground($event)" />
+          </sub-menu>
+
+          <b-dropdown-divider />
+
           <b-dropdown-item :disabled="!isActive.table()" @click="commands.addColumnBefore">
             <slot name="label">Insert column before</slot>
           </b-dropdown-item>
@@ -244,6 +251,7 @@ import {
 } from '@mdi/js';
 import GeminiScrollbar from 'gemini-scrollbar';
 import { debounce } from 'vue-debounce';
+import { mapGetters } from 'vuex';
 import {
   Paragraph,
   Heading,
@@ -261,7 +269,7 @@ import {
 import GroupButton from './GroupButton';
 import SubMenu from './SubMenu';
 import TableGridSizeEditor from './TableGridSizeEditor';
-import { mapGetters } from 'vuex';
+import ColorSelector from './ColorSelector';
 
 const SHADOW_SCROLL_TOP_THRESHOLD = 200;
 
@@ -276,6 +284,7 @@ export default {
     GroupButton,
     SubMenu,
     TableGridSizeEditor,
+    ColorSelector,
   },
   data() {
     return {

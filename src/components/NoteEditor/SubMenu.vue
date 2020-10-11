@@ -1,5 +1,5 @@
 <template>
-  <b-dropdown-item>
+  <b-dropdown-item :disabled="disabled">
     <slot name="label">label</slot>
     <ul class="sub-dropdown">
       <slot></slot>
@@ -9,10 +9,11 @@
 
 <script>
 export default {
-
+  props: {
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
+  },
 }
 </script>
-
-<style>
-
-</style>

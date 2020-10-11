@@ -1,5 +1,6 @@
 import { Extension, Plugin } from 'tiptap';
 import { mdiBorderColor } from '@mdi/js';
+import { setCellAttr } from 'prosemirror-tables';
 import findActionableCell from './utils/table';
 import store from '../vuex/store';
 
@@ -151,6 +152,15 @@ class TableCellMenu extends Extension {
         view: (view) => new TableCellTooltipView(view),
       }),
     ];
+  }
+
+  commands() {
+    return {
+      tableBackground: (e) => (state, dispatch) => {
+        const setBackgroundColor = setCellAttr('background', e);
+        return setBackgroundColor(state, dispatch);
+      },
+    };
   }
 }
 
