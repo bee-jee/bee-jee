@@ -1,37 +1,80 @@
 <template>
   <div class="editor h-100">
     <editor-menu-bar :editor="editor" v-slot="{ commands, isActive }">
-      <div class="menubar d-flex justify-content-center" v-if="!readOnly">
-        <button
-          class="menubar__button"
-          @click="$parent.handleShowEditShare"
-          title="Share"
-          v-if="isOwner"
-        >
+      <div class="menubar d-flex justify-content-center" v-if="!readOnly" ref="menubar">
+        <button class="menubar__button" @click="$parent.handleShowEditShare" title="Share" v-if="isOwner">
           <i class="fas fa-share-alt"></i>
         </button>
 
-        <button
-          class="menubar__button"
-          :class="{ 'active': isActive.bold() }"
-          @click="commands.bold"
-          title="Bold"
-        >
+        <group-button :position="tableMenuPosition" @hidden="onTableMenuHidden">
+          <template v-slot:button-content>
+            <mt-icon :path="mdiGrid" />
+          </template>
+          <sub-menu ref="tableMenu">
+            <template v-slot:label>Insert table</template>
+            <table-grid-size-editor
+              @select="
+                commands.createTable({
+                  rowsCount: $event.y + 1,
+                  colsCount: $event.x + 1,
+                  withHeaderRow: true,
+                })
+              "
+            />
+          </sub-menu>
+
+          <b-dropdown-divider />
+
+          <sub-menu :disabled="!isActive.table()">
+            <template v-slot:label>Fill color...</template>
+            <color-selector @select="commands.tableBackground($event)" />
+          </sub-menu>
+
+          <b-dropdown-divider />
+
+          <b-dropdown-item :disabled="!isActive.table()" @click="commands.addColumnBefore">
+            <slot name="label">Insert column before</slot>
+          </b-dropdown-item>
+          <b-dropdown-item :disabled="!isActive.table()" @click="commands.addColumnAfter">
+            <slot name="label">Insert column after</slot>
+          </b-dropdown-item>
+          <b-dropdown-item :disabled="!isActive.table()" @click="commands.deleteColumn">
+            <slot name="label">Delete column</slot>
+          </b-dropdown-item>
+
+          <b-dropdown-divider />
+
+          <b-dropdown-item :disabled="!isActive.table()" @click="commands.addRowBefore">
+            <slot name="label">Insert row before</slot>
+          </b-dropdown-item>
+          <b-dropdown-item :disabled="!isActive.table()" @click="commands.addRowAfter">
+            <slot name="label">Insert row after</slot>
+          </b-dropdown-item>
+          <b-dropdown-item :disabled="!isActive.table()" @click="commands.deleteRow">
+            <slot name="label">Delete row</slot>
+          </b-dropdown-item>
+
+          <b-dropdown-divider />
+
+          <b-dropdown-item :disabled="!isActive.table()" @click="commands.toggleCellMerge">
+            <slot name="label">Merge cells</slot>
+          </b-dropdown-item>
+          <b-dropdown-item :disabled="!isActive.table()" @click="commands.deleteTable">
+            <slot name="label">Delete table</slot>
+          </b-dropdown-item>
+        </group-button>
+
+        <button class="menubar__button" :class="{ active: isActive.bold() }" @click="commands.bold" title="Bold">
           <mt-icon :path="mdiFormatBold"></mt-icon>
         </button>
 
-        <button
-          class="menubar__button"
-          :class="{ 'active': isActive.italic() }"
-          @click="commands.italic"
-          title="Italic"
-        >
+        <button class="menubar__button" :class="{ active: isActive.italic() }" @click="commands.italic" title="Italic">
           <mt-icon :path="mdiFormatItalic" />
         </button>
 
         <button
           class="menubar__button"
-          :class="{ 'active': isActive.strike() }"
+          :class="{ active: isActive.strike() }"
           @click="commands.strike"
           title="Strikethrough"
         >
@@ -40,12 +83,22 @@
 
         <button
           class="menubar__button"
-          :class="{ 'active': isActive.underline() }"
+          :class="{ active: isActive.underline() }"
           @click="commands.underline"
           title="Underline"
         >
           <mt-icon :path="mdiFormatUnderline" />
         </button>
+
+        <group-button ref="colorText">
+          <template v-slot:button-content>
+            <mt-icon :path="mdiFormatColorText" />
+            <span class="color-under-bar" :style="{ background: getTextColor() }"></span>
+          </template>
+          <color-selector @select="selectColorText($event, commands)">
+            Default
+          </color-selector>
+        </group-button>
 
         <button
           class="menubar__button"
@@ -56,27 +109,50 @@
           <mt-icon :path="mdiCodeTags" />
         </button>
 
-        <button
-          class="menubar__button"
-          :class="{ 'active': isActive.heading({ level: 1 }) }"
-          @click="commands.heading({ level: 1 })"
-        >H1</button>
+        <group-button toggle-class="button__text">
+          <template v-slot:button-content><strong>Heading</strong></template>
+          <b-dropdown-item :active="isActive.heading({ level: 1 })" @click="commands.heading({ level: 1 })">
+            <slot name="label">Heading 1</slot>
+          </b-dropdown-item>
+          <b-dropdown-item :active="isActive.heading({ level: 2 })" @click="commands.heading({ level: 2 })">
+            <slot name="label">Heading 2</slot>
+          </b-dropdown-item>
+          <b-dropdown-item :active="isActive.heading({ level: 3 })" @click="commands.heading({ level: 3 })">
+            <slot name="label">Heading 3</slot>
+          </b-dropdown-item>
+        </group-button>
+
+        <group-button toggle-class="button__text">
+          <template v-slot:button-content><strong>Align</strong></template>
+          <b-dropdown-item
+            :active="isAlign(isActive, { align: 'left' })"
+            @click="commands.paragraph({ align: 'left' })"
+          >
+            <slot name="label">Left</slot>
+          </b-dropdown-item>
+          <b-dropdown-item
+            :active="isAlign(isActive, { align: 'center' })"
+            @click="commands.paragraph({ align: 'center' })"
+          >
+            <slot name="label">Center</slot>
+          </b-dropdown-item>
+          <b-dropdown-item
+            :active="isAlign(isActive, { align: 'right' })"
+            @click="commands.paragraph({ align: 'right' })"
+          >
+            <slot name="label">Right</slot>
+          </b-dropdown-item>
+          <b-dropdown-item
+            :active="isAlign(isActive, { align: 'justify' })"
+            @click="commands.paragraph({ align: 'justify' })"
+          >
+            <slot name="label">Justify</slot>
+          </b-dropdown-item>
+        </group-button>
 
         <button
           class="menubar__button"
-          :class="{ 'active': isActive.heading({ level: 2 }) }"
-          @click="commands.heading({ level: 2 })"
-        >H2</button>
-
-        <button
-          class="menubar__button"
-          :class="{ 'active': isActive.heading({ level: 3 }) }"
-          @click="commands.heading({ level: 3 })"
-        >H3</button>
-
-        <button
-          class="menubar__button"
-          :class="{ 'active': isActive.bullet_list() }"
+          :class="{ active: isActive.bullet_list() }"
           @click="commands.bullet_list"
           title="Unordered list"
         >
@@ -85,59 +161,19 @@
 
         <button
           class="menubar__button"
-          :class="{ 'active': isActive.ordered_list() }"
+          :class="{ active: isActive.ordered_list() }"
           @click="commands.ordered_list"
           title="Ordered list"
         >
           <mt-icon :path="mdiFormatListNumbered" />
         </button>
 
-        <button
-          class="menubar__button"
-          :class="{ 'active': isActive.blockquote() }"
-          @click="commands.blockquote"
-        >
+        <button class="menubar__button" :class="{ active: isActive.blockquote() }" @click="commands.blockquote">
           <icon name="quote" title="Quote" />
         </button>
 
         <button class="menubar__button" @click="commands.horizontal_rule">
           <icon name="hr" title="Horizontal line" />
-        </button>
-
-        <button
-          class="menubar__button"
-          :class="{ 'active': isAlign(isActive, { align: 'left' }) }"
-          @click="commands.paragraph({ align: 'left' })"
-          title="Align left"
-        >
-          <mt-icon :path="mdiFormatAlignLeft" />
-        </button>
-
-        <button
-          class="menubar__button"
-          :class="{ 'active': isAlign(isActive, { align: 'center' }) }"
-          @click="commands.paragraph({ align: 'center' })"
-          title="Align center"
-        >
-          <mt-icon :path="mdiFormatAlignCenter" />
-        </button>
-
-        <button
-          class="menubar__button"
-          :class="{ 'active': isAlign(isActive, { align: 'right' }) }"
-          @click="commands.paragraph({ align: 'right' })"
-          title="Align right"
-        >
-          <mt-icon :path="mdiFormatAlignRight" />
-        </button>
-
-        <button
-          class="menubar__button"
-          :class="{ 'active': isAlign(isActive, { align: 'justify' }) }"
-          @click="commands.paragraph({ align: 'justify' })"
-          title="Align justify"
-        >
-          <mt-icon :path="mdiFormatAlignJustify" />
         </button>
 
         <button class="menubar__button" @click="commands.undo" title="Undo">
@@ -183,6 +219,10 @@ import {
   TodoList,
   Underline,
   TrailingNode,
+  Table,
+  TableHeader,
+  TableCell,
+  TableRow,
 } from 'tiptap-extensions';
 import {
   mdiFormatBold,
@@ -195,12 +235,15 @@ import {
   mdiFormatAlignCenter,
   mdiFormatAlignRight,
   mdiFormatAlignJustify,
+  mdiFormatColorText,
   mdiUndoVariant,
   mdiRedoVariant,
   mdiCodeTags,
+  mdiGrid,
 } from '@mdi/js';
 import GeminiScrollbar from 'gemini-scrollbar';
 import { debounce } from 'vue-debounce';
+import { mapGetters } from 'vuex';
 import {
   Paragraph,
   Heading,
@@ -213,7 +256,13 @@ import {
   Image,
   BulletList,
   Realtime,
+  TableCellMenu,
 } from '../../tiptap';
+import GroupButton from './GroupButton';
+import SubMenu from './SubMenu';
+import TableGridSizeEditor from './TableGridSizeEditor';
+import ColorSelector from './ColorSelector';
+import { getTextColor } from '../../tiptap/commands/color';
 
 const SHADOW_SCROLL_TOP_THRESHOLD = 200;
 
@@ -225,6 +274,10 @@ export default {
   },
   components: {
     EditorMenuBar,
+    GroupButton,
+    SubMenu,
+    TableGridSizeEditor,
+    ColorSelector,
   },
   data() {
     return {
@@ -240,10 +293,15 @@ export default {
       mdiFormatAlignCenter,
       mdiFormatAlignRight,
       mdiFormatAlignJustify,
+      mdiFormatColorText,
       mdiUndoVariant,
       mdiRedoVariant,
       mdiCodeTags,
+      mdiGrid,
     };
+  },
+  computed: {
+    ...mapGetters(['tableMenuPosition']),
   },
   mounted() {
     const extensions = [
@@ -275,6 +333,13 @@ export default {
         node: 'paragraph',
         notAfter: ['paragraph'],
       }),
+      new Table({
+        resizable: true,
+      }),
+      new TableHeader(),
+      new TableCell(),
+      new TableRow(),
+      new TableCellMenu(),
     ];
     const { note } = this;
     if (note) {
@@ -297,6 +362,14 @@ export default {
       disablePasteRules: true,
     });
     this.editor = editor;
+  },
+  updated() {
+    if (this.$refs.tableMenu) {
+      this.$store.commit('setDropdown', this.$refs.tableMenu.$parent);
+    }
+    if (this.$refs.menubar) {
+      this.$store.commit('setMenubar', this.$refs.menubar);
+    }
   },
   beforeDestroy() {
     this.editor.destroy();
@@ -327,6 +400,20 @@ export default {
         title: this.editedNoteTitle,
       });
     }, 500),
+    onTableMenuHidden() {
+      this.$store.commit('setPosition', { top: 0, left: 0 });
+    },
+    selectColorText(hexColor, commands) {
+      this.$refs.colorText.hide();
+      commands.paragraph({
+        color: hexColor,
+      });
+    },
+    getTextColor() {
+      if (this.editor) {
+        return getTextColor(this.editor.state);
+      }
+    },
   },
   watch: {
     editor: {

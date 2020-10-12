@@ -4,6 +4,7 @@ $gray-100: #f5f5f5;
 $primary-light: $blue-light;
 $link-color: #7ed6f8;
 $dropdown-link-active-color: #000;
+$dropdown-link-disabled-color: #dedede;
 
 @import "~bootstrap/scss/bootstrap.scss";
 @import "~bootstrap-vue/src/index.scss";
