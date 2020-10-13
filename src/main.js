@@ -1,5 +1,4 @@
 import Vue from 'vue';
-import katex from 'katex';
 import './styles/main.scss';
 import store from './vuex/store';
 import router from './router/routes';
@@ -36,7 +35,6 @@ library.add(faTrashAlt, faCog, faPlus, faChevronLeft, faChevronRight, faEdit,
   faArrowsAlt, faTimes, faShareAlt, faChevronDown,
 );
 Vue.config.productionTip = false;
-window.katex = katex;
 
 // This will register bootstrap tags such as <b-modal>
 // to be available to all components
