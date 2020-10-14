@@ -22,20 +22,20 @@
         </div>
         <span class="text-muted" v-if="showChildren && children.length === 0">No pages inside</span>
       </div>
+      <div class="col-auto">
+        <span v-if="sharedNote.isViewed==false" class="badge badge-warning">New</span>
+        <button class="btn-icon btn-secondary" @click="handleShowCreateSubNote()">
+          <i class="fas fa-plus fa-xs"></i>
+        </button>
+        <button
+          class="btn-icon btn-danger"
+          @click="handleClickDeleteNote(note)"
+          v-if="note.author === user._id"
+        >
+          <i class="far fa-trash-alt fa-sm"></i>
+        </button>
+      </div>
     </router-link>
-    <div class="note-explorer-item-actions">
-      <span v-if="sharedNote.isViewed==false" class="badge badge-warning">New</span>
-      <button class="btn-icon btn-secondary" @click="handleShowCreateSubNote()">
-        <i class="fas fa-plus fa-xs"></i>
-      </button>
-      <button
-        class="btn-icon btn-danger"
-        @click="handleClickDeleteNote(note)"
-        v-if="note.author === user._id"
-      >
-        <i class="far fa-trash-alt fa-sm"></i>
-      </button>
-    </div>
     <template v-if="showChildren && children.length">
       <note-explorer-item
         v-for="note in children"
