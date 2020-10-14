@@ -9,6 +9,8 @@ export interface Note {
   content: string | undefined;
   visibility: Visibility,
   sharedUsers: (UserSharedNote & Document)[] | undefined;
+  parent: (Note & Document) | undefined;
+  path: string | undefined;
   created: Date;
   updated: Date;
 }

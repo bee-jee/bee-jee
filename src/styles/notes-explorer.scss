@@ -17,7 +17,6 @@ $pane-height: 26px;
         text-overflow: ellipsis;
     }
     .note-explorer-item {
-        display: block;
         color: $black;
 
         &:hover {
@@ -115,5 +114,27 @@ $pane-height: 26px;
 
     &:hover {
         background-color: $primary-light;
+    }
+}
+
+.note-item-expand {
+    display: inline-block;
+    user-select: none;
+    margin-top: -2px;
+
+    &:hover {
+        background: $gray-100;
+    }
+}
+
+.expander {
+    svg {
+        transition: transform 0.2s;
+    }
+
+    &.collapsed {
+        svg {
+            transform: rotate(-90deg);
+        }
     }
 }

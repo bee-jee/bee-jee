@@ -15,7 +15,7 @@ import {
   faTrashAlt, faEdit,
 } from '@fortawesome/free-regular-svg-icons';
 import {
-  faCog, faPlus, faChevronLeft, faChevronRight,
+  faCog, faPlus, faChevronLeft,
   faArrowsAlt, faTimes, faShareAlt,
   faChevronDown,
 } from '@fortawesome/free-solid-svg-icons';
@@ -31,7 +31,7 @@ import MtIcon from './components/utilities/MtIcon';
 
 window.isIE11 = !!window.MSInputMethodContext && !!document.documentMode;
 
-library.add(faTrashAlt, faCog, faPlus, faChevronLeft, faChevronRight, faEdit,
+library.add(faTrashAlt, faCog, faPlus, faChevronLeft, faEdit,
   faArrowsAlt, faTimes, faShareAlt, faChevronDown,
 );
 Vue.config.productionTip = false;

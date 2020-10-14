@@ -13,6 +13,15 @@ const noteSchema = new Schema({
     type: String,
     default: Visibility.Private,
   },
+  parent: {
+    ref: 'Note',
+    type: Schema.Types.ObjectId,
+    default: undefined,
+  },
+  path: {
+    type: String,
+    default: undefined,
+  },
   created: Date,
   updated: {
     type: Date,
@@ -28,6 +37,12 @@ noteSchema.virtual('sharedUsers', {
   ref: 'UserSharedNote',
   localField: '_id',
   foreignField: 'note',
+});
+
+noteSchema.virtual('children', {
+  red: 'Note',
+  localField: 'parent',
+  foreignField: '_id',
 });
 
 const NoteModel = model<Note & Document>('Note', noteSchema);

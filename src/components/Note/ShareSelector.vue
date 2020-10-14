@@ -21,12 +21,12 @@
       type="text"
       class="form-control"
       readonly
-      v-if="visibility === 'anyone_with_link' && note._id"
+      v-if="(visibility === 'anyone_with_link' || visibility === 'users') && note._id"
       :value="getViewSharedUrl(note)"
       ref="link"
       @click="selectLink"
     />
-    <small v-if="visibility === 'anyone_with_link' && !note._id" class="text-info">
+    <small v-if="(visibility === 'anyone_with_link' || visibility === 'users') && !note._id" class="text-info">
       The link will be available after the note is created
     </small>
   </div>

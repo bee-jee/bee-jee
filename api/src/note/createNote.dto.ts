@@ -24,6 +24,10 @@ class CreateNoteDto {
     username: string;
     permission: Permission;
   }[];
+
+  @IsString()
+  @IsOptional()
+  public parentNoteId: string | undefined;
 }
 
 export default CreateNoteDto;

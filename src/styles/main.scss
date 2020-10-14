@@ -42,5 +42,8 @@ $dropdown-link-disabled-color: #dedede;
         &.btn-danger {
             color: $red !important;
         }
+        &.btn-secondary {
+            color: $secondary !important;
+        }
     }
 }
