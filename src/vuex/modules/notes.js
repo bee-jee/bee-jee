@@ -50,6 +50,7 @@ export const getters = {
   showCreateNoteModal: state => state.showCreateNoteModal,
   newNoteParent: state => state.newNoteParent,
   allMyNotesTree: (state, getters) => buildNoteTree(getters.allMyNotes),
+  allSharedNotesTree: (state, getters) => buildNoteTree(getters.allSharedNotes),
 };
 
 export const actions = {
@@ -198,7 +199,7 @@ function buildNoteTree(allNotes) {
     note.children = [];
   });
   sortedNotes.forEach((note) => {
-    if (note.parent) {
+    if (note.parent && note.parent in map) {
       map[note.parent].children.push(note);
     } else {
       roots.push(note);

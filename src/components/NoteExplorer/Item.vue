@@ -24,7 +24,11 @@
       </div>
       <div class="col-auto">
         <span v-if="sharedNote.isViewed==false" class="badge badge-warning">New</span>
-        <button class="btn-icon btn-secondary" @click="handleShowCreateSubNote()">
+        <button
+          class="btn-icon btn-secondary"
+          @click="handleShowCreateSubNote()"
+          v-if="note.author === user._id"
+        >
           <i class="fas fa-plus fa-xs"></i>
         </button>
         <button
@@ -75,7 +79,7 @@ export default {
       return this.$store.getters.sharedById(this.note._id);
     },
     children() {
-      return this.note.children;
+      return this.note.children || [];
     },
   },
   methods: {
@@ -97,10 +101,13 @@ export default {
     },
   },
   watch: {
-    children(children) {
-      if (children.length === 0) {
-        this.showChildren = false;
-      }
+    children: {
+      immediate: true,
+      handler(children) {
+        if (children.length === 0) {
+          this.showChildren = false;
+        }
+      },
     },
   },
 };
