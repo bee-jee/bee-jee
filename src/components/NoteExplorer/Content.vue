@@ -33,9 +33,9 @@
       @setExpanded="(value) => setExpanded('sharedNotesExpanded', value)"
     >
       <div v-if="isLoadingSharedNotes" class="px-3">Loading . . .</div>
-      <div v-if="allSharedNotes.length === 0" class="px-3">You don't have any shared notes</div>
+      <div v-if="allSharedNotesTree.length === 0" class="px-3">You don't have any shared notes</div>
       <note-explorer-item
-        v-for="note in allSharedNotes"
+        v-for="note in allSharedNotesTree"
         :key="`shared-note-${note._id}`"
         :note="note"
         :urlBuilder="(note) => `/view-shared/${note._id}`"
@@ -151,12 +151,11 @@ export default {
       'isLoading',
       'isCreatingNote',
       'isLoadingSharedNotes',
-      'allMyNotes',
-      'allSharedNotes',
       'selectedNote',
       'showCreateNoteModal',
       'newNoteParent',
       'allMyNotesTree',
+      'allSharedNotesTree',
     ]),
   },
   methods: {
