@@ -46,6 +46,7 @@
         :id="`my-note-${note._id}`"
         :key="`note-${note._id}`"
         :note="note"
+        :urlBuilder="urlBuilder"
         class="ml-2"
       />
     </template>
