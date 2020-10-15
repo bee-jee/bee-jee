@@ -8,11 +8,11 @@
     >
       <div v-if="isLoading" class="px-3">Loading . . .</div>
       <div
-        v-else-if="allMyNotes.length === 0"
+        v-else-if="allMyNotesTree.length === 0"
         class="px-3"
       >No notes, you can create one by click "+" button</div>
       <note-explorer-item
-        v-for="note in allMyNotes"
+        v-for="note in allMyNotesTree"
         :id="`my-note-${note._id}`"
         :key="`note-${note._id}`"
         :note="note"
@@ -154,6 +154,9 @@ export default {
       'allMyNotes',
       'allSharedNotes',
       'selectedNote',
+      'showCreateNoteModal',
+      'newNoteParent',
+      'allMyNotesTree',
     ]),
   },
   methods: {
@@ -162,6 +165,8 @@ export default {
       this.newNoteTitle = '';
       this.permission = {};
       this.newNoteErrors.reset();
+      this.$store.commit('setNewNoteParent', {});
+      this.$store.commit('setShowCreateNoteModal', false);
     },
     handleCreateNote() {
       this.newNoteErrors.reset();
@@ -174,6 +179,7 @@ export default {
         .dispatch('createNote', {
           title: this.newNoteTitle,
           permission: this.permission,
+          parentNoteId: this.newNoteParent._id,
         })
         .then(() => {
           self.handleCloseCreateNote();
@@ -188,7 +194,7 @@ export default {
       this[name] = value;
     },
     handleShowCreateNote() {
-      this.$modal.show('createNote');
+      this.$store.commit('setShowCreateNoteModal', true);
     },
   },
   mounted() {
@@ -206,6 +212,13 @@ export default {
         this.initMyNotesScroll = false;
       }
     }
+  },
+  watch: {
+    showCreateNoteModal(show) {
+      if (show) {
+        this.$modal.show('createNote');
+      }
+    },
   },
 };
 </script>

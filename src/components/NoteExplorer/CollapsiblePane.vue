@@ -5,11 +5,8 @@
     :class="{ collapsed: !expanded, expanded: expanded }"
   >
     <button class="pane-header font-weight-bold" @click="toggleExpanded">
-      <span v-if="expanded" key="expanded" class="chevron">
+      <span class="chevron mx-1 expander" :class="{ collapsed: !expanded }">
         <i class="fas fa-sm fa-chevron-down"></i>
-      </span>
-      <span v-else key="not-expanded" class="chevron">
-        <i class="fas fa-sm fa-chevron-right"></i>
       </span>
       <span>{{title}}</span>
       <slot name="actions"></slot>

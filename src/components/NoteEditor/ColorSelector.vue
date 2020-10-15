@@ -9,15 +9,15 @@
         class="grid-cell color-button"
         v-for="(color, j) in rows"
         :key="j"
-        :style="{ backgroundColor: color.hex() }"
-        @click="select(color.hex())"
+        :style="{ backgroundColor: color.toString() }"
+        @click="select(color.toString())"
       ></div>
     </div>
   </div>
 </template>
 
 <script>
-import Color from 'color';
+import tinycolor from 'tinycolor2';
 
 export default {
   computed: {
@@ -36,7 +36,7 @@ export default {
       const interval = colorCode / count;
       const colors = [];
       while (colorCode > 0) {
-        const color = Color({ r: colorCode, g: colorCode, b: colorCode });
+        const color = tinycolor({ r: colorCode, g: colorCode, b: colorCode });
         colorCode -= interval;
         colorCode = Math.floor(colorCode);
         colors.unshift(color);
@@ -53,7 +53,7 @@ export default {
 
       while (hue < 360) {
         const hsl = `hsl(${hue},${sat}%,${light}%)`;
-        const color = Color(hsl);
+        const color = tinycolor(hsl);
         colors.unshift(color);
         hue += interval;
       }

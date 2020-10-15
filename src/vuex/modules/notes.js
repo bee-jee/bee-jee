@@ -24,7 +24,9 @@ export const state = {
   isLoadingSelectedNote: false,
   isUpdatingNote: false,
   isSyncing: false,
-  numOfAllUnviewedNotes: ''
+  numOfAllUnviewedNotes: '',
+  showCreateNoteModal: false,
+  newNoteParent: {},
 };
 
 export const getters = {
@@ -45,6 +47,9 @@ export const getters = {
   allSharedNotes: (state, getters) => state.allIds
     .filter((id) => id in state.sharedByIds)
     .map(id => getters.noteById(id)),
+  showCreateNoteModal: state => state.showCreateNoteModal,
+  newNoteParent: state => state.newNoteParent,
+  allMyNotesTree: (state, getters) => buildNoteTree(getters.allMyNotes),
 };
 
 export const actions = {
@@ -80,12 +85,13 @@ export const actions = {
       console.error(err);
     }
   },
-  async createNote({ commit }, { title, permission }) {
+  async createNote({ commit }, { title, permission, parentNoteId }) {
     commit('setIsCreatingNote', true);
     try {
       const resp = await Vue.prototype.$http.post('/note/create', {
         title,
         ...permission,
+        parentNoteId,
       });
       commit('appendNote', resp.data);
     } finally {
@@ -177,6 +183,30 @@ export const actions = {
   },
 };
 
+function getNotePath(note) {
+  return note.path || '/';
+}
+
+function buildNoteTree(allNotes) {
+  const roots = [];
+  const map = {};
+  const sortedNotes = allNotes
+    .sort((a, b) => getNotePath(a).split('/').length - getNotePath(b).split('/'))
+    .map((note) => ({ ...note, children: [] }));
+  sortedNotes.forEach((note) => {
+    map[note._id] = note;
+    note.children = [];
+  });
+  sortedNotes.forEach((note) => {
+    if (note.parent) {
+      map[note.parent].children.push(note);
+    } else {
+      roots.push(note);
+    }
+  });
+  return roots;
+}
+
 export const mutations = {
   setIsLoading(state, value) {
     state.isLoading = value;
@@ -198,12 +228,7 @@ export const mutations = {
     const byIds = {};
     notes.forEach((note) => {
       allIds.push(note._id);
-      // The reason we want to Object.freeze the notes is because
-      // the note.content is a doc yjs object, and this object can
-      // have very high depth, which will cause maximum call stack
-      // if Vue makes it reactive. The downside of this is that we
-      // have to handle reactivity by ourselves.
-      byIds[note._id] = Object.freeze(note);
+      byIds[note._id] = note;
     });
     state.allIds = state.allIds.concat(allIds);
     state.byIds = {
@@ -214,12 +239,7 @@ export const mutations = {
   // appendNote will add the new note to the current state
   appendNote(state, newNote) {
     state.allIds.push(newNote._id);
-    // The reason we want to Object.freeze the notes is because
-    // the note.content is a doc yjs object, and this object can
-    // have very high depth, which will cause maximum call stack
-    // if Vue makes it reactive. The downside of this is that we
-    // have to handle reactivity by ourselves.
-    state.byIds[newNote._id] = Object.freeze(newNote);
+    state.byIds[newNote._id] = newNote;
   },
   // setSelectedNote replaces the current selectedNote with the new one
   setSelectedNote(state, note) {
@@ -260,20 +280,17 @@ export const mutations = {
     const { byIds } = state;
     // Retrieve the current note from the state
     const note = byIds[_id];
-    // Set its title to the new title
-    // Since the note object is Object.freezed therefore we have to create
-    // a new object and freeze it.
     state.byIds = {
       ...state.byIds,
-      [_id]: Object.freeze({
+      [_id]: {
         ...note,
         title,
-      }),
+      },
     };
-    state.selectedNote = Object.freeze({
+    state.selectedNote = {
       ...state.selectedNote,
       title,
-    });
+    };
     if (_id === state.selectedNote._id) {
       state.selectedNote = {
         ...state.selectedNote,
@@ -284,10 +301,10 @@ export const mutations = {
   setNoteContent(state, { _id, content }) {
     const { byIds } = state;
     const note = byIds[_id];
-    Vue.set(state.byIds, _id, Object.freeze({
+    Vue.set(state.byIds, _id, {
       ...note,
       content,
-    }));
+    });
   },
   incrementSelectedNoteContentVersion(state) {
     state.selectedNote.contentVersion++;
@@ -295,11 +312,11 @@ export const mutations = {
   setNotePermission(state, { _id, visibility, sharedUsers }) {
     const { byIds } = state;
     const note = byIds[_id];
-    Vue.set(state.byIds, _id, Object.freeze({
+    Vue.set(state.byIds, _id, {
       ...note,
       visibility,
       sharedUsers,
-    }));
+    });
   },
   setIsUpdatingNote(state, value) {
     state.isUpdatingNote = value;
@@ -320,8 +337,8 @@ export const mutations = {
     sharedNotes.forEach((sharedNote) => {
       const note = sharedNote.note;
       allSharedIds.push(note._id);
-      byIds[note._id] = Object.freeze(note);
-      sharedByIds[note._id] = Object.freeze(sharedNote);
+      byIds[note._id] = note;
+      sharedByIds[note._id] = sharedNote;
     });
     state.allIds = state.allIds.concat(allSharedIds);
     state.byIds = {
@@ -332,7 +349,13 @@ export const mutations = {
   },
   updateSharedNote(state, sharedNote) {
     const { note } = sharedNote;
-    state.sharedByIds[note._id] = Object.freeze(sharedNote);
+    state.sharedByIds[note._id] = sharedNote;
+  },
+  setShowCreateNoteModal(state, value) {
+    state.showCreateNoteModal = value;
+  },
+  setNewNoteParent(state, parent) {
+    state.newNoteParent = parent;
   },
 };
 

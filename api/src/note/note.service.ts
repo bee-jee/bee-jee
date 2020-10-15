@@ -33,8 +33,25 @@ export class NoteContentService {
 
   public async createNote({
     title, visibility, sharedUsers,
+    parentNoteId,
   }: CreateNoteDto, author: User & Document) {
     const userWithPermissions = await this.sharedUsersRequestToWithPermission(sharedUsers);
+    const pathIds: string[] = [];
+    let parent = parentNoteId;
+    if (parentNoteId) {
+      const parentNote = await NoteModel.findById(parentNoteId);
+      if (parentNote) {
+        pathIds.concat((parentNote.path || '/')
+          .split('/')
+          .filter((value) => !!value));
+        parent = parentNote._id.toString();
+        if (parent) {
+          pathIds.push(parent);
+        }
+      } else {
+        parent = undefined;
+      }
+    }
     const createdNote = new NoteModel({
       title,
       visibility,
@@ -42,6 +59,8 @@ export class NoteContentService {
       author: author._id,
       created: Date.now(),
       updated: Date.now(),
+      parent,
+      path: `/${pathIds.join('/')}`,
     });
     const savedNote = await createdNote.save();
     await Promise.all(userWithPermissions.map(async (user) => {

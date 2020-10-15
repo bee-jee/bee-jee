@@ -56,6 +56,8 @@ describe('Note visibility', () => {
       updated: new Date(),
       content: '',
       sharedUsers: [],
+      parent: undefined,
+      path: '/',
     });
 
     await (middleware as RequestHandler)({
