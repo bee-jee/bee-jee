@@ -203,15 +203,8 @@ class NoteController implements Controller, WsController {
       _id: id,
       author: request.user._id,
     }, data, { new: true });
-    await this.UserSharedNoteModel.deleteMany({
-      note: id,
-    });
     if (userWithPermissions !== undefined) {
-      await this.UserSharedNoteModel.insertMany(userWithPermissions.map((user) => ({
-        note: id,
-        user: typeof user.user === 'string' ? user.user : user.user._id,
-        permission: user.permission,
-      })));
+      await this.noteService.syncSharedUserSharedNotes(id, userWithPermissions);
     }
     if (note !== null) {
       response.send(note);

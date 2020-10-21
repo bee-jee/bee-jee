@@ -118,7 +118,14 @@ $pane-height: 26px;
     margin-top: -2px;
 
     &:hover {
-        background: $gray-100;
+        background: $light;
+    }
+
+    svg {
+        display: inline-block;
+        font-size: 1.5rem;
+        width: 1.5rem;
+        margin-top: -3px;
     }
 }
 
