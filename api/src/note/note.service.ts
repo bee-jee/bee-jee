@@ -4,7 +4,7 @@ import WebSocket from 'ws';
 import * as Y from 'yjs';
 import * as path from 'path';
 import CreateNoteDto from './createNote.dto';
-import { Permission, UserWithPermission } from '../share/share.interface';
+import { Permission, UserSharedNote, UserWithPermission } from '../share/share.interface';
 import NoteModel from './note.model';
 import { User } from '../user/user.interface';
 import UserSharedNoteModel from '../share/share.model';
@@ -14,6 +14,7 @@ import { ROOT_DIR } from '../app';
 import ConfigManager from '../interfaces/config.interface';
 import { Note, WSSharedNote } from './note.interface';
 import broadcast from '../utils/ws';
+import { arrayDiff } from '../utils/array';
 
 export interface SharedUsersRequest {
   username: string;
@@ -90,6 +91,35 @@ export class NoteContentService {
         }
       });
     return userWithPermissions;
+  }
+
+  public async syncSharedUserSharedNotes(id: string, newUserWithPermissions: UserWithPermission[]) {
+    const userSharedNotes = await UserSharedNoteModel.find({
+      note: id,
+    });
+    const newUserSharedNotes: UserSharedNote[] = newUserWithPermissions
+      .map(({ user, permission }) => ({
+        note: id,
+        user: typeof user === 'string' ? user : user._id.toString(),
+        permission,
+        isViewed: false,
+      }));
+    const fn = (value: UserSharedNote) => {
+      if (typeof value.user === 'string') {
+        return value.user;
+      }
+      return value.user._id.toString();
+    };
+    const toBeAdded = arrayDiff<UserSharedNote>(newUserSharedNotes, userSharedNotes, fn);
+    const toBeDeleted = arrayDiff<UserSharedNote>(
+      userSharedNotes, newUserSharedNotes, fn,
+    ) as (UserSharedNote & Document)[];
+    await Promise.all([
+      UserSharedNoteModel.insertMany(toBeAdded),
+      Promise.all(toBeDeleted.map((value) => UserSharedNoteModel.deleteOne({
+        _id: value._id,
+      }))),
+    ]);
   }
 
   public async toSharedNote(note: Note & Document): Promise<WSSharedNote> {
