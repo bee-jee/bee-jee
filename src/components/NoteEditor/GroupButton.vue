@@ -34,15 +34,20 @@ export default {
   },
   methods: {
     onMenuShown() {
-      const menu = this.$refs.menu.$refs.menu;
-      menu.style.top = `${this.position.top}px`;
-      menu.style.left = `${this.position.left}px`;
+      this.$emit('shown');
     },
     onMenuHidden() {
       this.$emit('hidden');
     },
     hide() {
       this.$refs.menu.hide();
+    },
+  },
+  watch: {
+    position() {
+      const menu = this.$refs.menu.$refs.menu;
+      menu.style.top = `${this.position.top}px`;
+      menu.style.left = `${this.position.left}px`;
     },
   },
 };

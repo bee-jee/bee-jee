@@ -59,10 +59,24 @@ class TableCellTooltipView {
     this.popUp.classList.add('table-cell-tooltip');
     this.popUp.style.position = 'absolute';
     this.popUp.appendChild(createIcon(mdiBorderColor));
-    this.popUp.addEventListener('click', this.openTableMenu);
+    this.popUp.addEventListener('click', this.openTableMenu(view));
     view.dom.parentNode.appendChild(this.popUp);
 
     this.dropdown = store.getters.dropdown;
+    this.setPos = {};
+    if (this.dropdown) {
+      this.dropdown.$on('shown', () => {
+        let { top, left, parentHeight } = this.setPos;
+        if (top && left && parentHeight) {
+          const diff = (top + this.dropdown.$refs.menu.clientHeight) - parentHeight;
+          if (diff > 0) {
+            top -= diff + 50;
+          }
+          store.commit('setPosition', { top, left });
+          this.setPos = {};
+        }
+      });
+    }
     this.menubar = store.getters.menubar;
 
     this.update(view, null);
@@ -127,9 +141,10 @@ class TableCellTooltipView {
     this.popUp.style.top = `${top + 3}px`;
   };
 
-  openTableMenu = () => {
+  openTableMenu = (view) => () => {
     this.dropdown.show();
-    const top = this.popUp.offsetTop;
+    const scrollDom = view.dom.parentNode.parentNode;
+    const top = this.popUp.offsetTop - scrollDom.scrollTop;
     let left = this.popUp.offsetLeft + this.popUp.offsetWidth + 3;
     const toggle = this.dropdown.$refs.toggle;
     let parent = toggle.offsetParent;
@@ -137,7 +152,7 @@ class TableCellTooltipView {
       left -= parent.offsetLeft;
       parent = parent.offsetParent;
     }
-    store.commit('setPosition', { top, left });
+    this.setPos = { top, left, parentHeight: scrollDom.clientHeight };
   };
 }
 
