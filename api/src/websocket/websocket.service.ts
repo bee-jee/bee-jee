@@ -32,7 +32,7 @@ class WebSocketService {
     return this.noteWebsockets.get(id) || new Set<WebSocketWithBeeJee>();
   }
 
-  public removeWebSocketInNote(id: string, ws: WebSocket) {
+  public removeWebSocketInNote(id: string, ws: WebSocketWithBeeJee) {
     const webSockets = this.getWebSocketsByNoteId(id);
     webSockets.delete(ws);
     this.noteWebsockets.set(id, webSockets);

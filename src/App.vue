@@ -17,10 +17,11 @@
 
 <script>
 import { mapGetters } from 'vuex';
+import Axios from 'axios';
 
 export default {
   created() {
-    this.$http.interceptors.response.use(undefined, function (err) {
+    Axios.interceptors.response.use(undefined, function (err) {
       if (err.status === 401) {
         this.$router.push('/login');
       }

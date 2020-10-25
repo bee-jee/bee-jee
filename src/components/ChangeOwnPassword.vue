@@ -71,6 +71,7 @@
 
 <script>
 import ValidationErrors from '../helpers/validationErrors';
+import Axios from 'axios';
 
 export default {
   data() {
@@ -85,7 +86,7 @@ export default {
   methods: {
     changePassword() {
       this.formErrors.reset();
-      this.$http.post('/user/changeOwnPassword', {
+      Axios.post('/user/changeOwnPassword', {
         currentPassword: this.currentPassword,
         newPassword: this.newPassword,
         newPasswordConfirm: this.newPasswordConfirm,

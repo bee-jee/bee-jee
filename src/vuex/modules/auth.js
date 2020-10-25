@@ -1,6 +1,6 @@
-import Vue from 'vue';
 import Cookie from 'js-cookie';
-import WS from '../../helpers/ws';
+import Axios from 'axios';
+import WS, { connectToWs } from '../../helpers/ws';
 import { Actions } from '../../../common/collab';
 
 const env = {
@@ -32,7 +32,7 @@ const actions = {
   async login({ commit }, { username, password }) {
     commit('setIsLoggingIn', true);
     try {
-      const resp = await Vue.prototype.$http.post(`/auth/login`, {
+      const resp = await Axios.post(`/auth/login`, {
         username,
         password,
       });
@@ -55,14 +55,14 @@ const actions = {
     }
     commit('setLogoutSource', source);
     try {
-      await Vue.prototype.$http.post('/auth/logout');
+      await Axios.post('/auth/logout');
     } catch (err) {
       console.error(err);
     }
     commit('setUser', {});
     commit('setToken', '');
     commit('setRefreshToken', '');
-    delete Vue.prototype.$http.defaults.headers.common['Authorization'];
+    delete Axios.defaults.headers.common['Authorization'];
     delete WS.defaults['Authorization'];
   },
   async checkLoggedIn({ commit, getters, dispatch }) {
@@ -79,7 +79,7 @@ const actions = {
     const tryRefreshToken = async () => {
       if (getters.refreshToken) {
         try {
-          const resp = await Vue.prototype.$http.post('/auth/refreshToken', {
+          const resp = await Axios.post('/auth/refreshToken', {
             refreshToken: getters.refreshToken,
           });
           commit('setToken', resp.data.accessToken);
@@ -93,7 +93,7 @@ const actions = {
       await dispatch('logout');
     };
     try {
-      const resp = await Vue.prototype.$http.get(`/auth/user`);
+      const resp = await Axios.get(`/auth/user`);
       await finaliseUser(resp.data);
     } catch (err) {
       await tryRefreshToken();
@@ -114,11 +114,14 @@ const cookieOptions = {
 const mutations = {
   setUser(state, user) {
     state.user = user;
+    if (user._id) {
+      connectToWs(state.token);
+    }
   },
   setToken(state, token) {
     state.token = token;
     Cookie.set('token', token, cookieOptions);
-    Vue.prototype.$http.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     WS.defaults['Authorization'] = token;
   },
   setRefreshToken(state, token) {

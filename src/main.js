@@ -24,7 +24,7 @@ import VueNativeSock from 'vue-native-websocket';
 import Axios from 'axios';
 import { apiUrl } from './helpers/url';
 import './helpers/ws';
-import WS from './helpers/ws';
+import { initialiseWsFromVueInstance } from './helpers/ws';
 import GeminiScrollbar from './components/utilities/GeminiScrollbar';
 import Icon from './components/utilities/Icon';
 import MtIcon from './components/utilities/MtIcon';
@@ -51,6 +51,7 @@ Vue.use(VueNativeSock, process.env.VUE_APP_WS_URL, {
   format: 'JSON',
   reconnection: true,
   reconnectionDelay: 5000,
+  connectManually: true,
   passToStoreHandler: function (eventName, event, next) {
     if (eventName === 'SOCKET_onopen') {
       store.dispatch('SOCKET_ONOPEN', event);
@@ -61,15 +62,15 @@ Vue.use(VueNativeSock, process.env.VUE_APP_WS_URL, {
 });
 Vue.use(VModal);
 
-Vue.prototype.$http = Axios;
-Vue.prototype.$http.defaults.baseURL = apiUrl('/');
-Vue.prototype.$http.defaults.headers.common['Content-Type'] = 'application/json';
-Vue.prototype.$http.defaults.headers.common['Accept'] = 'application/json';
-Vue.prototype.$http.defaults.headers.common['Authorization'] = `Bearer ${store.getters.token}`;
-WS.defaults['Authorization'] = store.getters.token;
+Axios.defaults.baseURL = apiUrl('/');
+Axios.defaults.headers.common['Content-Type'] = 'application/json';
+Axios.defaults.headers.common['Accept'] = 'application/json';
+Axios.defaults.headers.common['Authorization'] = `Bearer ${store.getters.token}`;
 
-new Vue({
+const app = new Vue({
   render: (h) => h(App),
   store,
   router,
 }).$mount('#app');
+
+initialiseWsFromVueInstance(app);

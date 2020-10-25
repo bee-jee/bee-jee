@@ -45,6 +45,7 @@
 </template>
 
 <script>
+import Axios from 'axios';
 import ValidationErrors from '../../helpers/validationErrors';
 
 export default {
@@ -61,7 +62,7 @@ export default {
     this.id = this.$route.params.id || '';
     if (this.id) {
       this.$store.commit('setGlobalIsLoading', true);
-      this.$http.get(`/user/${this.id}`)
+      Axios.get(`/user/${this.id}`)
         .then((resp) => {
           this.user = resp.data;
         })
@@ -75,7 +76,7 @@ export default {
   },
   methods: {
     savePassword() {
-      this.$http.patch(`/user/${this.id}/changePassword`, {
+      Axios.patch(`/user/${this.id}/changePassword`, {
         newPassword: this.newPassword,
         newPasswordConfirm: this.newPasswordConfirm,
       })

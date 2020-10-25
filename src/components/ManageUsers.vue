@@ -50,6 +50,7 @@
 </template>
 
 <script>
+import Axios from 'axios';
 import { mapGetters } from 'vuex';
 import Pagination from './utilities/Pagination';
 
@@ -76,7 +77,7 @@ export default {
   methods: {
     handleDelete(id) {
       if (this.toDeleteId === id) {
-        this.$http.delete(`/user/${id}`)
+        Axios.delete(`/user/${id}`)
           .then(() => {
             this.$store.dispatch('fetchUsers', this.manageUserCurrentPage);
           })

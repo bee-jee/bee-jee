@@ -5,9 +5,9 @@ import cors from 'cors';
 import WebSocket from 'ws';
 import http from 'http';
 import * as path from 'path';
-import { Controller, isWsController, WsContext } from './interfaces/controller.interface';
+import { container } from 'tsyringe';
+import { Controller } from './interfaces/controller.interface';
 import errorMiddleware from './middleware/error.middleware';
-import { WebSocketWithBeeJee } from './websocket/websocket.interface';
 import ConfigService from './config/config.service';
 
 export const ROOT_DIR = path.resolve(__dirname, '..', '..');
@@ -22,6 +22,11 @@ class App {
   constructor(public configService: ConfigService, public controllers: Controller[]) {
     this.app = express();
     this.server = http.createServer(this.app);
+
+    container.register<express.Application>('app', { useValue: this.app });
+    container.register<http.Server>('server', { useValue: this.server });
+    container.register<Controller[]>('controllers', { useValue: controllers });
+
     this.boot(controllers);
   }
 
@@ -49,7 +54,6 @@ class App {
     this.initialiseMiddlewares();
     this.initialiseControllers(controllers);
     this.initialiseErrorHandler();
-    this.initialiseWebsocketServer();
   }
 
   private initialiseMiddlewares() {
@@ -71,66 +75,6 @@ class App {
 
   private initialiseErrorHandler() {
     this.app.use(errorMiddleware);
-  }
-
-  private initialiseWebsocketServer() {
-    const wss = new WebSocket.Server({
-      server: this.server,
-      path: '/ws',
-    });
-
-    wss.on('connection', (ws: WebSocketWithBeeJee) => {
-      ws.isAlive = true;
-
-      const wsContext: WsContext = {
-        wss: this.wss,
-        ws,
-      };
-      this.controllers.forEach((controller) => {
-        if (isWsController(controller)) {
-          controller.subscribeToWs(wsContext);
-        }
-      });
-
-      ws.on('pong', function heartbeat(this: WebSocketWithBeeJee) {
-        this.isAlive = true;
-      });
-
-      ws.on('message', (data: WebSocket.Data) => {
-        if (typeof data === 'string') {
-          try {
-            const event = JSON.parse(data);
-            if (typeof event.action !== 'string') {
-              console.log('Invalid data received');
-              return;
-            }
-            ws.emit(event.action, event.payload);
-          } catch (err) {
-            console.log('Not an event', err);
-          }
-        } else {
-          console.log(`Unknown data type ${typeof data}`);
-        }
-      });
-    });
-
-    const interval = setInterval(() => {
-      wss.clients.forEach((ws: WebSocketWithBeeJee): void => {
-        if (ws.isAlive === false) {
-          ws.terminate();
-          return;
-        }
-
-        ws.isAlive = false;
-        ws.ping(() => { });
-      });
-    }, 30000);
-
-    wss.on('close', () => {
-      clearInterval(interval);
-    });
-
-    this.wss = wss;
   }
 }
 

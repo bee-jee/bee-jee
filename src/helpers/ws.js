@@ -31,6 +31,16 @@ const options = {
   defaults: {},
 };
 
+let connect = null;
+
+export function initialiseWsFromVueInstance(vm) {
+  connect = vm.$connect.bind(vm);
+}
+
+export function connectToWs(token) {
+  connect(`${process.env.VUE_APP_WS_URL}?access_token=${token}`);
+}
+
 export function setWs(ws) {
   instance.ws = ws;
   instance.onOpen();

@@ -10,9 +10,8 @@ import CreateNoteDto from './createNote.dto';
 import NoteNotFoundException from '../exceptions/NoteNotFound';
 import InvalidObjectIdException from '../exceptions/InvalidObjectIdException';
 import { stringToArray, Actions } from '../../../common/collab';
-import { authMiddleware, authWsMiddleware } from '../middleware/auth.middleware';
+import { authMiddleware } from '../middleware/auth.middleware';
 import RequestWithUser from '../interfaces/requestWithUser.interface';
-import { MiddlewareData } from '../websocket/websocket.interface';
 import UserSharedNoteModel from '../share/share.model';
 import EditNoteDto from './editNote.dto';
 import visiMiddleware, { getUserPermission } from '../middleware/visibility.middleware';
@@ -36,33 +35,25 @@ class NoteController implements Controller, WsController {
   public boot() {}
 
   public subscribeToWs({ ws }: WsContext): void {
+    const { user } = ws;
+
     ws.on(Actions.CONTENT_UPDATED, async (payload) => {
-      authWsMiddleware(ws, payload, async ({ user }: MiddlewareData) => {
-        if (!user) {
+      const { id, mergeChanges } = payload;
+      const sharedNote = this.noteService.getWSSharedNote(id);
+      if (sharedNote) {
+        const [havePermission, permission] = await getUserPermission(user, sharedNote.note);
+        if (!havePermission || permission !== Permission.Write) {
           return;
         }
-        const { id, mergeChanges } = payload;
-        const sharedNote = this.noteService.getWSSharedNote(id);
-        if (sharedNote) {
-          const [havePermission, permission] = await getUserPermission(user, sharedNote.note);
-          if (!havePermission || permission !== Permission.Write) {
-            return;
-          }
-          this.noteService.applyChanges(ws, sharedNote, stringToArray(mergeChanges));
-        }
-      });
+        this.noteService.applyChanges(ws, sharedNote, stringToArray(mergeChanges));
+      }
     });
 
     ws.on(Actions.ENTER_NOTE, async (payload: any) => {
-      authWsMiddleware(ws, payload, async (user: MiddlewareData) => {
-        if (!user) {
-          return;
-        }
-        const sharedNote = await this.noteService.getOrCreateWSSharedNote(payload._id);
-        if (sharedNote) {
-          this.noteService.sendSyncAll(ws, sharedNote);
-        }
-      });
+      const sharedNote = await this.noteService.getOrCreateWSSharedNote(payload._id);
+      if (sharedNote) {
+        this.noteService.sendSyncAll(ws, sharedNote);
+      }
     });
 
     ws.on(Actions.USER_LEFT, () => {
@@ -70,15 +61,10 @@ class NoteController implements Controller, WsController {
     });
 
     ws.on(Actions.CONTENT_SYNC_ALL, async (payload: any) => {
-      authWsMiddleware(ws, payload, async (user: MiddlewareData) => {
-        if (!user) {
-          return;
-        }
-        const sharedNote = this.noteService.getWSSharedNote(payload._id);
-        if (sharedNote) {
-          this.noteService.sendSyncAll(ws, sharedNote);
-        }
-      });
+      const sharedNote = this.noteService.getWSSharedNote(payload._id);
+      if (sharedNote) {
+        this.noteService.sendSyncAll(ws, sharedNote);
+      }
     });
 
     ws.on('close', () => {
