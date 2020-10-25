@@ -16,6 +16,9 @@ const getters = {
 
 const actions = {
   enterNote(context, { _id }) {
+    if (!_id ) {
+      return;
+    }
     wsSend({
       action: Actions.ENTER_NOTE,
       payload: {

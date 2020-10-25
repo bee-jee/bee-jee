@@ -2,7 +2,7 @@ import WebSocket from 'ws';
 import { Document } from 'mongoose';
 import { User } from '../user/user.interface';
 
-export interface WebsocketWithBeeJee extends WebSocket {
+export interface WebSocketWithBeeJee extends WebSocket {
   isAlive?: boolean;
   cursorIds?: Map<string, string>;
 }

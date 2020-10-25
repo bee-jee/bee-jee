@@ -5,7 +5,7 @@ import RequestWithUser from '../interfaces/requestWithUser.interface';
 import UserModel from '../user/user.model';
 import InvalidAuthenticationTokenException from '../exceptions/InvalidAuthenticationTokenException';
 import OAuthModel from '../authentication/authentication.service';
-import { WsNextFunction, WebsocketWithBeeJee } from '../interfaces/websocket.interface';
+import { WsNextFunction, WebSocketWithBeeJee } from '../websocket/websocket.interface';
 import { User } from '../user/user.interface';
 import { Actions } from '../../../common/collab';
 
@@ -36,13 +36,13 @@ export async function authMiddleware(request: RequestWithUser,
   }
 }
 
-function sendNotAuthorised(ws: WebsocketWithBeeJee) {
+function sendNotAuthorised(ws: WebSocketWithBeeJee) {
   ws.send(JSON.stringify({
     action: Actions.NOT_AUTHENTICATED,
   }));
 }
 
-export function authWsMiddleware(ws: WebsocketWithBeeJee, payload: any, next: WsNextFunction) {
+export function authWsMiddleware(ws: WebSocketWithBeeJee, payload: any, next: WsNextFunction) {
   if ('Authorization' in payload && typeof payload.Authorization === 'string') {
     const accessToken = payload.Authorization as string;
     const { OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET } = process.env;

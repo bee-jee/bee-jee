@@ -4,47 +4,31 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import WebSocket from 'ws';
 import http from 'http';
-import { CleanEnv } from 'envalid';
 import * as path from 'path';
 import { Controller, isWsController, WsContext } from './interfaces/controller.interface';
 import errorMiddleware from './middleware/error.middleware';
-import { WebsocketWithBeeJee } from './interfaces/websocket.interface';
-import ConfigManager from './interfaces/config.interface';
+import { WebSocketWithBeeJee } from './websocket/websocket.interface';
+import ConfigService from './config/config.service';
 
 export const ROOT_DIR = path.resolve(__dirname, '..', '..');
 
-class App implements ConfigManager {
+class App {
   public app: express.Application;
 
   public server: http.Server;
 
   public wss: WebSocket.Server;
 
-  public static noteWebsockets = new Map<string, Set<WebSocket>>();
-
-  constructor(public config: Readonly<{
-    MONGO_USER: string;
-    MONGO_PASSWORD: string;
-    MONGO_PATH: string;
-    API_PORT: number;
-    OAUTH_CLIENT_ID: string;
-    OAUTH_CLIENT_SECRET: string;
-  }> & CleanEnv & {
-    readonly [varName: string]: string | undefined
-  }, public controllers: Controller[]) {
+  constructor(public configService: ConfigService, public controllers: Controller[]) {
     this.app = express();
     this.server = http.createServer(this.app);
     this.boot(controllers);
   }
 
   public listen() {
-    this.server.listen(this.config.API_PORT, () => {
-      console.log(`API is listening on ${this.config.API_PORT}`);
+    this.server.listen(this.configService.get('API_PORT'), () => {
+      console.log(`API is listening on ${this.configService.get('API_PORT')}`);
     });
-  }
-
-  public get(key: string): string | undefined {
-    return this.config[key];
   }
 
   private boot(controllers: Controller[]) {
@@ -52,7 +36,7 @@ class App implements ConfigManager {
       MONGO_USER,
       MONGO_PASSWORD,
       MONGO_PATH,
-    } = this.config;
+    } = this.configService.config;
     let uri = `mongodb://${MONGO_USER}:${MONGO_PASSWORD}@${MONGO_PATH}`;
     if (typeof MONGO_USER === 'undefined' || MONGO_USER === '') {
       uri = `mongodb://${MONGO_PATH}`;
@@ -76,8 +60,12 @@ class App implements ConfigManager {
 
   private initialiseControllers(controllers: Controller[]) {
     controllers.forEach((controller) => {
-      controller.boot(this);
-      this.app.use('/', controller.router);
+      if ('boot' in controller) {
+        controller.boot();
+      }
+      if ('router' in controller) {
+        this.app.use('/', controller.router);
+      }
     });
   }
 
@@ -91,7 +79,7 @@ class App implements ConfigManager {
       path: '/ws',
     });
 
-    wss.on('connection', (ws: WebsocketWithBeeJee) => {
+    wss.on('connection', (ws: WebSocketWithBeeJee) => {
       ws.isAlive = true;
 
       const wsContext: WsContext = {
@@ -104,7 +92,7 @@ class App implements ConfigManager {
         }
       });
 
-      ws.on('pong', function heartbeat(this: WebsocketWithBeeJee) {
+      ws.on('pong', function heartbeat(this: WebSocketWithBeeJee) {
         this.isAlive = true;
       });
 
@@ -127,7 +115,7 @@ class App implements ConfigManager {
     });
 
     const interval = setInterval(() => {
-      wss.clients.forEach((ws: WebsocketWithBeeJee): void => {
+      wss.clients.forEach((ws: WebSocketWithBeeJee): void => {
         if (ws.isAlive === false) {
           ws.terminate();
           return;

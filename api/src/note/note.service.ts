@@ -3,6 +3,7 @@ import { LeveldbPersistence } from 'y-leveldb';
 import WebSocket from 'ws';
 import * as Y from 'yjs';
 import * as path from 'path';
+import { autoInjectable } from 'tsyringe';
 import CreateNoteDto from './createNote.dto';
 import { Permission, UserSharedNote, UserWithPermission } from '../share/share.interface';
 import NoteModel from './note.model';
@@ -11,10 +12,11 @@ import UserSharedNoteModel from '../share/share.model';
 import UserModel from '../user/user.model';
 import { Actions, arrayToString } from '../../../common/collab';
 import { ROOT_DIR } from '../app';
-import ConfigManager from '../interfaces/config.interface';
 import { Note, WSSharedNote } from './note.interface';
 import broadcast from '../utils/ws';
 import { arrayDiff } from '../utils/array';
+import WebSocketService from '../websocket/websocket.service';
+import ConfigService from '../config/config.service';
 
 export interface SharedUsersRequest {
   username: string;
@@ -23,13 +25,18 @@ export interface SharedUsersRequest {
 
 export const buildNoteContentPath = (str: string) => str.replace(/\${WORKSPACE_ROOT_DIR}/, ROOT_DIR);
 
+@autoInjectable()
 export class NoteContentService {
   private yPersistence: LeveldbPersistence;
 
   private sharedNotes: Map<string, WSSharedNote> = new Map<string, WSSharedNote>();
 
-  constructor(config: ConfigManager) {
-    this.yPersistence = new LeveldbPersistence(path.join(buildNoteContentPath(config.get('NOTE_CONTENT_PATH'))));
+  constructor(config: ConfigService, private webSocketService: WebSocketService) {
+    const contentPath = config.get('NOTE_CONTENT_PATH');
+    if (!contentPath) {
+      throw new Error('NOTE_CONTENT_PATH is missing');
+    }
+    this.yPersistence = new LeveldbPersistence(path.join(buildNoteContentPath(contentPath)));
   }
 
   public async createNote({
@@ -126,7 +133,6 @@ export class NoteContentService {
     return {
       note,
       content: null,
-      conns: new Set<WebSocket>(),
     };
   }
 
@@ -135,14 +141,15 @@ export class NoteContentService {
       return;
     }
     const { note } = sharedNote;
-    sharedNote.content = await this.yPersistence.getYDoc(note._id.toString());
+    const id: string = note._id.toString();
+    sharedNote.content = await this.yPersistence.getYDoc(id);
     sharedNote.content.getXmlFragment('xmlContent');
     sharedNote.content.on('update', (update: Uint8Array, origin: any) => {
-      this.yPersistence.storeUpdate(note._id.toString(), update);
-      broadcast(sharedNote.conns, JSON.stringify({
+      this.yPersistence.storeUpdate(id, update);
+      broadcast(this.webSocketService.getWebSocketsByNoteId(id), JSON.stringify({
         action: Actions.CONTENT_UPDATED,
         payload: {
-          id: note._id.toString(),
+          id,
           mergeChanges: arrayToString(update),
         },
       }), {
@@ -182,10 +189,10 @@ export class NoteContentService {
     return null;
   }
 
-  public closeConn(ws: WebSocket) {
-    this.sharedNotes.forEach((sharedNote, id) => {
-      sharedNote.conns.delete(ws);
-      if (sharedNote.conns.size === 0) {
+  public closeConn() {
+    this.sharedNotes.forEach((_, id) => {
+      const webSockets = this.webSocketService.getWebSocketsByNoteId(id);
+      if (webSockets.size === 0) {
         this.sharedNotes.delete(id);
       }
     });
