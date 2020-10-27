@@ -8,7 +8,6 @@ import { autoInjectable, container } from 'tsyringe';
 import WebSocket from 'ws';
 import http from 'http';
 import { Socket } from 'net';
-import { Document } from 'mongoose';
 import { Actions } from '../../../common/collab';
 import HttpException from '../exceptions/HttpException';
 import {
@@ -17,11 +16,10 @@ import {
   WsContext,
   WsController,
 } from '../interfaces/controller.interface';
-import { authMiddleware } from '../middleware/auth.middleware';
+import { authMiddleware, authWsMiddleware } from '../middleware/auth.middleware';
 import { isWsServerResponse, WebSocketWithBeeJee, WsServerResponse } from './websocket.interface';
 import WebSocketService from './websocket.service';
 import RequestWithUser from '../interfaces/requestWithUser.interface';
-import { User } from '../user/user.interface';
 
 @autoInjectable()
 class WebSocketController implements Controller, WsController {
@@ -82,9 +80,10 @@ class WebSocketController implements Controller, WsController {
         res.socket.destroy();
       });
 
-      res.acceptUser = (user: User & Document) => new Promise<void>((resolve) => {
+      res.acceptRequest = (request: RequestWithUser) => new Promise<void>((resolve) => {
         wss.handleUpgrade(req, socket, head, (ws: WebSocketWithBeeJee) => {
-          ws.user = user;
+          ws.user = request.user;
+          ws.token = request.token;
           wss.emit('connection', ws);
           resolve();
         });
@@ -111,10 +110,8 @@ class WebSocketController implements Controller, WsController {
   }
 
   public subscribeToWs({ ws }: WsContext) {
-    const { user } = ws;
-
     ws.on(Actions.ENTER_NOTE, async (payload) => {
-      if (!user) {
+      if (!authWsMiddleware(ws)) {
         return;
       }
       if (!payload._id) {
@@ -137,7 +134,7 @@ class WebSocketController implements Controller, WsController {
   private initialiseRoutes() {
     this.router.use(`${this.path}`, authMiddleware, (req: RequestWithUser, res: Response, next: NextFunction) => {
       if (isWsServerResponse(res)) {
-        res.acceptUser(req.user);
+        res.acceptRequest(req);
         return;
       }
       next(new HttpException(500, 'res is not WsServerResponse'));

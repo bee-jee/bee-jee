@@ -10,7 +10,7 @@ import CreateNoteDto from './createNote.dto';
 import NoteNotFoundException from '../exceptions/NoteNotFound';
 import InvalidObjectIdException from '../exceptions/InvalidObjectIdException';
 import { stringToArray, Actions } from '../../../common/collab';
-import { authMiddleware } from '../middleware/auth.middleware';
+import { authMiddleware, authWsMiddleware } from '../middleware/auth.middleware';
 import RequestWithUser from '../interfaces/requestWithUser.interface';
 import UserSharedNoteModel from '../share/share.model';
 import EditNoteDto from './editNote.dto';
@@ -38,6 +38,9 @@ class NoteController implements Controller, WsController {
     const { user } = ws;
 
     ws.on(Actions.CONTENT_UPDATED, async (payload) => {
+      if (!authWsMiddleware(ws)) {
+        return;
+      }
       const { id, mergeChanges } = payload;
       const sharedNote = this.noteService.getWSSharedNote(id);
       if (sharedNote) {
@@ -50,6 +53,9 @@ class NoteController implements Controller, WsController {
     });
 
     ws.on(Actions.ENTER_NOTE, async (payload: any) => {
+      if (!authWsMiddleware(ws)) {
+        return;
+      }
       const sharedNote = await this.noteService.getOrCreateWSSharedNote(payload._id);
       if (sharedNote) {
         this.noteService.sendSyncAll(ws, sharedNote);
@@ -61,6 +67,9 @@ class NoteController implements Controller, WsController {
     });
 
     ws.on(Actions.CONTENT_SYNC_ALL, async (payload: any) => {
+      if (!authWsMiddleware(ws)) {
+        return;
+      }
       const sharedNote = this.noteService.getWSSharedNote(payload._id);
       if (sharedNote) {
         this.noteService.sendSyncAll(ws, sharedNote);

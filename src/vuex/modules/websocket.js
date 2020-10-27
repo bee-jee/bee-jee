@@ -1,6 +1,5 @@
 import * as Y from 'yjs';
 import { stringToArray, Actions } from '../../../common/collab';
-import { setWs, removeWs } from '../../helpers/ws';
 
 export const state = {
   isConnected: false,
@@ -30,13 +29,11 @@ export const actions = {
 };
 
 export const mutations = {
-  SOCKET_ONOPEN(state, event) {
-    setWs(event.currentTarget);
+  SOCKET_ONOPEN(state) {
     state.isConnected = true;
   },
   SOCKET_ONCLOSE(state) {
     state.isConnected = false;
-    removeWs();
   },
   SOCKET_ONERROR(state, event) {
     console.error(state, event);

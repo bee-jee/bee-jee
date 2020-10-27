@@ -4,6 +4,8 @@ import RequestWithUser from '../interfaces/requestWithUser.interface';
 import UserModel from '../user/user.model';
 import InvalidAuthenticationTokenException from '../exceptions/InvalidAuthenticationTokenException';
 import OAuthModel from '../authentication/authentication.service';
+import { WebSocketWithBeeJee } from '../websocket/websocket.interface';
+import { Actions } from '../../../common/collab';
 
 export const oauthServer = new OAuth2Server({
   model: OAuthModel,
@@ -30,4 +32,19 @@ export async function authMiddleware(request: RequestWithUser,
   } catch (err) {
     next(new InvalidAuthenticationTokenException(err.message));
   }
+}
+
+export function authWsMiddleware(ws: WebSocketWithBeeJee): boolean {
+  const { token } = ws;
+  if (!token.accessTokenExpiresAt) {
+    return true;
+  }
+  const now = new Date();
+  if (now.getTime() < token.accessTokenExpiresAt.getTime()) {
+    return true;
+  }
+  ws.send(JSON.stringify({
+    action: Actions.NOT_AUTHENTICATED,
+  }));
+  return false;
 }

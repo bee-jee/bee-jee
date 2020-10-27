@@ -56,7 +56,7 @@ const actions = {
       index,
       length,
     });
-    if (getters.current.id && (index !== currIndex || length !== currLength)) {
+    if (getters.current.id && (index !== currIndex || length !== currLength) && getters.isLoggedIn) {
       wsSend({
         action: Actions.CURSOR_UPDATED,
         payload: {

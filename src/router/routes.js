@@ -1,7 +1,6 @@
 // This constant contains all the routes of the app
 
 import VueRouter from 'vue-router';
-import store from '../vuex/store';
 import BaseLayout from '../components/layout/BaseLayout';
 import SidebarLayout from '../components/layout/SidebarLayout';
 import navigations from '../helpers/nav';
@@ -77,55 +76,6 @@ const routes = [
 
 const router = new VueRouter({
   routes,
-});
-
-const checkLoggedIn = (nextCurrent, nextLogin) => {
-  if (store.getters.token !== '') {
-    store.dispatch('checkLoggedIn')
-      .then(() => {
-        if (store.getters.isLoggedIn) {
-          nextCurrent();
-        } else {
-          nextLogin();
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-        nextLogin();
-      });
-  } else {
-    nextLogin();
-  }
-};
-
-router.beforeEach((to, from, next) => {
-  store.commit('setGlobalIsLoading', true);
-  if (to.matched.some(record => record.meta.requiresAuth)) {
-    if (store.getters.isLoggedIn) {
-      next();
-    } else {
-      checkLoggedIn(() => {
-        next();
-      }, () => {
-        store.commit('setWantsUrl', to);
-        next('/login');
-      });
-    }
-  } else if (to.matched.some(record => record.meta.requiresGuest)) {
-    if (store.getters.isLoggedIn) {
-      next('/');
-    } else {
-      checkLoggedIn(() => {
-        next('/');
-      }, () => {
-        next();
-      });
-    }
-  }
-});
-
-router.afterEach(() => {
-  store.commit('setGlobalIsLoading', false);
 });
 
 export default router;
