@@ -27,6 +27,12 @@ userSchema.virtual('fullName').get(function getFullName(this: User) {
   return `${this.firstName} ${this.lastName}`;
 });
 
+userSchema.virtual('initials').get(function getInitials(this: User) {
+  const first = this.firstName[0] || '';
+  const last = this.lastName[0] || '';
+  return [first, last].map((value) => value.toUpperCase()).join('');
+});
+
 userSchema.virtual('sharedNotes', {
   ref: 'UserSharedNote',
   localField: '_id',
