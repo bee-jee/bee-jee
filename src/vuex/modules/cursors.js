@@ -16,6 +16,9 @@ const getters = {
 
 const actions = {
   enterNote(context, { _id }) {
+    if (!_id ) {
+      return;
+    }
     wsSend({
       action: Actions.ENTER_NOTE,
       payload: {
@@ -24,9 +27,9 @@ const actions = {
     });
   },
   [Actions.NOTE_ENTERED]({ commit }, data) {
-    const { id, color, name, currCursors } = data.payload;
+    const { id, color, name, initials, currCursors } = data.payload;
     commit('setCurrent', {
-      id, color, name,
+      id, color, name, initials,
     });
     Object.values(currCursors).forEach((cursor) => {
       if (cursor.id === id) {
@@ -53,7 +56,7 @@ const actions = {
       index,
       length,
     });
-    if (getters.current.id && (index !== currIndex || length !== currLength)) {
+    if (getters.current.id && (index !== currIndex || length !== currLength) && getters.isLoggedIn) {
       wsSend({
         action: Actions.CURSOR_UPDATED,
         payload: {
@@ -66,9 +69,9 @@ const actions = {
     }
   },
   [Actions.USER_ENTERED]({ commit }, data) {
-    const { id, color, name } = data.payload;
+    const { id, color, name, initials } = data.payload;
     commit('appendUserCursor', {
-      id, color, name,
+      id, color, name, initials,
     });
   },
   [Actions.USER_LEFT]({ commit }, data) {
@@ -76,26 +79,26 @@ const actions = {
     commit('removeUserCursor', { id });
   },
   [Actions.CURSOR_UPDATED]({ getters, commit }, data) {
-    let { id, index, name, length, color } = data.payload;
+    let { id, index, name, length, color, initials } = data.payload;
     const currUserCursor = getters.userCursorById(id);
     if (currUserCursor !== undefined) {
       if (color === undefined) {
         color = currUserCursor.color;
       }
       commit('updateUserCursor', {
-        id, index, name, length, color,
+        id, index, name, length, color, initials,
       });
     }
   },
 };
 
 const mutations = {
-  appendUserCursor(state, { id, index, name, length, color }) {
+  appendUserCursor(state, { id, index, name, length, color, initials }) {
     if (!(id in state.userCursorsById)) {
       state.allUserCursorIds.push(id);
     }
     state.userCursorsById[id] = {
-      id, index, name, length, color,
+      id, index, name, length, color, initials,
     };
   },
   removeUserCursor(state, { id }) {
@@ -103,12 +106,12 @@ const mutations = {
       (userCursorId) => userCursorId === id);
     delete state.userCursorsById[id];
   },
-  updateUserCursor(state, { id, index, name, length, color }) {
+  updateUserCursor(state, { id, index, name, length, color, initials }) {
     state.userCursorsById = {
       ...state.userCursorsById,
       [id]: {
         ...(state.userCursorsById[id] || {}),
-        id, index, name, length, color,
+        id, index, name, length, color, initials,
       },
     };
   },

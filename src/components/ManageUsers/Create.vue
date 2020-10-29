@@ -123,6 +123,7 @@
 </template>
 
 <script>
+import Axios from 'axios';
 import ValidationErrors from '../../helpers/validationErrors';
 export default {
   data() {
@@ -149,7 +150,7 @@ export default {
     this.id = this.$route.params.id || '';
     if (this.id) {
       this.$store.commit('setGlobalIsLoading', true);
-      this.$http.get(`/user/${this.id}`)
+      Axios.get(`/user/${this.id}`)
         .then((resp) => {
           const { username, firstName, lastName, role } = resp.data;
           this.username = username;
@@ -170,7 +171,7 @@ export default {
       let promise = null;
       this.formErrors.reset();
       if (!this.id) {
-        promise = this.$http.post('/user/', {
+        promise = Axios.post('/user/', {
           username: this.username,
           password: this.password,
           passwordConfirm: this.passwordConfirm,
@@ -179,7 +180,7 @@ export default {
           role: this.role,
         });
       } else {
-        promise = this.$http.patch(`/user/${this.id}`, {
+        promise = Axios.patch(`/user/${this.id}`, {
           firstName: this.firstName,
           lastName: this.lastName,
           role: this.role,

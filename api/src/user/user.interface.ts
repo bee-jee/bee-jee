@@ -5,6 +5,7 @@ export interface User {
   firstName: string;
   lastName: string;
   fullName?: string;
+  initials: string;
   role: string;
   created: Date;
   updated: Date;

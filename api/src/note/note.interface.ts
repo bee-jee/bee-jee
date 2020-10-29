@@ -1,5 +1,4 @@
 import { Document } from 'mongoose';
-import WebSocket from 'ws';
 import { Doc } from 'yjs';
 import { Visibility, UserSharedNote } from '../share/share.interface';
 
@@ -18,5 +17,4 @@ export interface Note {
 export interface WSSharedNote {
   note: Note & Document;
   content: Doc | null;
-  conns: Set<WebSocket>;
 }

@@ -194,6 +194,16 @@ $hover-background: darken($primary, 25%);
             padding: 0.45rem .5rem;
         }
     }
+
+    .btn-group {
+        height: 100%;
+    }
+}
+
+.separator {
+    width: 2px;
+    background-color: $gray-200;
+    margin-right: 0.5rem;
 }
 
 .user-cursor {
@@ -357,4 +367,8 @@ $hover-background: darken($primary, 25%);
     position: absolute;
     left: .7rem;
     bottom: 0.35rem;
+}
+
+.online-user {
+    border-radius: 50%;
 }

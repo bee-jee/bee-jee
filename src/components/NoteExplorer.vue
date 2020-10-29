@@ -92,10 +92,7 @@ export default {
       });
     },
     logout() {
-      const self = this;
-      this.$store.dispatch('logout', 'user').then(() => {
-        self.$router.push('/login');
-      });
+      this.$store.dispatch('logout', 'user');
     },
   },
   mounted() {

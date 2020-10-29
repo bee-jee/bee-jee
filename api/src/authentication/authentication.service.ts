@@ -54,6 +54,7 @@ const OAuthModel = {
         firstName: '',
         lastName: '',
         fullName: '',
+        initials: '',
         role: '',
         created: new Date(),
         updated: new Date(),

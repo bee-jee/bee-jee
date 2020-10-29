@@ -1,4 +1,5 @@
 import * as Y from 'yjs';
+import tinycolor from 'tinycolor2';
 
 // Actions are the collaboration actions
 export const Actions = Object.freeze({
@@ -79,4 +80,8 @@ export function decodeDoc(str) {
   }
   Y.applyUpdate(doc, stringToArray(str));
   return doc;
+}
+
+export function getTextColorFromBackground(bgColor) {
+  return tinycolor(bgColor).getLuminance() > 0.5 ? tinycolor('#000') : tinycolor('#fff');
 }

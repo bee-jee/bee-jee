@@ -1,3 +1,4 @@
+import Axios from 'axios';
 import Vue from 'vue';
 import * as Y from 'yjs';
 import { arrayToString, Actions, stringToArray } from '../../../common/collab';
@@ -57,7 +58,7 @@ export const actions = {
   async fetchNotes({ commit }) {
     commit('setIsLoading', true);
     try {
-      const resp = await Vue.prototype.$http.get('/note');
+      const resp = await Axios.get('/note');
       commit('setNotes', resp.data);
     } catch (err) {
       // TODO: Display error message on the interface
@@ -69,7 +70,7 @@ export const actions = {
   async fetchSharedNotes({ commit }) {
     commit('setIsLoadingSelectedNote', true);
     try {
-      const resp = await Vue.prototype.$http.get('/note/shared');
+      const resp = await Axios.get('/note/shared');
       commit('setSharedNotes', resp.data);
     } catch (err) {
       console.error(err);
@@ -79,7 +80,7 @@ export const actions = {
   },
   async fetchNumOfUnviewedSharedNutes({ commit }){
     try {
-      const resp = await Vue.prototype.$http.get('/note/numOfUnviewed');
+      const resp = await Axios.get('/note/numOfUnviewed');
       // console.log(resp.data.num);
       commit('setNumOfAllUnviewedNotes', resp.data.num);
     }catch (err) {
@@ -89,7 +90,7 @@ export const actions = {
   async createNote({ commit }, { title, permission, parentNoteId }) {
     commit('setIsCreatingNote', true);
     try {
-      const resp = await Vue.prototype.$http.post('/note/create', {
+      const resp = await Axios.post('/note/create', {
         title,
         ...permission,
         parentNoteId,
@@ -102,7 +103,7 @@ export const actions = {
   async setSelectedNote({ commit }, { _id }) {
     commit('setIsLoadingSelectedNote', true);
     try {
-      const resp = await Vue.prototype.$http.get(`/note/${_id}`);
+      const resp = await Axios.get(`/note/${_id}`);
       const note = resp.data;
       commit('setSelectedNote', note);
     } catch (err) {
@@ -114,7 +115,7 @@ export const actions = {
   async setSelectedSharedNote({ commit }, { _id }) {
     commit('setIsLoadingSelectedNote', true);
     try {
-      const resp = await Vue.prototype.$http.get(`/note/shared/${_id}`);
+      const resp = await Axios.get(`/note/shared/${_id}`);
       const { data: sharedNote } = resp;
       const { note } = sharedNote;
       commit('updateSharedNote', sharedNote);
@@ -130,7 +131,7 @@ export const actions = {
   },
   async deleteNote({ commit }, { _id }) {
     try {
-      const resp = await Vue.prototype.$http.delete(`/note/${_id}`);
+      const resp = await Axios.delete(`/note/${_id}`);
       commit('deleteNote', resp.data);
     } catch (err) {
       console.error(err);
@@ -139,7 +140,7 @@ export const actions = {
   async editNoteShare({ commit }, { _id, permission }) {
     commit('setIsUpdatingNote', true);
     try {
-      const resp = await Vue.prototype.$http.patch(`/note/${_id}`, {
+      const resp = await Axios.patch(`/note/${_id}`, {
         ...permission,
       });
       commit('setNotePermission', {
@@ -154,7 +155,7 @@ export const actions = {
   async editNoteTitle({ commit }, { _id, title }) {
     commit('setIsUpdatingNote', true);
     try {
-      const resp = await Vue.prototype.$http.patch(`/note/${_id}`, {
+      const resp = await Axios.patch(`/note/${_id}`, {
         title,
       });
       commit('setNoteTitle', { _id, title: resp.data.title });
@@ -175,7 +176,7 @@ export const actions = {
     commit('setIsUpdatingNote', true);
     const { selectedNote } = getters;
     try {
-      await Vue.prototype.$http.delete(`/note/${selectedNote._id}/clearContent`);
+      await Axios.delete(`/note/${selectedNote._id}/clearContent`);
     } catch (err) {
       console.error(err);
     } finally {

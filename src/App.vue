@@ -5,7 +5,9 @@
     <modal name="expiredSession" height="auto" :adaptive="true" @closed="handleCloseExpired">
       <div class="p-3">
         <h5>Your session has expired</h5>
-        <p>Your session has expired, do you want to redirect to the login page? If you don't want to your edit will not be able be saved.</p>
+        <p>
+          Your session has expired, do you want to redirect to the login page?
+        </p>
         <div class="text-right">
           <button class="btn btn-danger mr-2" @click="handleCloseExpired">No</button>
           <button class="btn btn-primary" @click="handleRedirect">Yes</button>
@@ -19,27 +21,12 @@
 import { mapGetters } from 'vuex';
 
 export default {
-  created() {
-    this.$http.interceptors.response.use(undefined, function (err) {
-      if (err.status === 401) {
-        this.$router.push('/login');
-      }
-      throw err;
-    });
-    const self = this;
-    this.$router.beforeEach((to, from, next) => {
-      self.showExpired = to.matched.some(record => record.meta.requiresAuth) && !self.isLoggedIn;
-      next();
-    });
-  },
   mounted() {
     this.$store.dispatch('retrieveConfig');
+    this.$store.dispatch('retrieveUser');
   },
   computed: {
-    ...mapGetters([
-      'isLoggedIn',
-      'logoutSource',
-    ]),
+    ...mapGetters(['isLoggedIn', 'logoutSource', 'isFinishedRefreshingAuth']),
   },
   data() {
     return {
@@ -52,25 +39,42 @@ export default {
     },
     handleRedirect() {
       this.handleCloseExpired();
+      this.$store.commit('setWantsUrl', this.$route.fullPath);
       this.$router.push('/login');
     },
     invalidateModal() {
       if (this.showExpired) {
-        this.$modal.show('expiredSession');
+        this.$nextTick(() => {
+          this.$modal.show('expiredSession');
+        });
       } else {
         this.$modal.hide('expiredSession');
       }
     },
+    checkIfLoginRequired() {
+      if (!this.isFinishedRefreshingAuth) {
+        return;
+      }
+      const routeRequiresAuth = this.$route.matched.some((route) => route.meta.requiresAuth);
+      if (!this.isLoggedIn && routeRequiresAuth) {
+        if (this.logoutSource === 'API') {
+          this.showExpired = true;
+        } else {
+          this.$router.push('/login');
+        }
+      }
+    },
   },
   watch: {
-    isLoggedIn(newValue) {
-      if (!newValue && this.logoutSource !== 'user') {
-        this.showExpired = true;
-      }
+    isLoggedIn() {
+      this.checkIfLoginRequired();
     },
     showExpired() {
       this.invalidateModal();
     },
+    isFinishedRefreshingAuth() {
+      this.checkIfLoginRequired();
+    },
   },
-}
+};
 </script>

@@ -51,7 +51,7 @@ export default {
       }
       const { username, password } = this;
       const self = this;
-      this.$store.dispatch('login', { username, password })
+      this.$store.dispatch('login', { vm: this, username, password })
         .then(function () {
           if (self.isLoggedIn) {
             return self.$store.dispatch('popWantsUrl');

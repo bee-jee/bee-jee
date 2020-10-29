@@ -1,4 +1,4 @@
-import Vue from 'vue';
+import Axios from 'axios';
 import PageResponse from '../../helpers/pageResponse';
 
 const state = {
@@ -17,7 +17,7 @@ const actions = {
   async fetchUsers({ commit }, page) {
     commit('setUsersIsLoading', true);
     try {
-      const resp = await Vue.prototype.$http.get('/user/', {
+      const resp = await Axios.get('/user/', {
         params: {
           page,
         },

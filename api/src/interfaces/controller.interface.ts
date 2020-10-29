@@ -1,12 +1,11 @@
 import { Router } from 'express';
 import WebSocket from 'ws';
-import { WebsocketWithBeeJee } from './websocket.interface';
-import ConfigManager from './config.interface';
+import { WebSocketWithBeeJee } from '../websocket/websocket.interface';
 
 export interface Controller {
   path: string;
   router: Router;
-  boot(config: ConfigManager): void;
+  boot(): void;
 }
 
 export interface WsController {
@@ -15,7 +14,7 @@ export interface WsController {
 
 export interface WsContext {
   wss: WebSocket.Server,
-  ws: WebsocketWithBeeJee,
+  ws: WebSocketWithBeeJee,
 }
 
 export function isWsController(controller: Controller): controller is Controller & WsController {

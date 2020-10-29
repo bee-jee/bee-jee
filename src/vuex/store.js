@@ -8,6 +8,7 @@ import cursors from './modules/cursors';
 import user from './modules/user';
 import app from './modules/app';
 import tiptap from './modules/tiptap';
+import notification from './modules/notification';
 
 Vue.use(Vuex);
 
@@ -21,6 +22,7 @@ const store = new Vuex.Store({
     user,
     app,
     tiptap,
+    notification,
   },
 });
 

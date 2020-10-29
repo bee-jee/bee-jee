@@ -2,31 +2,29 @@ import {
   Router, Request, Response, NextFunction,
 } from 'express';
 import { Request as OAuthRequest, Response as OAuthResponse } from 'oauth2-server';
+import { autoInjectable } from 'tsyringe';
 import { Controller } from '../interfaces/controller.interface';
 import validationMiddleware from '../middleware/validation.middleware';
 import LoginDto from './login.dto';
 import { oauthToken, authMiddleware } from '../middleware/auth.middleware';
 import RequestWithUser from '../interfaces/requestWithUser.interface';
-import ConfigManager from '../interfaces/config.interface';
 import OAuthModel from './authentication.service';
 import RefreshTokenDto from './refreshToken.dto';
 import HttpException from '../exceptions/HttpException';
 import InvalidCredentialsException from '../exceptions/InvalidCredentialsException';
+import ConfigService from '../config/config.service';
 
+@autoInjectable()
 class AuthenticationController implements Controller {
   public path = '/auth';
 
   public router = Router();
 
-  private config: ConfigManager;
-
-  constructor() {
+  constructor(private config: ConfigService) {
     this.initialiseRoutes();
   }
 
-  public boot(config: ConfigManager): void {
-    this.config = config;
-  }
+  public boot(): void {}
 
   private initialiseRoutes() {
     this.router.get(`${this.path}/user`, authMiddleware, this.user);

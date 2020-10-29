@@ -1,49 +1,37 @@
-class BufferedWebSocket {
-  constructor() {
-    this.data = [];
-    this.ws = null;
-  }
+let connect = null;
+let disconnect = null;
+let store = null;
+let internalVm = null;
+let isConnected = false;
 
-  send(data) {
-    if (this.ws === null || this.ws.readyState !== 1) {
-      this.data.push(data);
-    } else {
-      data.payload = {
-        ...options.defaults,
-        ...data.payload,
-      };
-      this.ws.send(JSON.stringify(data));
-    }
-  }
-
-  onOpen() {
-    const self = this;
-    this.data.forEach((data) => {
-      self.send(data);
-    });
-    this.data = [];
-  }
+export function initialiseWsFromVue(vm) {
+  internalVm = vm;
+  connect = vm.$connect.bind(vm);
+  disconnect = vm.$disconnect.bind(vm);
+  store = vm.$store;
 }
 
-const instance = new BufferedWebSocket();
-
-const options = {
-  defaults: {},
-};
-
-export function setWs(ws) {
-  instance.ws = ws;
-  instance.onOpen();
+export function connectToWs() {
+  if (isConnected) {
+    return;
+  }
+  const token = store.getters.token;
+  connect(`${process.env.VUE_APP_WS_URL}?access_token=${token}`);
+  isConnected = true;
 }
 
-export function removeWs() {
-  instance.ws = null;
+export function disconnectToWs() {
+  disconnect();
+  isConnected = false;
 }
 
 export function wsSend(data) {
-  instance.send(data);
+  if (!internalVm || !internalVm.$socket || internalVm.$socket.readyState !== 1) {
+    console.error('Trying to send data before the WS connection is established');
+    return;
+  }
+  if (typeof data !== 'string') {
+    data = JSON.stringify(data);
+  }
+  internalVm.$socket.send(data);
 }
-
-export default {
-  defaults: options.defaults,
-};

@@ -50,6 +50,7 @@
     "tiptap-commands": "^1.14.3",
     "tiptap-extensions": "^1.31.3",
     "tslib": "^2.0.0",
+    "tsyringe": "^4.3.0",
     "uuid": "^8.3.0",
     "vue": "^2.6.11",
     "vue-js-modal": "^2.0.0-rc.6",

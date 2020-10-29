@@ -1,6 +1,6 @@
-import Vue from 'vue';
 import Cookie from 'js-cookie';
-import WS from '../../helpers/ws';
+import Axios from 'axios';
+import { connectToWs, disconnectToWs } from '../../helpers/ws';
 import { Actions } from '../../../common/collab';
 
 const env = {
@@ -12,27 +12,27 @@ const state = {
   token: Cookie.get('token') || '',
   refreshToken: Cookie.get('refreshToken') || '',
   loginError: '',
-  logoutSource: '',
+  logoutSource: 'user',
   isLoggingIn: false,
-  isCheckingLoggedin: false,
+  isFinishedRefreshingAuth: false,
 };
 
 const getters = {
   user: state => state.user,
   isLoggedIn: state => !!state.user._id,
+  isFinishedRefreshingAuth: state => state.isFinishedRefreshingAuth,
   token: state => state.token,
   refreshToken: state => state.refreshToken,
   loginError: state => state.loginError,
   logoutSource: state => state.logoutSource,
   isLoggingIn: state => state.isLoggingIn,
-  isCheckingLoggedin: state => state.isCheckingLoggedin,
 };
 
 const actions = {
   async login({ commit }, { username, password }) {
     commit('setIsLoggingIn', true);
     try {
-      const resp = await Vue.prototype.$http.post(`/auth/login`, {
+      const resp = await Axios.post(`/auth/login`, {
         username,
         password,
       });
@@ -51,58 +51,48 @@ const actions = {
   },
   async logout({ commit }, source) {
     if (source === undefined) {
-      source = '';
+      source = 'user';
     }
     commit('setLogoutSource', source);
     try {
-      await Vue.prototype.$http.post('/auth/logout');
+      await Axios.post('/auth/logout', {}, { skipAuthRefresh: true });
     } catch (err) {
       console.error(err);
     }
     commit('setUser', {});
     commit('setToken', '');
     commit('setRefreshToken', '');
-    delete Vue.prototype.$http.defaults.headers.common['Authorization'];
-    delete WS.defaults['Authorization'];
   },
-  async checkLoggedIn({ commit, getters, dispatch }) {
-    if (getters.isCheckingLoggedin) {
-      return;
-    }
-    commit('setIsCheckingLoggedin', true);
-    const finaliseUser = async (user) => {
-      commit('setUser', user);
-      if (!user._id) {
-        await dispatch('logout');
-      }
-    };
-    const tryRefreshToken = async () => {
-      if (getters.refreshToken) {
-        try {
-          const resp = await Vue.prototype.$http.post('/auth/refreshToken', {
-            refreshToken: getters.refreshToken,
-          });
-          commit('setToken', resp.data.accessToken);
-          commit('setRefreshToken', resp.data.refreshToken);
-          finaliseUser(resp.data.user);
-        } catch(err) {
-          await dispatch('logout');
-        }
-        return;
-      }
-      await dispatch('logout');
-    };
+  async refreshToken({ getters, commit }) {
     try {
-      const resp = await Vue.prototype.$http.get(`/auth/user`);
-      await finaliseUser(resp.data);
+      const { data } = await Axios.post('/auth/refreshToken', {
+        refreshToken: getters.refreshToken,
+      }, { skipAuthRefresh: true });
+      commit('setToken', data.accessToken);
+      commit('setRefreshToken', data.refreshToken);
+      commit('setUser', data.user);
     } catch (err) {
-      await tryRefreshToken();
-    } finally {
-      commit('setIsCheckingLoggedin', false);
+      commit('setLogoutSource', 'API');
+      commit('setToken', '');
+      commit('setRefreshToken', '');
+      commit('setUser', {});
+
+      throw err;
+    }
+  },
+  async retrieveUser({ getters, commit }) {
+    if (getters.token) {
+      try {
+        const { data } = await Axios.get('/auth/user');
+        commit('setUser', data);
+      } catch (err) {
+        commit('setUser', {});
+      }
     }
   },
   async [Actions.NOT_AUTHENTICATED]({ dispatch }) {
-    await dispatch('checkLoggedIn');
+    disconnectToWs();
+    await dispatch('refreshToken');
   },
 };
 
@@ -114,12 +104,19 @@ const cookieOptions = {
 const mutations = {
   setUser(state, user) {
     state.user = user;
+    if (user._id) {
+      connectToWs();
+    } else {
+      disconnectToWs();
+    }
   },
   setToken(state, token) {
     state.token = token;
-    Cookie.set('token', token, cookieOptions);
-    Vue.prototype.$http.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    WS.defaults['Authorization'] = token;
+    if (token) {
+      Cookie.set('token', token, cookieOptions);
+    } else {
+      Cookie.remove('token');
+    }
   },
   setRefreshToken(state, token) {
     state.refreshToken = token;
@@ -134,8 +131,8 @@ const mutations = {
   setIsLoggingIn(state, value) {
     state.isLoggingIn = value;
   },
-  setIsCheckingLoggedin(state, value) {
-    state.isCheckingLoggedin = value;
+  setIsFinishedRefreshingAuth(state, value) {
+    state.isFinishedRefreshingAuth = value;
   },
 };
 

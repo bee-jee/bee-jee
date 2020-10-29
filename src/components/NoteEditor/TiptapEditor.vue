@@ -183,6 +183,30 @@
         <button class="menubar__button" @click="commands.redo" title="Redo">
           <mt-icon :path="mdiRedoVariant" />
         </button>
+
+        <div class="separator" v-if="allUserCursors.length"></div>
+
+        <button
+          class="menubar__button online-user my-1 font-weight-bold"
+          v-for="userCursor in allUserCursors"
+          :key="userCursor.id"
+          :style="{
+            backgroundColor: userCursor.color,
+            color: getUserTextColor(userCursor.color),
+          }"
+          :id="`online-user-${userCursor.id}`"
+        >
+          <div class="user-initials">
+            {{userCursor.initials}}
+          </div>
+          <b-popover
+            :target="`online-user-${userCursor.id}`"
+            triggers="hover focus"
+            placement="bottom"
+          >
+            {{userCursor.name}}
+          </b-popover>
+        </button>
       </div>
     </editor-menu-bar>
     <div class="editor-top-shadow" ref="editorTopShadow"></div>
@@ -263,6 +287,7 @@ import SubMenu from './SubMenu';
 import TableGridSizeEditor from './TableGridSizeEditor';
 import ColorSelector from './ColorSelector';
 import { getTextColor } from '../../tiptap/commands/color';
+import { getTextColorFromBackground } from '../../../common/collab';
 
 const SHADOW_SCROLL_TOP_THRESHOLD = 200;
 
@@ -301,7 +326,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(['tableMenuPosition']),
+    ...mapGetters(['tableMenuPosition', 'allUserCursors']),
   },
   mounted() {
     const extensions = [
@@ -413,6 +438,9 @@ export default {
       if (this.editor) {
         return getTextColor(this.editor.state);
       }
+    },
+    getUserTextColor(bgColor) {
+      return getTextColorFromBackground(bgColor).toHexString();
     },
   },
   watch: {
