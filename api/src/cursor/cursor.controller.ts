@@ -54,7 +54,7 @@ class CursorController implements Controller, WsController {
         id,
         color: Colors[userCount % Colors.length],
         name: user.fullName || '',
-        initials: user.initials,
+        initials: user.initials || '',
       };
       currCursors.set(id, cursor);
       this.noteCursors.set(idForCursors, currCursors);
