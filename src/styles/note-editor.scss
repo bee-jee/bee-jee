@@ -29,7 +29,7 @@
         color: $white;
         font-size: 0.8rem;
         overflow-x: auto;
-  
+
         code {
             display: block;
         }
@@ -72,7 +72,7 @@
         width: 100%;
         margin: 0;
         overflow: hidden;
-  
+
         td, th {
             min-width: 1em;
             border: 2px solid $gray-400;
@@ -84,12 +84,12 @@
                 margin-bottom: 0;
             }
         }
-  
+
         th {
             font-weight: bold;
             text-align: left;
         }
-  
+
         .selectedCell:after {
             z-index: 2;
             position: absolute;
@@ -98,7 +98,7 @@
             background: rgba(200, 200, 255, 0.4);
             pointer-events: none;
         }
-  
+
         .column-resize-handle {
             position: absolute;
             right: -2px; top: 0; bottom: 0;
@@ -108,12 +108,18 @@
             pointer-events: none;
         }
     }
-  
+
+    blockquote {
+        border-left: 4px solid #DDD;
+        padding: 0 15px;
+        color: #777;
+    }
+
     .tableWrapper {
         margin: 1em 0;
         overflow-x: auto;
     }
-  
+
     &.resize-cursor {
         cursor: ew-resize;
         cursor: col-resize;
