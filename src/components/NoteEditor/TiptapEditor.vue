@@ -386,7 +386,7 @@ export default {
     ];
     const { note } = this;
     if (note) {
-      extensions.push(new Realtime(note));
+      extensions.push(new Realtime({ note, store: this.$store }));
       extensions.push(new Cursor({ note, store: this.$store }));
       this.editedNoteTitle = note.title;
     }

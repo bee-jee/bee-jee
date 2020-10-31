@@ -21,10 +21,13 @@ export const actions = {
     }
   },
   SOCKET_ONOPEN({ commit, getters, dispatch }, event) {
+    commit('SOCKET_ONOPEN', event);
     if (getters.selectedNote) {
       dispatch('enterNote', getters.selectedNote);
+      if (getters.selectedNote.isSynced) {
+        dispatch('sendSyncStep1');
+      }
     }
-    commit('SOCKET_ONOPEN', event);
   },
 };
 
@@ -43,9 +46,7 @@ export const mutations = {
     console.log(`Unhandled message: ${message}`);
   },
   // mutations for reconnect methods
-  SOCKET_RECONNECT(state, count) {
-    console.info(state, count);
-  },
+  SOCKET_RECONNECT() {},
   SOCKET_RECONNECT_ERROR(state) {
     state.reconnectError = true;
   },

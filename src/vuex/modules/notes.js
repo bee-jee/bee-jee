@@ -167,10 +167,36 @@ export const actions = {
     note.content.getText('text').applyDelta(ops);
     commit('setNoteContent', note);
   },
+  sendSyncStep1({ getters, commit }) {
+    const { selectedNote } = getters;
+    commit('setIsSyncing', true);
+    const stateVector = arrayToString(Y.encodeStateVector(selectedNote.content));
+    wsSend({
+      action: Actions.CONTENT_SYNC_STEP1,
+      payload: {
+        _id: selectedNote._id,
+        stateVector,
+      },
+    });
+  },
   [Actions.CONTENT_SYNC_ALL]({ getters, commit }, { payload }) {
     const { selectedNote } = getters;
     const update = stringToArray(payload);
     Y.applyUpdate(selectedNote.content, update, 'ws');
+    commit('setIsSyncing', false);
+  },
+  [Actions.CONTENT_SYNC_STEP1]({ getters, commit }, { payload }) {
+    const { selectedNote } = getters;
+    const stateVectorServer = stringToArray(payload.stateVector);
+    const diff = arrayToString(Y.encodeStateAsUpdate(selectedNote.content, stateVectorServer));
+    Y.applyUpdate(selectedNote.content, stringToArray(payload.diff), 'ws');
+    wsSend({
+      action: Actions.CONTENT_SYNC_STEP2,
+      payload: {
+        _id: selectedNote._id,
+        diff,
+      },
+    });
     commit('setIsSyncing', false);
   },
   async clearSelectedNoteContent({ commit, getters }) {
@@ -256,7 +282,7 @@ export const mutations = {
       contentVersion: 0,
     };
     if (note._id) {
-      subscribeContentUpdate(note);
+      subscribeContentUpdate(state.selectedNote);
     }
   },
   // The reason we want to store toDeleteNote in the state is that we can
@@ -364,6 +390,9 @@ export const mutations = {
 
 const subscribeContentUpdate = (note) => {
   note.content.on('update', (update, origin) => {
+    if (!note.isSynced) {
+      return;
+    }
     if (origin !== null && origin === 'ws') {
       return;
     }
@@ -379,6 +408,7 @@ const subscribeContentUpdate = (note) => {
 
 const unsubscribeContentUpdate = (note) => {
   note.content.off('update');
+  note.isSynced = false;
 }
 
 export default {

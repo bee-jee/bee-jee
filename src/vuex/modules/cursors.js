@@ -15,11 +15,13 @@ const getters = {
 };
 
 const actions = {
-  enterNote({ commit }, { _id }) {
+  enterNote({ getters }, { _id }) {
     if (!_id ) {
       return;
     }
-    commit('setIsSyncing', true);
+    if (!getters.selectedNote) {
+      return;
+    }
     wsSend({
       action: Actions.ENTER_NOTE,
       payload: {
@@ -104,7 +106,7 @@ const mutations = {
   },
   removeUserCursor(state, { id }) {
     state.allUserCursorIds = state.allUserCursorIds.filter(
-      (userCursorId) => userCursorId === id);
+      (userCursorId) => userCursorId !== id);
     delete state.userCursorsById[id];
   },
   updateUserCursor(state, { id, index, name, length, color, initials }) {

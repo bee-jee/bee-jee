@@ -174,6 +174,27 @@ export class NoteContentService {
     }));
   }
 
+  public syncStateVector(ws: WebSocket, sharedNote: WSSharedNote, stateVector: Uint8Array) {
+    if (sharedNote.content === null) {
+      return;
+    }
+    const diff = Y.encodeStateAsUpdate(sharedNote.content, stateVector);
+    ws.send(JSON.stringify({
+      action: Actions.CONTENT_SYNC_STEP1,
+      payload: {
+        stateVector: arrayToString(Y.encodeStateVector(sharedNote.content)),
+        diff: arrayToString(diff),
+      },
+    }));
+  }
+
+  public syncUpdates(sharedNote: WSSharedNote, diff: Uint8Array) {
+    if (sharedNote.content === null) {
+      return;
+    }
+    Y.applyUpdate(sharedNote.content, diff);
+  }
+
   public async getOrCreateWSSharedNote(id: string): Promise<WSSharedNote | null> {
     const current = this.sharedNotes.get(id);
     if (current) {

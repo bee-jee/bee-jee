@@ -8,6 +8,9 @@ export const Actions = Object.freeze({
   USER_ENTERED: 'userEntered',
   USER_LEFT: 'userLeft',
   CURSOR_UPDATED: 'cursorUpdated',
+  CONTENT_SYNC_STEP1: 'contentSyncStep1',
+  CONTENT_SYNC_STEP2: 'contentSyncStep2',
+  NOTE_NOT_FOUND: 'noteNotFound',
   CONTENT_SYNC_ALL: 'contentSyncAll',
   CONTENT_UPDATED: 'contentUpdated',
   NOT_AUTHENTICATED: 'notAuthenticated',
@@ -38,8 +41,8 @@ export const Colors = Object.freeze([
 ]);
 
 /**
- * 
- * @param {string} str 
+ *
+ * @param {string} str
  */
 export function stringToArray(str) {
   if (!str) {
@@ -53,7 +56,7 @@ export function stringToArray(str) {
 }
 
 /**
- * 
+ *
  * @param {Uint8Array} array
  */
 export function arrayToString(array) {
@@ -69,8 +72,8 @@ export function encodeDoc(doc) {
 }
 
 /**
- * 
- * @param {string} str 
+ *
+ * @param {string} str
  */
 export function decodeDoc(str) {
   const doc = new Y.Doc();

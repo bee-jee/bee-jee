@@ -26,10 +26,16 @@ const restoreRelativeSelection = (tr, relSel, binding) => {
 };
 
 export default class Realtime extends Extension {
-  constructor(note) {
+  constructor({ note, store }) {
     super();
     this.note = note;
+    store.commit('setIsSyncing', true);
     this.persistence = new IndexeddbPersistence(note._id, note.content);
+    this.persistence.on('synced', () => {
+      store.commit('setIsSyncing', false);
+      note.isSynced = true;
+      store.dispatch('sendSyncStep1');
+    });
   }
 
   get name() {

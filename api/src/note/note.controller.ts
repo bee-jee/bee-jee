@@ -52,14 +52,11 @@ class NoteController implements Controller, WsController {
       }
     });
 
-    ws.on(Actions.ENTER_NOTE, async (payload: any) => {
+    ws.on(Actions.ENTER_NOTE, (payload: any) => {
       if (!authWsMiddleware(ws)) {
         return;
       }
-      const sharedNote = await this.noteService.getOrCreateWSSharedNote(payload._id);
-      if (sharedNote) {
-        this.noteService.sendSyncAll(ws, sharedNote);
-      }
+      this.noteService.getOrCreateWSSharedNote(payload._id);
     });
 
     ws.on(Actions.USER_LEFT, () => {
@@ -73,6 +70,38 @@ class NoteController implements Controller, WsController {
       const sharedNote = this.noteService.getWSSharedNote(payload._id);
       if (sharedNote) {
         this.noteService.sendSyncAll(ws, sharedNote);
+      }
+    });
+
+    ws.on(Actions.CONTENT_SYNC_STEP1, (payload: any) => {
+      if (!authWsMiddleware(ws)) {
+        return;
+      }
+      const sharedNote = this.noteService.getWSSharedNote(payload._id);
+      if (sharedNote) {
+        const stateVector = stringToArray(payload.stateVector);
+        this.noteService.syncStateVector(ws, sharedNote, stateVector);
+      } else {
+        ws.send(JSON.stringify({
+          action: Actions.NOTE_NOT_FOUND,
+          payload: payload._id,
+        }));
+      }
+    });
+
+    ws.on(Actions.CONTENT_SYNC_STEP2, (payload: any) => {
+      if (!authWsMiddleware(ws)) {
+        return;
+      }
+      const sharedNote = this.noteService.getWSSharedNote(payload._id);
+      if (sharedNote) {
+        const diff = stringToArray(payload.diff);
+        this.noteService.syncUpdates(sharedNote, diff);
+      } else {
+        ws.send(JSON.stringify({
+          action: Actions.NOTE_NOT_FOUND,
+          payload: payload._id,
+        }));
       }
     });
 
