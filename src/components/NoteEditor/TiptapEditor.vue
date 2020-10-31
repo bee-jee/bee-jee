@@ -441,7 +441,10 @@ export default {
       this.$store.dispatch('editNoteTitle', {
         _id: this.note._id,
         title: this.editedNoteTitle,
-      });
+      })
+        .then(() => {
+          this.$modal.hide('editTitle');
+        });
     },
     onTableMenuHidden() {
       this.$store.commit('setPosition', { top: 0, left: 0 });
@@ -459,6 +462,9 @@ export default {
     },
     getUserTextColor(bgColor) {
       return getTextColorFromBackground(bgColor).toHexString();
+    },
+    showEditTitle() {
+      this.$modal.show('editTitle');
     },
   },
   watch: {
