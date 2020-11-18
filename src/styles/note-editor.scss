@@ -285,6 +285,7 @@ $hover-background: darken($primary, 25%);
 .editor-wrapper {
     flex: 1;
     position: relative;
+    width: 100%;
 }
 
 .dropdown-item {
