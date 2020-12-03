@@ -2,6 +2,18 @@
   <div class="editor h-100">
     <editor-menu-bar :editor="editor" v-slot="{ commands, isActive }">
       <div class="menubar d-flex justify-content-center" v-if="!readOnly" ref="menubar">
+        <modal name="linkModal" height="auto" :adaptive="true">
+          <form @submit.prevent="updateLink(commands)" class="p-3">
+            <h3>{{isUpdateLink ? 'Update link' : 'Add a link'}}</h3>
+            <div class="form-group">
+              <input type="text" class="form-control" v-model="link" />
+            </div>
+            <div class="text-right">
+              <button type="button" class="btn btn-secondary mr-2" @click="closeInsertLink">Cancel</button>
+              <button class="btn btn-primary">Save changes</button>
+            </div>
+          </form>
+        </modal>
         <button class="menubar__button" @click="$parent.handleShowEditShare" title="Share" v-if="isOwner">
           <i class="fas fa-share-alt"></i>
         </button>
@@ -95,19 +107,35 @@
             <mt-icon :path="mdiFormatColorText" />
             <span class="color-under-bar" :style="{ background: getTextColor() }"></span>
           </template>
-          <color-selector @select="selectColorText($event, commands)">
-            Default
-          </color-selector>
+          <color-selector @select="selectColorText($event, commands)"> Default </color-selector>
         </group-button>
 
         <button
           class="menubar__button"
-          :class="{ 'is-active': isActive.code_block() }"
+          :class="{ 'active': isActive.code_block() }"
           @click="commands.code_block"
           title="Code block"
         >
           <mt-icon :path="mdiCodeTags" />
         </button>
+
+        <group-button
+          :toggle-class="`button__text ${isActive.link() ? 'active' : ''}`"
+          @click="insertLinkClick($event, isActive)"
+          :disabled="!canLink(isActive)"
+        >
+          <template v-slot:button-content>
+            <mt-icon :path="mdiLinkPlus" />
+          </template>
+          <template v-if="isActive.link()">
+            <b-dropdown-item @click="showUpdateLink">
+              <slot name="label">Update link</slot>
+            </b-dropdown-item>
+            <b-dropdown-item @click="removeLink(commands)">
+              <slot name="label">Remove link</slot>
+            </b-dropdown-item>
+          </template>
+        </group-button>
 
         <group-button toggle-class="button__text">
           <template v-slot:button-content><strong>Heading</strong></template>
@@ -197,14 +225,10 @@
           :id="`online-user-${userCursor.id}`"
         >
           <div class="user-initials">
-            {{userCursor.initials}}
+            {{ userCursor.initials }}
           </div>
-          <b-popover
-            :target="`online-user-${userCursor.id}`"
-            triggers="hover focus"
-            placement="bottom"
-          >
-            {{userCursor.name}}
+          <b-popover :target="`online-user-${userCursor.id}`" triggers="hover focus" placement="bottom">
+            {{ userCursor.name }}
           </b-popover>
         </button>
       </div>
@@ -264,6 +288,8 @@ import {
   mdiRedoVariant,
   mdiCodeTags,
   mdiGrid,
+  mdiLinkPlus,
+  mdiLink,
 } from '@mdi/js';
 import GeminiScrollbar from 'gemini-scrollbar';
 import { debounce } from 'vue-debounce';
@@ -282,12 +308,15 @@ import {
   TableCellMenu,
   TextColor,
   getTextColor,
+  SelectionPlaceholder,
+  getSelectedText,
 } from '../../tiptap';
 import GroupButton from './GroupButton';
 import SubMenu from './SubMenu';
 import TableGridSizeEditor from './TableGridSizeEditor';
 import ColorSelector from './ColorSelector';
 import { getTextColorFromBackground } from '../../../common/collab';
+import { isValidURL } from '../../helpers/url';
 
 const SHADOW_SCROLL_TOP_THRESHOLD = 200;
 
@@ -323,6 +352,10 @@ export default {
       mdiRedoVariant,
       mdiCodeTags,
       mdiGrid,
+      mdiLinkPlus,
+      mdiLink,
+      link: '',
+      isUpdateLink: false,
     };
   },
   computed: {
@@ -365,6 +398,9 @@ export default {
       new TableRow(),
       new TableCellMenu(),
       new TextColor(),
+      new SelectionPlaceholder({
+        store: this.$store,
+      }),
     ];
     const { note } = this;
     if (note) {
@@ -384,7 +420,6 @@ export default {
         }
       },
       disableInputRules: true,
-      disablePasteRules: true,
     });
     this.editor = editor;
   },
@@ -439,6 +474,48 @@ export default {
     },
     getUserTextColor(bgColor) {
       return getTextColorFromBackground(bgColor).toHexString();
+    },
+    insertLinkClick(e, isActive) {
+      if (!isActive.link()) {
+        e.preventDefault();
+        return this.showInsertLink();
+      }
+    },
+    showInsertLink() {
+      this.isUpdateLink = false;
+      const selectedText = getSelectedText(this.editor);
+      if (isValidURL(selectedText)) {
+        this.link = selectedText;
+      }
+      this.$store.commit('setEditorSelection', this.editor.selection);
+      this.$modal.show('linkModal');
+    },
+    showUpdateLink() {
+      const { link } = this.editor.activeMarkAttrs;
+      this.link = link.href;
+      this.isUpdateLink = true;
+      this.$modal.show('linkModal');
+    },
+    closeInsertLink() {
+      this.link = '';
+      this.$modal.hide('linkModal');
+      this.editor.focus();
+      this.$store.commit('setEditorSelection', {});
+      this.isUpdateLink = false;
+    },
+    updateLink({ link }) {
+      link({ href: this.link });
+      this.closeInsertLink();
+    },
+    removeLink({ link }) {
+      link({ href: null });
+    },
+    canLink(isActive) {
+      if (isActive.link()) {
+        return true;
+      }
+      const { selection } = this.editor;
+      return selection.from !== selection.to;
     },
   },
   watch: {

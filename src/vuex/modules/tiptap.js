@@ -5,12 +5,14 @@ const state = {
     top: undefined,
     left: undefined,
   },
+  selection: {},
 };
 
 const getters = {
   dropdown: state => state.dropdown,
   setMenubar: state => state.menubar,
   tableMenuPosition: state => state.position,
+  selection: state => state.selection,
 };
 
 const actions = {
@@ -26,6 +28,9 @@ const mutations = {
   },
   setPosition(state, { top, left }) {
     state.position = { top, left };
+  },
+  setEditorSelection(state, payload) {
+    state.selection = payload;
   },
 };
 
