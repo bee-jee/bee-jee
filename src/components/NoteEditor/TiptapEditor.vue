@@ -310,6 +310,7 @@ import {
   getTextColor,
   SelectionPlaceholder,
   getSelectedText,
+  TextSelection,
 } from '../../tiptap';
 import GroupButton from './GroupButton';
 import SubMenu from './SubMenu';
@@ -398,6 +399,7 @@ export default {
       new TableRow(),
       new TableCellMenu(),
       new TextColor(),
+      new TextSelection(),
       new SelectionPlaceholder({
         store: this.$store,
       }),
