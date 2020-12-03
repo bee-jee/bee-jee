@@ -2,8 +2,9 @@
   <div class="d-inline">
     <b-dropdown
       variant="link"
-      :toggle-class="`menubar__button text-decoration-none ${toggleClass}`"
+      :toggle-class="`menubar__button text-decoration-none ${toggleClass} ${disabled ? 'disabled' : ''}`"
       no-caret
+      @show="handleToggleClick"
       @shown="onMenuShown"
       @hidden="onMenuHidden"
       ref="menu"
@@ -31,6 +32,15 @@ export default {
       type: String,
       default: '',
     },
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  computed: {
+    hasDefaultSlot() {
+      return !!this.$slots.default;
+    },
   },
   methods: {
     onMenuShown() {
@@ -41,6 +51,9 @@ export default {
     },
     hide() {
       this.$refs.menu.hide();
+    },
+    handleToggleClick(e) {
+      this.$emit('click', e);
     },
   },
   watch: {

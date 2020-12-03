@@ -1,3 +1,5 @@
+$selection-highlight: rgba(152, 204, 253, 0.8);
+
 .note-editor,
 .note-editor-container {
     height: 100%;
@@ -378,4 +380,8 @@ $hover-background: darken($primary, 25%);
 
 .online-user {
     border-radius: 50%;
+}
+
+.selection-placeholder {
+    background-color: $selection-highlight !important;
 }
