@@ -1,1 +1,1 @@
-export { default as TextSelection } from './textSelection';
+export * from './textColor';

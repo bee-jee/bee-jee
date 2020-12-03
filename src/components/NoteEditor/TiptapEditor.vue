@@ -274,19 +274,19 @@ import {
   ListItem,
   OrderedList,
   Tab,
-  TextSelection,
   MarkdownPreview,
   Cursor,
   Image,
   BulletList,
   Realtime,
   TableCellMenu,
+  TextColor,
+  getTextColor,
 } from '../../tiptap';
 import GroupButton from './GroupButton';
 import SubMenu from './SubMenu';
 import TableGridSizeEditor from './TableGridSizeEditor';
 import ColorSelector from './ColorSelector';
-import { getTextColor } from '../../tiptap/commands/color';
 import { getTextColorFromBackground } from '../../../common/collab';
 
 const SHADOW_SCROLL_TOP_THRESHOLD = 200;
@@ -350,7 +350,6 @@ export default {
       new Strike(),
       new Underline(),
       new History(),
-      new TextSelection(),
       new MarkdownPreview(),
       new Image(),
       new Tab(),
@@ -365,6 +364,7 @@ export default {
       new TableCell(),
       new TableRow(),
       new TableCellMenu(),
+      new TextColor(),
     ];
     const { note } = this;
     if (note) {
@@ -430,9 +430,7 @@ export default {
     },
     selectColorText(hexColor, commands) {
       this.$refs.colorText.hide();
-      commands.paragraph({
-        color: hexColor,
-      });
+      commands.markTextColor({ color: hexColor });
     },
     getTextColor() {
       if (this.editor) {

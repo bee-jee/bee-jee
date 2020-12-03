@@ -3,7 +3,6 @@ import { Node } from 'tiptap';
 import setTextAlign from '../commands/textAlign';
 import { PARAGRAPH } from './names';
 import { MIN_INDENT_LEVEL } from '../commands/indentation';
-import { setTextColor } from '../commands/color';
 
 // This assumes that every 36pt maps to one indent level.
 export const INDENT_MARGIN_PT_SIZE = 36;
@@ -137,9 +136,6 @@ export class Paragraph extends Node {
       let tr = {};
       if ('align' in attrs) {
         tr = setTextAlign(state.tr.setSelection(selection), schema, attrs.align);
-      }
-      if ('color' in  attrs) {
-        tr = setTextColor(state.tr.setSelection(selection), schema, attrs.color);
       }
       if (tr.docChanged) {
         dispatch && dispatch(tr);
