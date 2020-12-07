@@ -2,8 +2,8 @@
   <div class="position-relative">
     <router-link
       :to="getNoteUrl(note)"
-      class="note-explorer-item p-1 row no-gutters"
-      :class="{active: selectedNote._id === note._id}"
+      class="note-explorer-item p-1 row no-gutters pr-3"
+      :class="{ active: selectedNote._id === note._id }"
       :title="note.title"
     >
       <div class="col-auto">
