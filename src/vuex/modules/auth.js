@@ -37,12 +37,13 @@ const actions = {
         password,
       });
       commit('setToken', resp.data.accessToken);
-      commit('setRefreshToken', resp.data.refreshToken);
+      commit('setRefreshToken', resp.data);
       commit('setUser', resp.data.user);
     } catch (err) {
       if (err.response && err.response.status === 401) {
         commit('setLoginError', err.response.data.message);
       } else {
+        console.error(err);
         commit('setLoginError', err.message);
       }
     } finally {
@@ -69,7 +70,7 @@ const actions = {
         refreshToken: getters.refreshToken,
       }, { skipAuthRefresh: true });
       commit('setToken', data.accessToken);
-      commit('setRefreshToken', data.refreshToken);
+      commit('setRefreshToken', data);
       commit('setUser', data.user);
     } catch (err) {
       commit('setLogoutSource', 'API');
@@ -119,8 +120,18 @@ const mutations = {
     }
   },
   setRefreshToken(state, token) {
+    let expires = undefined;
+    if (typeof token === 'object') {
+      if ('refreshTokenExpiresAt' in token) {
+        expires = new Date(token.refreshTokenExpiresAt);
+      }
+      token = token.refreshToken;
+    }
     state.refreshToken = token;
-    Cookie.set('refreshToken', token, cookieOptions);
+    Cookie.set('refreshToken', token, {
+      ...cookieOptions,
+      expires,
+    });
   },
   setLoginError(state, message) {
     state.loginError = message;
