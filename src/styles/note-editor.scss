@@ -258,8 +258,10 @@ $hover-background: darken($primary, 25%);
 [data-decor-del] {
     text-decoration: line-through;
 }
-[data-decor-list] {
-    margin-left: 0.5rem;
+p, div {
+    > [data-decor-list]:first-child {
+        margin-left: 0.5rem;
+    }
 }
 .editor-top-shadow {
     z-index: 1;
