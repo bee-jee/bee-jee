@@ -250,7 +250,10 @@ export const mutations = {
   },
   // setSelectedNote replaces the current selectedNote with the new one
   setSelectedNote(state, { note, token }) {
-    note.content = new Y.Doc();
+    const isValidNote = note && note._id;
+    if (isValidNote) {
+      note.content = new Y.Doc();
+    }
     if (state.wsProvider) {
       state.wsProvider.destroy();
       state.awareness.destroy();
@@ -259,7 +262,7 @@ export const mutations = {
       ...note,
       contentVersion: 0,
     };
-    if (note._id) {
+    if (isValidNote) {
       const awareness = new Awareness(note.content);
       state.wsProvider = new WebsocketProvider(process.env.VUE_APP_WS_URL, note._id, note.content, {
         params: {
