@@ -407,7 +407,7 @@ export default {
     const { note } = this;
     if (note) {
       extensions.push(new Realtime(note));
-      extensions.push(new Cursor({ note, store: this.$store }));
+      extensions.push(new Cursor({ awareness: this.$store.getters.wsProvider.awareness, }));
       this.editedNoteTitle = note.title;
     }
     const editor = new Editor({

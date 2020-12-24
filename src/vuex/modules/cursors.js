@@ -1,5 +1,4 @@
 import { Actions } from '../../../common/collab';
-import { wsSend } from '../../helpers/ws';
 
 const state = {
   allUserCursorIds: [],
@@ -19,12 +18,6 @@ const actions = {
     if (!_id ) {
       return;
     }
-    wsSend({
-      action: Actions.ENTER_NOTE,
-      payload: {
-        _id,
-      },
-    });
   },
   [Actions.NOTE_ENTERED]({ commit }, data) {
     const { id, color, name, initials, currCursors } = data.payload;
@@ -38,35 +31,13 @@ const actions = {
       commit('appendUserCursor', cursor);
     });
   },
-  leaveNote({ getters }, { _id }) {
+  leaveNote({ getters }) {
     if (!getters.current.id) {
       return;
     }
-    wsSend({
-      action: Actions.USER_LEFT,
-      payload: {
-        _id,
-        id: getters.current.id,
-      },
-    });
   },
-  changeCursor({ getters, commit }, { note, index, length }) {
-    const { index: currIndex, length: currLength } = getters.current;
-    commit('setCurrent', {
-      index,
-      length,
-    });
-    if (getters.current.id && (index !== currIndex || length !== currLength) && getters.isLoggedIn) {
-      wsSend({
-        action: Actions.CURSOR_UPDATED,
-        payload: {
-          _id: note._id,
-          id: getters.current.id,
-          index,
-          length,
-        },
-      });
-    }
+  changeCursor() {
+
   },
   [Actions.USER_ENTERED]({ commit }, data) {
     const { id, color, name, initials } = data.payload;

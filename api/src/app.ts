@@ -2,7 +2,6 @@ import express from 'express';
 import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import WebSocket from 'ws';
 import http from 'http';
 import * as path from 'path';
 import { container } from 'tsyringe';
@@ -16,8 +15,6 @@ class App {
   public app: express.Application;
 
   public server: http.Server;
-
-  public wss: WebSocket.Server;
 
   constructor(public configService: ConfigService, public controllers: Controller[]) {
     this.app = express();

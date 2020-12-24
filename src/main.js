@@ -21,12 +21,9 @@ import {
   faChevronDown,
 } from '@fortawesome/free-solid-svg-icons';
 import App from './App.vue';
-import VueNativeSock from 'vue-native-websocket';
 import Axios from 'axios';
 import createAuthRefreshInterceptor from 'axios-auth-refresh';
 import { apiUrl } from './helpers/url';
-import './helpers/ws';
-import { initialiseWsFromVue } from './helpers/ws';
 import GeminiScrollbar from './components/utilities/GeminiScrollbar';
 import Icon from './components/utilities/Icon';
 import MtIcon from './components/utilities/MtIcon';
@@ -50,20 +47,6 @@ Vue.component('gemini-scrollbar', GeminiScrollbar);
 Vue.component('icon', Icon);
 Vue.component('mt-icon', MtIcon);
 Vue.use(VueRouter);
-Vue.use(VueNativeSock, process.env.VUE_APP_WS_URL, {
-  store,
-  format: 'JSON',
-  reconnection: true,
-  reconnectionDelay: 5000,
-  connectManually: true,
-  passToStoreHandler: function (eventName, event, next) {
-    if (eventName === 'SOCKET_onopen') {
-      store.dispatch('SOCKET_ONOPEN', event);
-      return;
-    }
-    next(eventName, event);
-  },
-});
 Vue.use(VModal);
 
 Axios.defaults.baseURL = apiUrl('/');
@@ -73,10 +56,8 @@ Axios.defaults.headers.common['Authorization'] = `Bearer ${store.getters.token}`
 
 createAuthRefreshInterceptor(Axios, createRefreshAuth(store, router));
 
-const app = new Vue({
+new Vue({
   render: (h) => h(App),
   store,
   router,
 }).$mount('#app');
-
-initialiseWsFromVue(app);

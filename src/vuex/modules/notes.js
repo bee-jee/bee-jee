@@ -1,8 +1,9 @@
 import Axios from 'axios';
 import Vue from 'vue';
+import { Awareness } from 'y-protocols/awareness';
+import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
-import { arrayToString, Actions, stringToArray } from '../../../common/collab';
-import { wsSend } from '../../helpers/ws';
+import { Actions, stringToArray } from '../../../common/collab';
 
 export const state = {
   // allIds contains only the notes' IDs, the reason
@@ -28,6 +29,8 @@ export const state = {
   numOfAllUnviewedNotes: '',
   showCreateNoteModal: false,
   newNoteParent: {},
+  wsProvider: null,
+  awareness: null,
 };
 
 export const getters = {
@@ -52,6 +55,8 @@ export const getters = {
   newNoteParent: state => state.newNoteParent,
   allMyNotesTree: (state, getters) => buildNoteTree(getters.allMyNotes),
   allSharedNotesTree: (state, getters) => buildNoteTree(getters.allSharedNotes),
+  wsProvider: (state) => state.wsProvider,
+  websocketIsConnected: (state) => state.wsProvider ? state.wsProvider.wsconnected : false,
 };
 
 export const actions = {
@@ -100,12 +105,12 @@ export const actions = {
       commit('setIsCreatingNote', false);
     }
   },
-  async setSelectedNote({ commit }, { _id }) {
+  async setSelectedNote({ commit, getters }, { _id }) {
     commit('setIsLoadingSelectedNote', true);
     try {
       const resp = await Axios.get(`/note/${_id}`);
       const note = resp.data;
-      commit('setSelectedNote', note);
+      commit('setSelectedNote', { note, token: getters.token });
     } catch (err) {
       console.error(err);
     } finally {
@@ -244,18 +249,25 @@ export const mutations = {
     state.byIds[newNote._id] = newNote;
   },
   // setSelectedNote replaces the current selectedNote with the new one
-  setSelectedNote(state, note) {
+  setSelectedNote(state, { note, token }) {
     note.content = new Y.Doc();
-    // Make sure we don't subscribe to the previous selected note
-    if (state.selectedNote._id) {
-      unsubscribeContentUpdate(state.selectedNote);
+    if (state.wsProvider) {
+      state.wsProvider.destroy();
+      state.awareness.destroy();
     }
     state.selectedNote = {
       ...note,
       contentVersion: 0,
     };
     if (note._id) {
-      subscribeContentUpdate(note);
+      const awareness = new Awareness(note.content);
+      state.wsProvider = new WebsocketProvider(process.env.VUE_APP_WS_URL, note._id, note.content, {
+        params: {
+          access_token: token,
+        },
+        awareness,
+      });
+      state.awareness = awareness;
     }
   },
   // The reason we want to store toDeleteNote in the state is that we can
@@ -360,25 +372,6 @@ export const mutations = {
     state.newNoteParent = parent;
   },
 };
-
-const subscribeContentUpdate = (note) => {
-  note.content.on('update', (update, origin) => {
-    if (origin !== null && origin === 'ws') {
-      return;
-    }
-    wsSend({
-      action: Actions.CONTENT_UPDATED,
-      payload: {
-        id: note._id,
-        mergeChanges: arrayToString(update),
-      },
-    });
-  });
-};
-
-const unsubscribeContentUpdate = (note) => {
-  note.content.off('update');
-}
 
 export default {
   state,
