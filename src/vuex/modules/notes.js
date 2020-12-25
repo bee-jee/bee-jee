@@ -3,7 +3,9 @@ import Vue from 'vue';
 import { Awareness } from 'y-protocols/awareness';
 import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
-import { Actions, stringToArray } from '../../../common/collab';
+import * as encoding from 'lib0/encoding';
+import { withBeeJeeAwareness } from '../../helpers/ws';
+import { messageAwarenessUserInfo } from '../../../common/collab';
 
 export const state = {
   // allIds contains only the notes' IDs, the reason
@@ -31,6 +33,8 @@ export const state = {
   newNoteParent: {},
   wsProvider: null,
   awareness: null,
+  userCursorByIds: {},
+  userCursorIds: [],
 };
 
 export const getters = {
@@ -57,6 +61,11 @@ export const getters = {
   allSharedNotesTree: (state, getters) => buildNoteTree(getters.allSharedNotes),
   wsProvider: (state) => state.wsProvider,
   websocketIsConnected: (state) => state.wsProvider ? state.wsProvider.wsconnected : false,
+  allUserCursors: (state) => state.userCursorIds
+    .filter((id) => state.awareness.getLocalState().user
+      ? id !== state.awareness.getLocalState().user.id
+      : false)
+    .map((id) => state.userCursorByIds[id]),
 };
 
 export const actions = {
@@ -172,11 +181,6 @@ export const actions = {
     note.content.getText('text').applyDelta(ops);
     commit('setNoteContent', note);
   },
-  [Actions.CONTENT_SYNC_ALL]({ getters }, { payload }) {
-    const { selectedNote } = getters;
-    const update = stringToArray(payload);
-    Y.applyUpdate(selectedNote.content, update, 'ws');
-  },
   async clearSelectedNoteContent({ commit, getters }) {
     commit('setIsUpdatingNote', true);
     const { selectedNote } = getters;
@@ -254,6 +258,21 @@ export const mutations = {
     if (isValidNote) {
       note.content = new Y.Doc();
     }
+
+    const awarenessListener = ({ added, updated }) => {
+      const states = state.awareness.getStates();
+      added.concat(updated).some((clientID) => {
+        const aw = states.get(clientID);
+        if (!aw || !aw.isServer) {
+          return false;
+        }
+
+        state.userCursorByIds = aw.users;
+        state.userCursorIds = Object.keys(aw.users);
+
+        return true;
+      });
+    };
     if (state.wsProvider) {
       state.wsProvider.destroy();
       state.awareness.destroy();
@@ -270,7 +289,18 @@ export const mutations = {
         },
         awareness,
       });
+      state.wsProvider.on('status', ({ status }) => {
+        if (status === 'connected') {
+          const { ws } = state.wsProvider;
+          ws.onmessage = withBeeJeeAwareness(awareness, state.wsProvider.ws.onmessage);
+          const encoder = encoding.createEncoder();
+          encoding.writeVarUint(encoder, messageAwarenessUserInfo);
+          encoding.writeVarUint(encoder, awareness.doc.clientID);
+          ws.send(encoding.toUint8Array(encoder));
+        }
+      });
       state.awareness = awareness;
+      state.awareness.on('change', awarenessListener);
     }
   },
   // The reason we want to store toDeleteNote in the state is that we can

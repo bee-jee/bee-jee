@@ -3,7 +3,6 @@ import Vuex from 'vuex';
 import config from './modules/config';
 import notes from './modules/notes';
 import auth from './modules/auth';
-import cursors from './modules/cursors';
 import user from './modules/user';
 import app from './modules/app';
 import tiptap from './modules/tiptap';
@@ -16,7 +15,6 @@ const store = new Vuex.Store({
     notes,
     config,
     auth,
-    cursors,
     user,
     app,
     tiptap,

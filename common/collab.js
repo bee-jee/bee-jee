@@ -1,17 +1,7 @@
 import * as Y from 'yjs';
 import tinycolor from 'tinycolor2';
 
-// Actions are the collaboration actions
-export const Actions = Object.freeze({
-  ENTER_NOTE: 'enterNote',
-  NOTE_ENTERED: 'noteEntered',
-  USER_ENTERED: 'userEntered',
-  USER_LEFT: 'userLeft',
-  CURSOR_UPDATED: 'cursorUpdated',
-  CONTENT_SYNC_ALL: 'contentSyncAll',
-  CONTENT_UPDATED: 'contentUpdated',
-  NOT_AUTHENTICATED: 'notAuthenticated',
-});
+export const messageAwarenessUserInfo = 4;
 
 // Colors are the possible colors that a room (note) can assign
 // to cursors, if there are more users than this the index should

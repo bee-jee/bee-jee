@@ -7,10 +7,13 @@ import { User } from '../user/user.interface';
 import RequestWithUser from '../interfaces/requestWithUser.interface';
 
 export interface WebSocketWithBeeJee extends WebSocket {
-  isAlive?: boolean;
   user: (User & Document);
   token: OAuth2Server.Token;
-  cursorIds?: Map<string, string>;
+  counter: number;
+}
+
+export function isWSBeeJee(conn: WebSocket): conn is WebSocketWithBeeJee {
+  return 'user' in conn;
 }
 
 export interface WsServerResponse extends http.ServerResponse {

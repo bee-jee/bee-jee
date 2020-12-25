@@ -6,7 +6,6 @@ import NoteController from './note/note.controller';
 import AuthenticationController from './authentication/authentication.controller';
 import UserController from './user/user.controller';
 import ConfigService from './config/config.service';
-import initialiseYWebsocket from './y-websocket';
 
 require('source-map-support').install();
 
@@ -22,6 +21,6 @@ const app = new App(config, [
   make(UserController),
 ]);
 
-initialiseYWebsocket(app.server);
+require('./y-websocket').install(app.server);
 
 app.listen();

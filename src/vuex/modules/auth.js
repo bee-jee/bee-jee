@@ -1,6 +1,5 @@
 import Cookie from 'js-cookie';
 import Axios from 'axios';
-import { Actions } from '../../../common/collab';
 
 const env = {
   VUE_APP_IS_HTTPS: process.env.VUE_APP_IS_HTTPS === '1' || process.env.VUE_APP_IS_HTTPS === 'true',
@@ -89,9 +88,6 @@ const actions = {
         commit('setUser', {});
       }
     }
-  },
-  async [Actions.NOT_AUTHENTICATED]({ dispatch }) {
-    await dispatch('refreshToken');
   },
 };
 

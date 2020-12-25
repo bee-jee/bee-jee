@@ -21,13 +21,40 @@ import RequestWithUser from './interfaces/requestWithUser.interface';
 import { authMiddleware } from './middleware/auth.middleware';
 import { isWsServerResponse, WsServerResponse } from './websocket/websocket.interface';
 import HttpException from './exceptions/HttpException';
-import { Colors } from '../../common/collab';
+import { Colors, messageAwarenessUserInfo } from '../../common/collab';
 
 const wsReadyStateConnecting = 0;
 const wsReadyStateOpen = 1;
 
 const messageSync = 0;
 const messageAwareness = 1;
+
+type UserInfo = {
+  id: string;
+  name: string;
+  color: string;
+  initials: string;
+};
+
+const updateDocAwareness = (doc: any) => {
+  doc.awareness.setLocalState({
+    isServer: true,
+    users: Array.from(doc.clientUserMap.values()).reduce((users: any, info: any) => {
+      users[info.id] = info;
+      return users;
+    }, {}),
+  });
+};
+
+const addUser = (doc: any, conn: WebSocket, userInfo: UserInfo) => {
+  doc.clientUserMap.set(conn, userInfo);
+  updateDocAwareness(doc);
+};
+
+const removeUser = (doc: any, conn: WebSocket) => {
+  doc.clientUserMap.delete(conn);
+  updateDocAwareness(doc);
+};
 
 const closeConn = (doc: any, conn: WebSocket) => {
   if (doc.conns.has(conn)) {
@@ -43,6 +70,7 @@ const closeConn = (doc: any, conn: WebSocket) => {
       docs.delete(doc.name);
     }
   }
+  removeUser(doc, conn);
   conn.close();
 };
 
@@ -70,34 +98,27 @@ const messageListener = (conn: WebSocket, doc: any, message: Uint8Array) => {
       }
       break;
     case messageAwareness: {
-      const update = decoding.readVarUint8Array(decoder);
-      const updateDecoder = decoding.createDecoder(update);
-      const updateEncoder = encoding.createEncoder();
-      const len = decoding.readVarUint(updateDecoder);
-      const states = doc.awareness.getStates();
-      encoding.writeVarUint(updateEncoder, len);
-
-      for (let i = 0; i < len; i++) {
-        const clientID = decoding.readVarUint(updateDecoder);
-        const clock = decoding.readVarUint(updateDecoder);
-        const state = JSON.parse(decoding.readVarString(updateDecoder));
-        const currentState = states.get(clientID);
-        const modifiedState = {
-          ...state,
-          user: currentState ? currentState.user || {} : {},
-        };
-        encoding.writeVarUint(updateEncoder, clientID);
-        encoding.writeVarUint(updateEncoder, clock);
-        encoding.writeVarString(updateEncoder, JSON.stringify(modifiedState));
-      }
-
-      const modifiedUpdate = encoding.toUint8Array(updateEncoder);
-      awarenessProtocol.applyAwarenessUpdate(doc.awareness, modifiedUpdate, conn);
+      const update = awarenessProtocol.modifyAwarenessUpdate(
+        decoding.readVarUint8Array(decoder),
+        (state: { cursor: any } | null) => ({
+          cursor: (state || {}).cursor,
+          user: doc.clientUserMap.get(conn),
+        }),
+      );
+      awarenessProtocol.applyAwarenessUpdate(doc.awareness, update, conn);
       break;
     }
     default:
       break;
   }
+};
+
+const sendUserInfo = (doc: any, conn: WebSocket, userInfo: UserInfo) => {
+  const encoder = encoding.createEncoder();
+  encoding.writeVarUint(encoder, messageAwarenessUserInfo);
+  encoding.writeVarString(encoder, 'user');
+  encoding.writeVarString(encoder, JSON.stringify(userInfo));
+  send(doc, conn, encoding.toUint8Array(encoder));
 };
 
 const pingTimeout = 30000;
@@ -113,7 +134,18 @@ const setupWSConnection = (
   if (!doc.colorCounter) {
     doc.colorCounter = 0;
   }
+  if (!doc.clientUserMap) {
+    doc.clientUserMap = new Map();
+  }
+  const userInfo: UserInfo = {
+    id: `${req.user._id.toString()}-${doc.colorCounter}`,
+    name: req.user.fullName || '',
+    color: Colors[doc.colorCounter % Colors.length],
+    initials: req.user.initials || '',
+  };
   doc.colorCounter++;
+  addUser(doc, conn, userInfo);
+  sendUserInfo(doc, conn, userInfo);
   doc.conns.set(conn, new Set());
   // listen and reply to events
   conn.on('message', (message) => messageListener(conn, doc, new Uint8Array(message as ArrayBuffer)));
@@ -151,24 +183,6 @@ const setupWSConnection = (
     encoding.writeVarUint(encoder, messageSync);
     syncProtocol.writeSyncStep1(encoder, doc);
     send(doc, conn, encoding.toUint8Array(encoder));
-    doc.awareness.on('change', ({ added }: { added: Array<number> }) => {
-      const states = doc.awareness.getStates();
-      added.forEach((clientId) => {
-        const state = states.get(clientId);
-
-        if (state) {
-          state.user = {
-            name: req.user.fullName || '',
-            initials: req.user.initials || '',
-            color: Colors[doc.colorCounter % Colors.length],
-          };
-          states.set(clientId, state);
-        }
-      });
-
-      awarenessProtocol.applyAwarenessUpdate(doc.awareness,
-        awarenessProtocol.encodeAwarenessUpdate(doc.awareness, Array.from(states.keys())), 'local');
-    });
     const awarenessStates = doc.awareness.getStates();
     if (awarenessStates.size > 0) {
       const awarenessEncoder = encoding.createEncoder();
@@ -217,5 +231,7 @@ const initialiseYWebsocket = (server: http.Server): WebSocket.Server => {
 
   return wss;
 };
+
+export const install = initialiseYWebsocket;
 
 export default initialiseYWebsocket;
