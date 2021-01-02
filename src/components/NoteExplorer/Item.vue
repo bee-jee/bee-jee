@@ -8,8 +8,8 @@
     >
       <div class="col-auto">
         <div class="note-item-expand" @click.prevent="toggleShowChildren">
-          <span class="expander" :class="{ collapsed: !showChildren }">
-            <mt-icon :path="mdiMenuDown"></mt-icon>
+          <span class="expander mx-1" :class="{ collapsed: !showChildren }">
+            <mt-icon :path="mdiChevronDown"></mt-icon>
           </span>
         </div>
       </div>
@@ -56,7 +56,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import {
-  mdiMenuDown,
+  mdiChevronDown,
 } from '@mdi/js';
 
 export default {
@@ -68,7 +68,7 @@ export default {
   data() {
     return {
       showChildren: true,
-      mdiMenuDown,
+      mdiChevronDown,
     };
   },
   computed: {

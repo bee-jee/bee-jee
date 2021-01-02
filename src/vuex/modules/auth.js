@@ -1,7 +1,5 @@
 import Cookie from 'js-cookie';
 import Axios from 'axios';
-import { connectToWs, disconnectToWs } from '../../helpers/ws';
-import { Actions } from '../../../common/collab';
 
 const env = {
   VUE_APP_IS_HTTPS: process.env.VUE_APP_IS_HTTPS === '1' || process.env.VUE_APP_IS_HTTPS === 'true',
@@ -91,10 +89,6 @@ const actions = {
       }
     }
   },
-  async [Actions.NOT_AUTHENTICATED]({ dispatch }) {
-    disconnectToWs();
-    await dispatch('refreshToken');
-  },
 };
 
 const cookieOptions = {
@@ -105,11 +99,6 @@ const cookieOptions = {
 const mutations = {
   setUser(state, user) {
     state.user = user;
-    if (user._id) {
-      connectToWs();
-    } else {
-      disconnectToWs();
-    }
   },
   setToken(state, token) {
     state.token = token;

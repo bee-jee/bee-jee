@@ -1,8 +1,11 @@
 import Axios from 'axios';
 import Vue from 'vue';
+import { Awareness } from 'y-protocols/awareness';
+import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
-import { arrayToString, Actions, stringToArray } from '../../../common/collab';
-import { wsSend } from '../../helpers/ws';
+import * as encoding from 'lib0/encoding';
+import { withBeeJeeAwareness } from '../../helpers/ws';
+import { messageAwarenessUserInfo } from '../../../common/collab';
 
 export const state = {
   // allIds contains only the notes' IDs, the reason
@@ -28,6 +31,10 @@ export const state = {
   numOfAllUnviewedNotes: '',
   showCreateNoteModal: false,
   newNoteParent: {},
+  wsProvider: null,
+  awareness: null,
+  userCursorByIds: {},
+  userCursorIds: [],
 };
 
 export const getters = {
@@ -52,6 +59,13 @@ export const getters = {
   newNoteParent: state => state.newNoteParent,
   allMyNotesTree: (state, getters) => buildNoteTree(getters.allMyNotes),
   allSharedNotesTree: (state, getters) => buildNoteTree(getters.allSharedNotes),
+  wsProvider: (state) => state.wsProvider,
+  websocketIsConnected: (state) => state.wsProvider ? state.wsProvider.wsconnected : false,
+  allUserCursors: (state) => state.userCursorIds
+    .filter((id) => state.awareness.getLocalState().user
+      ? id !== state.awareness.getLocalState().user.id
+      : false)
+    .map((id) => state.userCursorByIds[id]),
 };
 
 export const actions = {
@@ -100,12 +114,24 @@ export const actions = {
       commit('setIsCreatingNote', false);
     }
   },
-  async setSelectedNote({ commit }, { _id }) {
+  async setSelectedNote({ commit, getters }, { _id }) {
     commit('setIsLoadingSelectedNote', true);
     try {
       const resp = await Axios.get(`/note/${_id}`);
       const note = resp.data;
-      commit('setSelectedNote', note);
+      commit('setSelectedNote', { note, token: getters.token });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      commit('setIsLoadingSelectedNote', false);
+    }
+  },
+  async fetchPublicAccessNote({ commit, getters }, { _id }) {
+    commit('setIsLoadingSelectedNote', true);
+    try {
+      const resp = await Axios.get(`/note/public/${_id}`);
+      const note = resp.data;
+      commit('setSelectedNote', { note, token: getters.token });
     } catch (err) {
       console.error(err);
     } finally {
@@ -166,11 +192,6 @@ export const actions = {
   changeNoteContent({ commit }, { note, ops }) {
     note.content.getText('text').applyDelta(ops);
     commit('setNoteContent', note);
-  },
-  [Actions.CONTENT_SYNC_ALL]({ getters }, { payload }) {
-    const { selectedNote } = getters;
-    const update = stringToArray(payload);
-    Y.applyUpdate(selectedNote.content, update, 'ws');
   },
   async clearSelectedNoteContent({ commit, getters }) {
     commit('setIsUpdatingNote', true);
@@ -244,18 +265,54 @@ export const mutations = {
     state.byIds[newNote._id] = newNote;
   },
   // setSelectedNote replaces the current selectedNote with the new one
-  setSelectedNote(state, note) {
-    note.content = new Y.Doc();
-    // Make sure we don't subscribe to the previous selected note
-    if (state.selectedNote._id) {
-      unsubscribeContentUpdate(state.selectedNote);
+  setSelectedNote(state, { note, token }) {
+    const isValidNote = note && note._id;
+    if (isValidNote) {
+      note.content = new Y.Doc();
+    }
+
+    const awarenessListener = ({ added, updated }) => {
+      const states = state.awareness.getStates();
+      added.concat(updated).some((clientID) => {
+        const aw = states.get(clientID);
+        if (!aw || !aw.isServer) {
+          return false;
+        }
+
+        state.userCursorByIds = aw.users;
+        state.userCursorIds = Object.keys(aw.users);
+
+        return true;
+      });
+    };
+    if (state.wsProvider) {
+      state.wsProvider.destroy();
+      state.awareness.destroy();
     }
     state.selectedNote = {
       ...note,
       contentVersion: 0,
     };
-    if (note._id) {
-      subscribeContentUpdate(note);
+    if (isValidNote) {
+      const awareness = new Awareness(note.content);
+      state.wsProvider = new WebsocketProvider(process.env.VUE_APP_WS_URL, note._id, note.content, {
+        params: {
+          access_token: token,
+        },
+        awareness,
+      });
+      state.wsProvider.on('status', ({ status }) => {
+        if (status === 'connected') {
+          const { ws } = state.wsProvider;
+          ws.onmessage = withBeeJeeAwareness(awareness, state.wsProvider.ws.onmessage);
+          const encoder = encoding.createEncoder();
+          encoding.writeVarUint(encoder, messageAwarenessUserInfo);
+          encoding.writeVarUint(encoder, awareness.doc.clientID);
+          ws.send(encoding.toUint8Array(encoder));
+        }
+      });
+      state.awareness = awareness;
+      state.awareness.on('change', awarenessListener);
     }
   },
   // The reason we want to store toDeleteNote in the state is that we can
@@ -360,25 +417,6 @@ export const mutations = {
     state.newNoteParent = parent;
   },
 };
-
-const subscribeContentUpdate = (note) => {
-  note.content.on('update', (update, origin) => {
-    if (origin !== null && origin === 'ws') {
-      return;
-    }
-    wsSend({
-      action: Actions.CONTENT_UPDATED,
-      payload: {
-        id: note._id,
-        mergeChanges: arrayToString(update),
-      },
-    });
-  });
-};
-
-const unsubscribeContentUpdate = (note) => {
-  note.content.off('update');
-}
 
 export default {
   state,

@@ -234,7 +234,11 @@
       </div>
     </editor-menu-bar>
     <div class="editor-top-shadow" ref="editorTopShadow"></div>
-    <div class="editor-container position-relative" ref="editorContainer">
+    <div
+      class="editor-container position-relative"
+      ref="editorContainer"
+      :class="{ 'overflow-visible': isGuest }"
+    >
       <div ref="editor" class="editor-wrapper">
         <div class="editor-note-title">
           <input
@@ -326,6 +330,7 @@ export default {
     note: { type: Object },
     readOnly: { type: Boolean, default: false },
     isOwner: { type: Boolean, default: true },
+    isGuest: { type: Boolean, default: false },
   },
   components: {
     EditorMenuBar,
@@ -407,7 +412,7 @@ export default {
     const { note } = this;
     if (note) {
       extensions.push(new Realtime(note));
-      extensions.push(new Cursor({ note, store: this.$store }));
+      extensions.push(new Cursor({ awareness: this.$store.getters.wsProvider.awareness, }));
       this.editedNoteTitle = note.title;
     }
     const editor = new Editor({
@@ -529,7 +534,9 @@ export default {
           this.$nextTick(() => {
             el.appendChild(editor.element.firstChild);
             editor.setParentComponent(this);
-            this.initialiseScrollbar();
+            if (!this.isGuest) {
+              this.initialiseScrollbar();
+            }
           });
         }
       },

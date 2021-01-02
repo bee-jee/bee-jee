@@ -6,6 +6,7 @@ import { User } from '../user/user.interface';
 interface RequestWithUser extends Request {
   user: (User & Document);
   token: OAuth2Server.Token;
+  allowGuest: boolean | undefined;
 }
 
 export default RequestWithUser;

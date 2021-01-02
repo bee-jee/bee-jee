@@ -11,13 +11,6 @@ $selection-highlight: rgba(152, 204, 253, 0.8);
     font-size: 1rem;
     flex-basis: 0;
     flex-grow: 1;
-    background-color: $gray-200;
-
-    .gm-scroll-view,
-    &.gm-prevented {
-        display: flex;
-        flex-direction: row;
-    }
 }
 
 .editor {
@@ -45,20 +38,17 @@ $selection-highlight: rgba(152, 204, 253, 0.8);
 .ProseMirror,
 .editor-note-title {
     width: 100%;
-    max-width: 794px;
     margin-left: auto;
     margin-right: auto;
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16),
         0 3px 6px rgba(0, 0, 0, 0.23);
-    padding: 0.74rem 1rem;
+    padding: 0.74rem 1.5rem;
     background-color: $white;
 }
 
 .ProseMirror {
-    min-height: 100%;
-    height: auto;
     margin-top: 0;
-    margin-bottom: 6rem;
+    flex: auto;
 
     &:focus {
         outline: none;
@@ -287,9 +277,13 @@ p, div {
     z-index: 1;
 }
 .editor-wrapper {
-    flex: 1;
     position: relative;
-    width: 100%;
+    min-height: 100%;
+    height: auto;
+    padding-bottom: 6rem;
+    display: flex;
+    flex-direction: column;
+    box-sizing: content-box;
 }
 
 .dropdown-item {
@@ -386,4 +380,8 @@ p, div {
 
 .selection-placeholder {
     background-color: $selection-highlight !important;
+}
+
+.overflow-visible {
+    overflow: visible !important;
 }

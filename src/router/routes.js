@@ -31,6 +31,14 @@ const routes = [
     },
     children: [
       {
+        path: '/guest/:id',
+        name: 'view-guest-access-note',
+        component: () => import('../components/GuestAccess'),
+        meta: {
+          requiresGuest: true,
+        },
+      },
+      {
         path: '/',
         component: SidebarLayout,
         children: [

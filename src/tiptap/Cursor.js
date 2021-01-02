@@ -1,7 +1,7 @@
 import { Extension, Plugin } from 'tiptap';
 import { Decoration, DecorationSet } from 'prosemirror-view';
 import tinycolor from 'tinycolor2';
-import { setMeta } from 'y-prosemirror';
+import { setMeta, ySyncPluginKey } from 'y-prosemirror';
 import { relativeCoordsAt } from './utils/coords';
 
 const cursorBuilder = ({ color, name, left, top, width, height }) => {
@@ -39,30 +39,25 @@ const cursorBuilder = ({ color, name, left, top, width, height }) => {
 const cursorPluginKey = 'cursorPlugin';
 
 export default class Cursor extends Extension {
-  constructor() {
-    super(...arguments);
-    this.cursors = new Map();
-  }
-
   get name() {
     return 'cursor';
   }
 
   get plugins() {
-    const { store, note } = this.options;
+    const { awareness } = this.options;
     return [
       new Plugin({
         state: {
           init() {
             return DecorationSet.empty;
           },
-          apply: (tr, old) => {
+          apply: (tr, old, prevState, newState) => {
             const cursorMeta = tr.getMeta(cursorPluginKey);
             if (cursorMeta && cursorMeta.updated) {
               try {
-                return this.createDecorations(tr.doc, cursorMeta.view);
+                return this.createDecorations(newState, awareness, cursorMeta.view);
               } catch (err) {
-                return old;
+                console.error(err);
               }
             }
             return old;
@@ -74,61 +69,29 @@ export default class Cursor extends Extension {
           },
         },
         view: (view) => {
-          const unsubscribe = store.subscribe((mutation) => {
-            switch (mutation.type) {
-              case 'appendUserCursor': {
-                const { id, name, index, length, color } = mutation.payload;
-                this.createCursor(id, name, color);
-                if (index !== undefined && length !== undefined) {
-                  this.moveCursor(id, {
-                    index,
-                    length,
-                  });
-                }
-                setMeta(view, cursorPluginKey, { view, updated: true });
-                break;
-              }
-              case 'removeUserCursor': {
-                const { id } = mutation.payload;
-                this.removeCursor(id);
-                setMeta(view, cursorPluginKey, { view, updated: true });
-                break;
-              }
-              case 'updateUserCursor': {
-                const { id, index, length } = mutation.payload;
-                this.moveCursor(id, {
-                  index,
-                  length,
-                });
-                setMeta(view, cursorPluginKey, { view, updated: true });
-                break;
-              }
+          const awarenessListener = () => {
+            if (view.docView) {
+              setMeta(view, cursorPluginKey, { view, updated: true });
             }
-          });
+          };
           const updateCursor = () => {
             if (!view.editable) {
               return;
             }
             if (!view.hasFocus()) {
-              store.dispatch('changeCursor', {
-                note,
-                index: undefined,
-                length: undefined,
-              });
+              awareness.setLocalStateField('cursor', null);
               return;
             }
             const { selection } = view.state;
             const { anchor, head } = selection;
-            const index = anchor;
-            const length = head - anchor;
-            store.dispatch('changeCursor', {
-              note, index, length,
-            });
+            awareness.setLocalStateField('cursor', { anchor, head });
           };
+          awareness.on('change', awarenessListener);
           return {
             update: updateCursor,
             destroy: () => {
-              unsubscribe();
+              awareness.off('change', awarenessListener);
+              awareness.setLocalStateField('cursor', null);
             },
           };
         },
@@ -136,45 +99,27 @@ export default class Cursor extends Extension {
     ];
   }
 
-  createCursor(id, name, color) {
-    this.cursors.set(id, {
-      name, color,
-      index: 0,
-      length: 0,
-    });
-  }
-
-  removeCursor(id) {
-    this.cursors.delete(id);
-  }
-
-  moveCursor(id, { index, length }) {
-    const cursor = this.cursors.get(id);
-    if (cursor) {
-      cursor.index = index;
-      cursor.length = length;
-    }
-  }
-
-  createDecorations(doc, view) {
+  createDecorations(state, awareness, view) {
+    const ystate = ySyncPluginKey.getState(state);
+    const y = ystate.doc;
     const decorations = [];
-    this.cursors.forEach((value) => {
-      const { index, length, color, name } = value;
-      if (index === undefined) {
+    console.log(y.clientID);
+    awareness.getStates().forEach((aw, clientID) => {
+      if (clientID === y.clientID || !aw.cursor || !aw.user) {
         return;
       }
-      const from = index;
-      const to = index + length;
-      let { left, top, bottom } = relativeCoordsAt(view, to);
+      const { anchor, head } = aw.cursor;
+      const { name, color } = aw.user;
+      let { left, top, bottom } = relativeCoordsAt(view, head);
       decorations.push(Decoration.widget(
-        to,
+        head,
         () => cursorBuilder({ color, name, left, top, width: 2, height: bottom - top }),
         { side: -1 },
       ));
-      decorations.push(Decoration.inline(Math.min(from, to), Math.max(from, to), {
+      decorations.push(Decoration.inline(Math.min(anchor, head), Math.max(anchor, head), {
         style: `background-color: ${tinycolor(color).setAlpha(0.3).toString()}`,
-      }, { inclusiveStart: true, inclusiveEnd: true }));
+      }, { inclusiveStart: false, inclusiveEnd: true }));
     });
-    return DecorationSet.create(doc, decorations);
+    return DecorationSet.create(state.doc, decorations);
   }
 }
