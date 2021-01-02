@@ -138,14 +138,14 @@ export const actions = {
       commit('setIsLoadingSelectedNote', false);
     }
   },
-  async setSelectedSharedNote({ commit }, { _id }) {
+  async setSelectedSharedNote({ commit, getters }, { _id }) {
     commit('setIsLoadingSelectedNote', true);
     try {
       const resp = await Axios.get(`/note/shared/${_id}`);
       const { data: sharedNote } = resp;
       const { note } = sharedNote;
       commit('updateSharedNote', sharedNote);
-      commit('setSelectedNote', note);
+      commit('setSelectedNote', { note, token: getters.token });
     } catch (err) {
       console.error(err);
     } finally {

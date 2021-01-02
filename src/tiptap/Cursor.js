@@ -103,7 +103,6 @@ export default class Cursor extends Extension {
     const ystate = ySyncPluginKey.getState(state);
     const y = ystate.doc;
     const decorations = [];
-    console.log(y.clientID);
     awareness.getStates().forEach((aw, clientID) => {
       if (clientID === y.clientID || !aw.cursor || !aw.user) {
         return;
