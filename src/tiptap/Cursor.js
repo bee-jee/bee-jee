@@ -105,8 +105,6 @@ export default class Cursor extends Extension {
     const decorations = [];
     console.log(y.clientID);
     awareness.getStates().forEach((aw, clientID) => {
-      console.log(clientID);
-      console.log(aw);
       if (clientID === y.clientID || !aw.cursor || !aw.user) {
         return;
       }

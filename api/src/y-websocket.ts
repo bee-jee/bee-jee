@@ -17,13 +17,13 @@ import {
   Response,
   NextFunction,
 } from 'express';
+import { Document } from 'mongoose';
 import RequestWithUser from './interfaces/requestWithUser.interface';
 import { isWsServerResponse, WsServerResponse } from './websocket/websocket.interface';
 import HttpException from './exceptions/HttpException';
 import { Colors, messageAwarenessUserInfo } from '../../common/collab';
 import { guestIfAvailableMiddleware } from './middleware/visibility.middleware';
 import { User } from './user/user.interface';
-import { Document } from 'mongoose';
 
 const wsReadyStateConnecting = 0;
 const wsReadyStateOpen = 1;

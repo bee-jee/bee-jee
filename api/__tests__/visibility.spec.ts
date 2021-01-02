@@ -58,6 +58,7 @@ describe('Note visibility', () => {
       sharedUsers: [],
       parent: undefined,
       path: '/',
+      guestAccess: undefined,
     });
 
     await (middleware as RequestHandler)({
