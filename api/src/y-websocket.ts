@@ -21,7 +21,7 @@ import { Document } from 'mongoose';
 import RequestWithUser from './interfaces/requestWithUser.interface';
 import { isWsServerResponse, WsServerResponse } from './websocket/websocket.interface';
 import HttpException from './exceptions/HttpException';
-import { Colors, messageAwarenessUserInfo } from '../../common/collab';
+import { Colors, messageAwarenessUserInfo, messageSyncEnd } from '../../common/collab';
 import { guestIfAvailableMiddleware } from './middleware/visibility.middleware';
 import { User } from './user/user.interface';
 
@@ -87,6 +87,18 @@ const send = (doc: any, conn: WebSocket, m: Uint8Array) => {
   }
 };
 
+const useSendAck = () => {
+  const ackEncoder = encoding.createEncoder();
+  encoding.writeVarUint(ackEncoder, messageSyncEnd);
+  const ack = encoding.toUint8Array(ackEncoder);
+
+  return (doc: any, conn: WebSocket) => {
+    send(doc, conn, ack);
+  };
+};
+
+const sendAck = useSendAck();
+
 const messageListener = (
   conn: WebSocket, user: User & Document | undefined, doc: any, message: Uint8Array,
 ) => {
@@ -119,6 +131,7 @@ const messageListener = (
       if (encoding.length(encoder) > 1) {
         send(doc, conn, encoding.toUint8Array(encoder));
       }
+      sendAck(doc, conn);
       break;
     }
     case messageAwareness: {

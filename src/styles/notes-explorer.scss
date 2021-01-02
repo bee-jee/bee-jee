@@ -2,7 +2,7 @@
     background: linear-gradient(to left, $background, transparent 15px);
 }
 
-$pane-height: 26px;
+$pane-height: 30px;
 
 .note-explorer {
     height: 100%;
@@ -43,8 +43,12 @@ $pane-height: 26px;
 }
 
 .pane-header {
-    @extend .btn;
     @extend .px-1;
+    color: $body-color;
+    vertical-align: middle;
+    user-select: none;
+    border: $btn-border-width solid transparent;
+    padding: $btn-padding-y $btn-padding-x;
     width: 100%;
     text-align: left;
     font-size: 80%;
@@ -63,6 +67,10 @@ $pane-height: 26px;
     }
     .btn-icon {
         margin-top: -5px;
+    }
+    &:focus {
+      outline: 0;
+      box-shadow: $btn-focus-box-shadow;
     }
 }
 

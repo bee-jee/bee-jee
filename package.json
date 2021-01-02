@@ -55,6 +55,7 @@
     "tsyringe": "^4.3.0",
     "uuid": "^8.3.0",
     "vue": "^2.6.11",
+    "vue-input-autowidth": "^1.0.10",
     "vue-js-modal": "^2.0.0-rc.6",
     "vue-native-websocket": "^2.0.14",
     "vue-router": "^3.3.4",

@@ -1,7 +1,9 @@
 import * as Y from 'yjs';
 import tinycolor from 'tinycolor2';
 
+export const messageSync = 0;
 export const messageAwarenessUserInfo = 4;
+export const messageSyncEnd = 5;
 
 // Colors are the possible colors that a room (note) can assign
 // to cursors, if there are more users than this the index should
