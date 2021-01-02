@@ -90,20 +90,37 @@ const send = (doc: any, conn: WebSocket, m: Uint8Array) => {
 const messageListener = (
   conn: WebSocket, user: User & Document | undefined, doc: any, message: Uint8Array,
 ) => {
-  if (!user) {
-    return;
-  }
   const encoder = encoding.createEncoder();
   const decoder = decoding.createDecoder(message);
   const messageType = decoding.readVarUint(decoder);
   switch (messageType) {
-    case messageSync:
+    case messageSync: {
       encoding.writeVarUint(encoder, messageSync);
-      syncProtocol.readSyncMessage(decoder, encoder, doc, null);
+      const syncType = decoding.readVarUint(decoder);
+      switch (syncType) {
+        case syncProtocol.messageYjsSyncStep1:
+          syncProtocol.readSyncStep1(decoder, encoder, doc);
+          break;
+        case syncProtocol.messageYjsSyncStep2:
+          if (!user) {
+            break;
+          }
+          syncProtocol.readSyncStep2(decoder, doc, null);
+          break;
+        case syncProtocol.messageYjsUpdate:
+          if (!user) {
+            break;
+          }
+          syncProtocol.readUpdate(decoder, doc, null);
+          break;
+        default:
+          throw new Error('Unknown message type');
+      }
       if (encoding.length(encoder) > 1) {
         send(doc, conn, encoding.toUint8Array(encoder));
       }
       break;
+    }
     case messageAwareness: {
       const update = awarenessProtocol.modifyAwarenessUpdate(
         decoding.readVarUint8Array(decoder),
