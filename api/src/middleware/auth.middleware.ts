@@ -25,9 +25,17 @@ export async function authMiddleware(request: RequestWithUser,
       request.token = token;
       next();
     } else {
+      if (request.allowGuest) {
+        next();
+        return;
+      }
       next(new InvalidAuthenticationTokenException());
     }
   } catch (err) {
+    if (request.allowGuest) {
+      next();
+      return;
+    }
     next(new InvalidAuthenticationTokenException(err.message));
   }
 }

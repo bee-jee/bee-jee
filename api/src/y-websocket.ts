@@ -18,10 +18,12 @@ import {
   NextFunction,
 } from 'express';
 import RequestWithUser from './interfaces/requestWithUser.interface';
-import { authMiddleware } from './middleware/auth.middleware';
 import { isWsServerResponse, WsServerResponse } from './websocket/websocket.interface';
 import HttpException from './exceptions/HttpException';
 import { Colors, messageAwarenessUserInfo } from '../../common/collab';
+import { guestIfAvailableMiddleware } from './middleware/visibility.middleware';
+import { User } from './user/user.interface';
+import { Document } from 'mongoose';
 
 const wsReadyStateConnecting = 0;
 const wsReadyStateOpen = 1;
@@ -85,7 +87,12 @@ const send = (doc: any, conn: WebSocket, m: Uint8Array) => {
   }
 };
 
-const messageListener = (conn: WebSocket, doc: any, message: Uint8Array) => {
+const messageListener = (
+  conn: WebSocket, user: User & Document | undefined, doc: any, message: Uint8Array,
+) => {
+  if (!user) {
+    return;
+  }
   const encoder = encoding.createEncoder();
   const decoder = decoding.createDecoder(message);
   const messageType = decoding.readVarUint(decoder);
@@ -137,18 +144,20 @@ const setupWSConnection = (
   if (!doc.clientUserMap) {
     doc.clientUserMap = new Map();
   }
-  const userInfo: UserInfo = {
+  const userInfo: UserInfo | undefined = req.user ? {
     id: `${req.user._id.toString()}-${doc.colorCounter}`,
     name: req.user.fullName || '',
     color: Colors[doc.colorCounter % Colors.length],
     initials: req.user.initials || '',
-  };
+  } : undefined;
   doc.colorCounter++;
-  addUser(doc, conn, userInfo);
-  sendUserInfo(doc, conn, userInfo);
+  if (userInfo) {
+    addUser(doc, conn, userInfo);
+    sendUserInfo(doc, conn, userInfo);
+  }
   doc.conns.set(conn, new Set());
   // listen and reply to events
-  conn.on('message', (message) => messageListener(conn, doc, new Uint8Array(message as ArrayBuffer)));
+  conn.on('message', (message) => messageListener(conn, req.user, doc, new Uint8Array(message as ArrayBuffer)));
 
   // Check if connection is still alive
   let pongReceived = true;
@@ -198,7 +207,7 @@ const initialiseYWebsocket = (server: http.Server): WebSocket.Server => {
   const wss = new WebSocket.Server({ noServer: true });
   const app = container.resolve<Application>('app');
 
-  app.use('/ws/:id', authMiddleware, (req: RequestWithUser, res: Response, next: NextFunction) => {
+  app.use('/ws/:id', guestIfAvailableMiddleware, (req: RequestWithUser, res: Response, next: NextFunction) => {
     if (isWsServerResponse(res)) {
       res.acceptRequest(req);
       return;

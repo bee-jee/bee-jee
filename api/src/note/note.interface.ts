@@ -5,6 +5,7 @@ export interface Note {
   author: any;
   title: string;
   content: string | undefined;
+  guestAccess: boolean | undefined;
   visibility: Visibility,
   sharedUsers: (UserSharedNote & Document)[] | undefined;
   parent: any;

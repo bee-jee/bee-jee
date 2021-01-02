@@ -97,6 +97,7 @@ export default {
           username: sharedUser.user ? sharedUser.user.username : '',
           permission: sharedUser.permission,
         })),
+        guestAccess: note.guestAccess,
       };
     },
   },

@@ -126,6 +126,18 @@ export const actions = {
       commit('setIsLoadingSelectedNote', false);
     }
   },
+  async fetchPublicAccessNote({ commit, getters }, { _id }) {
+    commit('setIsLoadingSelectedNote', true);
+    try {
+      const resp = await Axios.get(`/note/public/${_id}`);
+      const note = resp.data;
+      commit('setSelectedNote', { note, token: getters.token });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      commit('setIsLoadingSelectedNote', false);
+    }
+  },
   async setSelectedSharedNote({ commit }, { _id }) {
     commit('setIsLoadingSelectedNote', true);
     try {

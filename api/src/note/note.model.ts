@@ -9,6 +9,7 @@ const noteSchema = new Schema({
   },
   title: String,
   content: String,
+  guestAccess: Boolean,
   visibility: {
     type: String,
     default: Visibility.Private,

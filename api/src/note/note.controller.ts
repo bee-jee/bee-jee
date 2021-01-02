@@ -40,6 +40,7 @@ class NoteController implements Controller {
     this.router.get(`${this.path}/shared/:id`, visiMiddleware(), this.getSharedNote);
     this.router.get(`${this.path}/numOfUnviewed`, authMiddleware, this.getNumOfUnviewedSharedNotes);
     this.router.get(`${this.path}/:id`, authMiddleware, this.getNoteById);
+    this.router.get(`${this.path}/public/:id`, this.getPublicNoteById);
     this.router.delete(`${this.path}/:id`, authMiddleware, this.deleteNote);
   }
 
@@ -70,6 +71,24 @@ class NoteController implements Controller {
           path: 'user',
         },
       });
+    if (note !== null) {
+      response.send(note);
+    } else {
+      next(new NoteNotFoundException(id));
+    }
+  };
+
+  private getPublicNoteById = async (request: RequestWithUser, response: Response,
+    next: NextFunction) => {
+    const { id } = request.params;
+    if (!isValidObjectId(id)) {
+      next(new InvalidObjectIdException(id));
+      return;
+    }
+    const note = await this.NoteModel.findOne({
+      _id: id,
+      guestAccess: true,
+    });
     if (note !== null) {
       response.send(note);
     } else {
@@ -120,6 +139,7 @@ class NoteController implements Controller {
     const { id } = request.params;
     const {
       title, content, visibility, sharedUsers,
+      guestAccess,
     }: EditNoteDto = request.body;
     if (!isValidObjectId(id)) {
       next(new InvalidObjectIdException(id));
@@ -131,6 +151,7 @@ class NoteController implements Controller {
       title,
       content,
       visibility,
+      guestAccess,
     };
     if (title === undefined) {
       delete data.title;
@@ -140,6 +161,9 @@ class NoteController implements Controller {
     }
     if (visibility === undefined) {
       delete data.visibility;
+    }
+    if (guestAccess === undefined) {
+      delete data.guestAccess;
     }
     const note = await this.NoteModel.findOneAndUpdate({
       _id: id,

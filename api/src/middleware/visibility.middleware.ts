@@ -1,4 +1,4 @@
-import { RequestHandler } from 'express';
+import { NextFunction, RequestHandler, Response } from 'express';
 import { Document } from 'mongoose';
 import { Note } from '../note/note.interface';
 import RequestWithUser from '../interfaces/requestWithUser.interface';
@@ -76,6 +76,19 @@ function visiMiddleware(): RequestHandler[] {
       next();
     },
   ];
+}
+
+export async function guestIfAvailableMiddleware(
+  req: RequestWithUser, res: Response, next: NextFunction,
+): Promise<void> {
+  const { id } = req.params;
+  if (id) {
+    const note = await NoteModel.findById(id);
+    if (note && note.guestAccess) {
+      req.allowGuest = true;
+    }
+  }
+  await authMiddleware(req, res, next);
 }
 
 export default visiMiddleware;
