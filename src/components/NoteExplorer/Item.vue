@@ -7,15 +7,15 @@
       :title="note.title"
     >
       <div class="col-auto">
-        <div class="note-item-expand" @click.prevent="toggleShowChildren">
-          <span class="expander mx-1" :class="{ collapsed: !showChildren }">
+        <div class="note-item-expand mr-1" @click.prevent="toggleShowChildren">
+          <span class="expander" :class="{ collapsed: !showChildren }">
             <mt-icon :path="mdiChevronDown"></mt-icon>
           </span>
         </div>
       </div>
       <div class="col">
         <div
-          class="note-item-title position-relative mr-1"
+          class="note-item-title position-relative"
           :class="{'font-weight-bold': selectedNote._id === note._id}"
         >
           {{note.title ? note.title : 'No title'}}

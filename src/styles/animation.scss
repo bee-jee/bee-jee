@@ -1,4 +1,4 @@
-$transition-duration: 0.1s;
+$transition-duration: 0.3s;
 
 .slide-right-enter-active {
     -moz-transition-duration: $transition-duration;
@@ -44,4 +44,32 @@ $transition-duration: 0.1s;
 
 .fade-enter, .fade.leave-to {
     opacity: 0;
+}
+
+.single-input-fade-height {
+    &-enter-active,
+    &-leave-active {
+        transition: all $transition-duration ease-in-out;
+        max-height: 38px;
+    }
+
+    &-enter,
+    &-leave-to {
+        opacity: 0;
+        max-height: 0px;
+    }
+}
+
+.guest-fade-height {
+    &-enter-active,
+    &-leave-active {
+        transition: all $transition-duration ease-in-out;
+        max-height: 70px;
+    }
+
+    &-enter,
+    &-leave-to {
+        opacity: 0;
+        max-height: 0px;
+    }
 }

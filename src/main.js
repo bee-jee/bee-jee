@@ -17,9 +17,10 @@ import {
 } from '@fortawesome/free-regular-svg-icons';
 import {
   faCog, faPlus, faChevronLeft, faChevronRight,
-  faArrowsAlt, faTimes, faShareAlt,
+  faArrowsAlt, faTimes,
   faChevronDown,
 } from '@fortawesome/free-solid-svg-icons';
+import VueInputAutowidth from 'vue-input-autowidth';
 import App from './App.vue';
 import Axios from 'axios';
 import createAuthRefreshInterceptor from 'axios-auth-refresh';
@@ -32,7 +33,7 @@ import { createRefreshAuth } from './helpers/auth';
 window.isIE11 = !!window.MSInputMethodContext && !!document.documentMode;
 
 library.add(faTrashAlt, faCog, faPlus, faChevronLeft, faChevronRight, faEdit,
-  faArrowsAlt, faTimes, faShareAlt, faChevronDown,
+  faArrowsAlt, faTimes, faChevronDown,
 );
 Vue.config.productionTip = false;
 
@@ -48,6 +49,7 @@ Vue.component('icon', Icon);
 Vue.component('mt-icon', MtIcon);
 Vue.use(VueRouter);
 Vue.use(VModal);
+Vue.use(VueInputAutowidth);
 
 Axios.defaults.baseURL = apiUrl('/');
 Axios.defaults.headers.common['Content-Type'] = 'application/json';

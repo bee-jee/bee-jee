@@ -7,6 +7,7 @@
     <div class="grid-row" v-for="(rows, i) in gridColors" :key="i">
       <div
         class="grid-cell color-button"
+        :class="{ active: selectedColor === color.toString() }"
         v-for="(color, j) in rows"
         :key="j"
         :style="{ backgroundColor: color.toString() }"
@@ -20,6 +21,12 @@
 import tinycolor from 'tinycolor2';
 
 export default {
+  props: {
+    selectedColor: {
+      type: String,
+      default: null,
+    },
+  },
   computed: {
     gridColors() {
       return [

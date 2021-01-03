@@ -3,9 +3,7 @@ import Vue from 'vue';
 import { Awareness } from 'y-protocols/awareness';
 import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
-import * as encoding from 'lib0/encoding';
-import { withBeeJeeAwareness } from '../../helpers/ws';
-import { messageAwarenessUserInfo } from '../../../common/collab';
+import { withBeeJeeWs } from '../../helpers/ws';
 
 export const state = {
   // allIds contains only the notes' IDs, the reason
@@ -304,12 +302,14 @@ export const mutations = {
       state.wsProvider.on('status', ({ status }) => {
         if (status === 'connected') {
           const { ws } = state.wsProvider;
-          ws.onmessage = withBeeJeeAwareness(awareness, state.wsProvider.ws.onmessage);
-          const encoder = encoding.createEncoder();
-          encoding.writeVarUint(encoder, messageAwarenessUserInfo);
-          encoding.writeVarUint(encoder, awareness.doc.clientID);
-          ws.send(encoding.toUint8Array(encoder));
+          ws.onmessage = withBeeJeeWs(state.wsProvider, awareness, ws.onmessage);
         }
+      });
+      state.wsProvider.on('startSyncing', () => {
+        state.isSyncing = true;
+      });
+      state.wsProvider.on('endSyncing', () => {
+        state.isSyncing = false;
       });
       state.awareness = awareness;
       state.awareness.on('change', awarenessListener);

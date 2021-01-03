@@ -1,7 +1,32 @@
 <template>
   <div class="editor h-100">
     <editor-menu-bar :editor="editor" v-slot="{ commands, isActive }">
-      <div class="menubar d-flex justify-content-center" v-if="!readOnly" ref="menubar">
+      <div class="menubar" v-if="!readOnly" ref="menubar">
+        <div class="editor-note-title">
+          <input
+            type="text"
+            v-autowidth="{ maxWidth: '100%', comfortZone: 0 }"
+            v-model="editedNoteTitle"
+            @input="changeTitle"
+            placeholder="Enter note title here"
+            :readonly="!isOwner"
+            class="rounded"
+          />
+          <button class="btn btn-primary" @click="$parent.handleShowEditShare">
+            <mt-icon :path="mdiShareVariantOutline" /> Share
+          </button>
+          <span class="pl-2">
+            <small class="text-success" v-if="websocketIsConnected && isLoggedIn">
+              <b>Connected</b>
+            </small>
+            <small class="text-danger" v-else>
+              <b>{{disconnectedStatus}}</b>
+            </small>
+          </span>
+          <span class="pl-2" v-if="isSyncing">
+            Saving...
+          </span>
+        </div>
         <modal name="linkModal" height="auto" :adaptive="true">
           <form @submit.prevent="updateLink(commands)" class="p-3">
             <h3>{{isUpdateLink ? 'Update link' : 'Add a link'}}</h3>
@@ -14,223 +39,225 @@
             </div>
           </form>
         </modal>
-        <button class="menubar__button" @click="$parent.handleShowEditShare" title="Share" v-if="isOwner">
-          <i class="fas fa-share-alt"></i>
-        </button>
 
-        <group-button :position="tableMenuPosition" @hidden="onTableMenuHidden">
-          <template v-slot:button-content>
-            <mt-icon :path="mdiGrid" />
-          </template>
-          <sub-menu ref="tableMenu">
-            <template v-slot:label>Insert table</template>
-            <table-grid-size-editor
-              @select="
-                commands.createTable({
-                  rowsCount: $event.y + 1,
-                  colsCount: $event.x + 1,
-                  withHeaderRow: true,
-                })
-              "
-            />
-          </sub-menu>
+        <div class="d-flex justify-content-center">
+          <group-button :position="tableMenuPosition" @hidden="onTableMenuHidden">
+            <template v-slot:button-content>
+              <mt-icon class="icon-table" :path="mdiGrid" />
+            </template>
+            <sub-menu ref="tableMenu">
+              <template v-slot:label>Insert table</template>
+              <table-grid-size-editor
+                @select="
+                  commands.createTable({
+                    rowsCount: $event.y + 1,
+                    colsCount: $event.x + 1,
+                    withHeaderRow: true,
+                  })
+                "
+              />
+            </sub-menu>
 
-          <b-dropdown-divider />
+            <b-dropdown-divider />
 
-          <sub-menu :disabled="!isActive.table()">
-            <template v-slot:label>Fill color...</template>
-            <color-selector @select="commands.tableBackground($event)" />
-          </sub-menu>
+            <sub-menu :disabled="!isActive.table()">
+              <template v-slot:label>Fill color...</template>
+              <color-selector @select="commands.tableBackground($event)" />
+            </sub-menu>
 
-          <b-dropdown-divider />
+            <b-dropdown-divider />
 
-          <b-dropdown-item :disabled="!isActive.table()" @click="commands.addColumnBefore">
-            <slot name="label">Insert column before</slot>
-          </b-dropdown-item>
-          <b-dropdown-item :disabled="!isActive.table()" @click="commands.addColumnAfter">
-            <slot name="label">Insert column after</slot>
-          </b-dropdown-item>
-          <b-dropdown-item :disabled="!isActive.table()" @click="commands.deleteColumn">
-            <slot name="label">Delete column</slot>
-          </b-dropdown-item>
-
-          <b-dropdown-divider />
-
-          <b-dropdown-item :disabled="!isActive.table()" @click="commands.addRowBefore">
-            <slot name="label">Insert row before</slot>
-          </b-dropdown-item>
-          <b-dropdown-item :disabled="!isActive.table()" @click="commands.addRowAfter">
-            <slot name="label">Insert row after</slot>
-          </b-dropdown-item>
-          <b-dropdown-item :disabled="!isActive.table()" @click="commands.deleteRow">
-            <slot name="label">Delete row</slot>
-          </b-dropdown-item>
-
-          <b-dropdown-divider />
-
-          <b-dropdown-item :disabled="!isActive.table()" @click="commands.toggleCellMerge">
-            <slot name="label">Merge cells</slot>
-          </b-dropdown-item>
-          <b-dropdown-item :disabled="!isActive.table()" @click="commands.deleteTable">
-            <slot name="label">Delete table</slot>
-          </b-dropdown-item>
-        </group-button>
-
-        <button class="menubar__button" :class="{ active: isActive.bold() }" @click="commands.bold" title="Bold">
-          <mt-icon :path="mdiFormatBold"></mt-icon>
-        </button>
-
-        <button class="menubar__button" :class="{ active: isActive.italic() }" @click="commands.italic" title="Italic">
-          <mt-icon :path="mdiFormatItalic" />
-        </button>
-
-        <button
-          class="menubar__button"
-          :class="{ active: isActive.strike() }"
-          @click="commands.strike"
-          title="Strikethrough"
-        >
-          <mt-icon :path="mdiFormatStrikethroughVariant" :classNames="['sm']" />
-        </button>
-
-        <button
-          class="menubar__button"
-          :class="{ active: isActive.underline() }"
-          @click="commands.underline"
-          title="Underline"
-        >
-          <mt-icon :path="mdiFormatUnderline" />
-        </button>
-
-        <group-button ref="colorText">
-          <template v-slot:button-content>
-            <mt-icon :path="mdiFormatColorText" />
-            <span class="color-under-bar" :style="{ background: getTextColor() }"></span>
-          </template>
-          <color-selector @select="selectColorText($event, commands)"> Default </color-selector>
-        </group-button>
-
-        <button
-          class="menubar__button"
-          :class="{ 'active': isActive.code_block() }"
-          @click="commands.code_block"
-          title="Code block"
-        >
-          <mt-icon :path="mdiCodeTags" />
-        </button>
-
-        <group-button
-          :toggle-class="`button__text ${isActive.link() ? 'active' : ''}`"
-          @click="insertLinkClick($event, isActive)"
-          :disabled="!canLink(isActive)"
-        >
-          <template v-slot:button-content>
-            <mt-icon :path="mdiLinkPlus" />
-          </template>
-          <template v-if="isActive.link()">
-            <b-dropdown-item @click="showUpdateLink">
-              <slot name="label">Update link</slot>
+            <b-dropdown-item :disabled="!isActive.table()" @click="commands.addColumnBefore">
+              <slot name="label">Insert column before</slot>
             </b-dropdown-item>
-            <b-dropdown-item @click="removeLink(commands)">
-              <slot name="label">Remove link</slot>
+            <b-dropdown-item :disabled="!isActive.table()" @click="commands.addColumnAfter">
+              <slot name="label">Insert column after</slot>
             </b-dropdown-item>
-          </template>
-        </group-button>
+            <b-dropdown-item :disabled="!isActive.table()" @click="commands.deleteColumn">
+              <slot name="label">Delete column</slot>
+            </b-dropdown-item>
 
-        <group-button toggle-class="button__text">
-          <template v-slot:button-content><strong>Heading</strong></template>
-          <b-dropdown-item :active="isActive.heading({ level: 1 })" @click="commands.heading({ level: 1 })">
-            <slot name="label">Heading 1</slot>
-          </b-dropdown-item>
-          <b-dropdown-item :active="isActive.heading({ level: 2 })" @click="commands.heading({ level: 2 })">
-            <slot name="label">Heading 2</slot>
-          </b-dropdown-item>
-          <b-dropdown-item :active="isActive.heading({ level: 3 })" @click="commands.heading({ level: 3 })">
-            <slot name="label">Heading 3</slot>
-          </b-dropdown-item>
-        </group-button>
+            <b-dropdown-divider />
 
-        <group-button toggle-class="button__text">
-          <template v-slot:button-content><strong>Align</strong></template>
-          <b-dropdown-item
-            :active="isAlign(isActive, { align: 'left' })"
-            @click="commands.paragraph({ align: 'left' })"
+            <b-dropdown-item :disabled="!isActive.table()" @click="commands.addRowBefore">
+              <slot name="label">Insert row before</slot>
+            </b-dropdown-item>
+            <b-dropdown-item :disabled="!isActive.table()" @click="commands.addRowAfter">
+              <slot name="label">Insert row after</slot>
+            </b-dropdown-item>
+            <b-dropdown-item :disabled="!isActive.table()" @click="commands.deleteRow">
+              <slot name="label">Delete row</slot>
+            </b-dropdown-item>
+
+            <b-dropdown-divider />
+
+            <b-dropdown-item :disabled="!isActive.table()" @click="commands.toggleCellMerge">
+              <slot name="label">Merge cells</slot>
+            </b-dropdown-item>
+            <b-dropdown-item :disabled="!isActive.table()" @click="commands.deleteTable">
+              <slot name="label">Delete table</slot>
+            </b-dropdown-item>
+          </group-button>
+
+          <button class="menubar__button" :class="{ active: isActive.bold() }" @click="commands.bold" title="Bold">
+            <mt-icon :path="mdiFormatBold"></mt-icon>
+          </button>
+
+          <button class="menubar__button" :class="{ active: isActive.italic() }" @click="commands.italic" title="Italic">
+            <mt-icon :path="mdiFormatItalic" />
+          </button>
+
+          <button
+            class="menubar__button"
+            :class="{ active: isActive.strike() }"
+            @click="commands.strike"
+            title="Strikethrough"
           >
-            <slot name="label">Left</slot>
-          </b-dropdown-item>
-          <b-dropdown-item
-            :active="isAlign(isActive, { align: 'center' })"
-            @click="commands.paragraph({ align: 'center' })"
+            <mt-icon :path="mdiFormatStrikethroughVariant" class="icon-strike" :classNames="['sm']" />
+          </button>
+
+          <button
+            class="menubar__button"
+            :class="{ active: isActive.underline() }"
+            @click="commands.underline"
+            title="Underline"
           >
-            <slot name="label">Center</slot>
-          </b-dropdown-item>
-          <b-dropdown-item
-            :active="isAlign(isActive, { align: 'right' })"
-            @click="commands.paragraph({ align: 'right' })"
+            <mt-icon :path="mdiFormatUnderline" class="icon-underline" />
+          </button>
+
+          <group-button ref="colorText">
+            <template v-slot:button-content>
+              <mt-icon :path="mdiFormatColorText" class="icon-text-color" />
+              <span class="color-under-bar" :style="{ background: getTextColor() }"></span>
+            </template>
+            <color-selector
+              @select="selectColorText($event, commands)"
+              :selectedColor="getTextColor()"
+            > Default </color-selector>
+          </group-button>
+
+          <button
+            class="menubar__button"
+            :class="{ 'active': isActive.code_block() }"
+            @click="commands.code_block"
+            title="Code block"
           >
-            <slot name="label">Right</slot>
-          </b-dropdown-item>
-          <b-dropdown-item
-            :active="isAlign(isActive, { align: 'justify' })"
-            @click="commands.paragraph({ align: 'justify' })"
+            <mt-icon :path="mdiCodeTags" />
+          </button>
+
+          <group-button
+            :toggle-class="`button__text ${isActive.link() ? 'active' : ''}`"
+            @click="insertLinkClick($event, isActive)"
+            :disabled="!canLink(isActive)"
           >
-            <slot name="label">Justify</slot>
-          </b-dropdown-item>
-        </group-button>
+            <template v-slot:button-content>
+              <mt-icon :path="mdiLinkPlus" />
+            </template>
+            <template v-if="isActive.link()">
+              <b-dropdown-item @click="showUpdateLink">
+                <slot name="label">Update link</slot>
+              </b-dropdown-item>
+              <b-dropdown-item @click="removeLink(commands)">
+                <slot name="label">Remove link</slot>
+              </b-dropdown-item>
+            </template>
+          </group-button>
 
-        <button
-          class="menubar__button"
-          :class="{ active: isActive.bullet_list() }"
-          @click="commands.bullet_list"
-          title="Unordered list"
-        >
-          <mt-icon :path="mdiFormatListBulleted" />
-        </button>
+          <group-button toggle-class="button__text">
+            <template v-slot:button-content><strong>Heading</strong></template>
+            <b-dropdown-item :active="isActive.heading({ level: 1 })" @click="commands.heading({ level: 1 })">
+              <slot name="label">Heading 1</slot>
+            </b-dropdown-item>
+            <b-dropdown-item :active="isActive.heading({ level: 2 })" @click="commands.heading({ level: 2 })">
+              <slot name="label">Heading 2</slot>
+            </b-dropdown-item>
+            <b-dropdown-item :active="isActive.heading({ level: 3 })" @click="commands.heading({ level: 3 })">
+              <slot name="label">Heading 3</slot>
+            </b-dropdown-item>
+          </group-button>
 
-        <button
-          class="menubar__button"
-          :class="{ active: isActive.ordered_list() }"
-          @click="commands.ordered_list"
-          title="Ordered list"
-        >
-          <mt-icon :path="mdiFormatListNumbered" />
-        </button>
+          <group-button toggle-class="button__text">
+            <template v-slot:button-content><strong>Align</strong></template>
+            <b-dropdown-item
+              :active="isAlign(isActive, { align: 'left' })"
+              @click="commands.paragraph({ align: 'left' })"
+            >
+              <slot name="label">Left</slot>
+            </b-dropdown-item>
+            <b-dropdown-item
+              :active="isAlign(isActive, { align: 'center' })"
+              @click="commands.paragraph({ align: 'center' })"
+            >
+              <slot name="label">Center</slot>
+            </b-dropdown-item>
+            <b-dropdown-item
+              :active="isAlign(isActive, { align: 'right' })"
+              @click="commands.paragraph({ align: 'right' })"
+            >
+              <slot name="label">Right</slot>
+            </b-dropdown-item>
+            <b-dropdown-item
+              :active="isAlign(isActive, { align: 'justify' })"
+              @click="commands.paragraph({ align: 'justify' })"
+            >
+              <slot name="label">Justify</slot>
+            </b-dropdown-item>
+          </group-button>
 
-        <button class="menubar__button" :class="{ active: isActive.blockquote() }" @click="commands.blockquote">
-          <icon name="quote" title="Quote" />
-        </button>
+          <button
+            class="menubar__button"
+            :class="{ active: isActive.bullet_list() }"
+            @click="commands.bullet_list"
+            title="Unordered list"
+          >
+            <mt-icon :path="mdiFormatListBulleted" class="icon-ul" />
+          </button>
 
-        <button class="menubar__button" @click="commands.horizontal_rule">
-          <icon name="hr" title="Horizontal line" />
-        </button>
+          <button
+            class="menubar__button"
+            :class="{ active: isActive.ordered_list() }"
+            @click="commands.ordered_list"
+            title="Ordered list"
+          >
+            <mt-icon :path="mdiFormatListNumbered" class="icon-ol" />
+          </button>
 
-        <button class="menubar__button" @click="commands.undo" title="Undo">
-          <mt-icon :path="mdiUndoVariant" />
-        </button>
+          <button class="menubar__button" :class="{ active: isActive.blockquote() }" @click="commands.blockquote">
+            <icon name="quote" title="Quote" />
+          </button>
 
-        <button class="menubar__button" @click="commands.redo" title="Redo">
-          <mt-icon :path="mdiRedoVariant" />
-        </button>
+          <button class="menubar__button" @click="commands.horizontal_rule">
+            <icon name="hr" title="Horizontal line" />
+          </button>
 
-        <div class="separator" v-if="allUserCursors.length"></div>
+          <button class="menubar__button" @click="commands.undo" title="Undo">
+            <mt-icon :path="mdiUndoVariant" class="icon-undo" />
+          </button>
 
-        <button
-          class="menubar__button online-user my-1 font-weight-bold"
-          v-for="userCursor in allUserCursors"
-          :key="userCursor.id"
-          :style="{
-            backgroundColor: userCursor.color,
-            color: getUserTextColor(userCursor.color),
-          }"
-          :id="`online-user-${userCursor.id}`"
-        >
-          <div class="user-initials">
-            {{ userCursor.initials }}
-          </div>
-          <b-popover :target="`online-user-${userCursor.id}`" triggers="hover focus" placement="bottom">
-            {{ userCursor.name }}
-          </b-popover>
-        </button>
+          <button class="menubar__button" @click="commands.redo" title="Redo">
+            <mt-icon :path="mdiRedoVariant" class="icon-redo" />
+          </button>
+
+          <div class="separator" v-if="allUserCursors.length"></div>
+
+          <button
+            class="menubar__button online-user my-1 font-weight-bold"
+            v-for="userCursor in allUserCursors"
+            :key="userCursor.id"
+            :style="{
+              backgroundColor: userCursor.color,
+              color: getUserTextColor(userCursor.color),
+            }"
+            :id="`online-user-${userCursor.id}`"
+          >
+            <div class="user-initials">
+              {{ userCursor.initials }}
+            </div>
+            <b-popover :target="`online-user-${userCursor.id}`" triggers="hover focus" placement="bottom">
+              {{ userCursor.name }}
+            </b-popover>
+          </button>
+        </div>
       </div>
     </editor-menu-bar>
     <div class="editor-top-shadow" ref="editorTopShadow"></div>
@@ -240,15 +267,6 @@
       :class="{ 'overflow-visible': isGuest }"
     >
       <div ref="editor" class="editor-wrapper">
-        <div class="editor-note-title">
-          <input
-            type="text"
-            v-model="editedNoteTitle"
-            @input="changeTitle"
-            placeholder="Enter note title here"
-            :readonly="!isOwner"
-          />
-        </div>
       </div>
     </div>
   </div>
@@ -294,6 +312,7 @@ import {
   mdiGrid,
   mdiLinkPlus,
   mdiLink,
+  mdiShareVariantOutline,
 } from '@mdi/js';
 import GeminiScrollbar from 'gemini-scrollbar';
 import { debounce } from 'vue-debounce';
@@ -360,12 +379,25 @@ export default {
       mdiGrid,
       mdiLinkPlus,
       mdiLink,
+      mdiShareVariantOutline,
       link: '',
       isUpdateLink: false,
     };
   },
   computed: {
-    ...mapGetters(['tableMenuPosition', 'allUserCursors']),
+    ...mapGetters([
+      'tableMenuPosition',
+      'allUserCursors',
+      'isSyncing',
+      'websocketIsConnected',
+      'isLoggedIn',
+    ]),
+    disconnectedStatus() {
+      if (!this.websocketIsConnected) {
+        return 'Disconnected';
+      }
+      return 'Not logged in';
+    },
   },
   mounted() {
     const extensions = [
@@ -544,3 +576,31 @@ export default {
   },
 };
 </script>
+
+<style lang="scss">
+.icon-table {
+  padding: 3px;
+  margin-top: -3px;
+}
+.icon-strike {
+  margin-top: -3px;
+  padding-bottom: 1px;
+}
+.icon-underline {
+  padding: 2px;
+  margin-top: -3px;
+}
+.icon-text-color {
+  padding: 2px;
+  margin-top: -5px;
+}
+.icon-ul,
+.icon-ol {
+  margin-top: -6px;
+}
+.icon-undo,
+.icon-redo {
+  padding: 2px;
+  margin-top: -5px;
+}
+</style>

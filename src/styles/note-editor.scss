@@ -35,8 +35,7 @@ $selection-highlight: rgba(152, 204, 253, 0.8);
     }
 }
 
-.ProseMirror,
-.editor-note-title {
+.ProseMirror {
     width: 100%;
     margin-left: auto;
     margin-right: auto;
@@ -119,19 +118,39 @@ $selection-highlight: rgba(152, 204, 253, 0.8);
 }
 
 .editor-note-title {
-    input {
-        display: block;
-        width: 100%;
-        border: none;
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: $input-color;
+    padding: 0.3rem 1.5rem;
+    width: 100%;
+    border-bottom: 1px solid $gray-200;
 
+    input {
+        width: 100%;
+        border: 2px solid transparent;
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: $input-color;
+        padding: .25rem;
+        transition: border-color .25s ease;
+        float: left;
+
+        &:hover {
+            border-color: $gray-400;
+        }
         &:focus {
             outline: none;
+            border-color: $green;
         }
         &::placeholder {
             color: lighten($input-color, 40%);
+        }
+    }
+
+    .btn {
+        line-height: 1.5;
+
+        .mt-icon {
+            width: 1rem;
+            height: 1rem;
+            margin-top: -3px;
         }
     }
 }
@@ -148,11 +167,10 @@ $selection-highlight: rgba(152, 204, 253, 0.8);
     resize: none;
 }
 
-$hover-background: darken($primary, 25%);
+$hover-background: $blue;
 .menubar {
     border: none;
     border-bottom: 1px solid #eee;
-    padding: 0 36px;
     flex-basis: auto;
     flex-wrap: wrap;
 
@@ -363,15 +381,19 @@ p, div {
         outline: 1px solid $black;
         outline-offset: 2px;
     }
+    &.active {
+        outline: 2px solid $green;
+        outline-offset: 2px;
+    }
 }
 
 .color-under-bar {
-    width: 1.2rem;
-    height: 0.25rem;
+    width: 14px;
+    height: 2px;
     background: #000;
     position: absolute;
-    left: .7rem;
-    bottom: 0.35rem;
+    left: 13px;
+    bottom: 12px;
 }
 
 .online-user {

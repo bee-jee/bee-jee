@@ -43,7 +43,7 @@ export default {
   top: -0.1rem;
   fill: currentColor;
   stroke: currentColor;
-  height: 1rem;
-  width: 1rem;
+  height: 1.3rem;
+  width: 1.3rem;
 }
 </style>

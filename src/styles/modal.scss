@@ -1,5 +1,12 @@
 .vm--modal {
+    background-color: transparent !important;
+    box-shadow: none !important;
+
     .modal-mover {
         cursor: move;
     }
+}
+
+.vm--overlay {
+    background-color: rgba(0, 0, 0, 0.6) !important;
 }

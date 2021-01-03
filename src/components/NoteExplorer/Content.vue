@@ -54,38 +54,37 @@
       @closed="handleCloseCreateNote"
     >
       <div class="p-3">
-        <h5>
-          <i class="fas fa-arrows-alt modal-mover"></i> Create a new note
-        </h5>
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5 class="m-0">
+              <i class="fas fa-arrows-alt modal-mover"></i> Create a new note
+            </h5>
+          </div>
+        </div>
         <form @submit.prevent="handleCreateNote">
-          <div class="form-group">
-            <input
-              type="text"
-              class="form-control"
-              v-model="newNoteTitle"
-              :class="{ 'is-invalid': newNoteErrors.has('newNoteTitle') }"
-              placeholder="Title"
-            />
-            <p
-              v-if="newNoteErrors.has('newNoteTitle')"
-              class="invalid-feedback"
-            >{{newNoteErrors.getFirst('newNoteTitle')}}</p>
+          <div class="card mb-3">
+            <div class="card-body">
+              <input
+                type="text"
+                class="form-control"
+                v-model="newNoteTitle"
+                :class="{ 'is-invalid': newNoteErrors.has('newNoteTitle') }"
+                placeholder="Title"
+              />
+              <p
+                v-if="newNoteErrors.has('newNoteTitle')"
+                class="invalid-feedback"
+              >{{newNoteErrors.getFirst('newNoteTitle')}}</p>
+            </div>
           </div>
           <share-selector
             class="form-group"
             :errors="newNoteErrors"
             v-model="permission"
             :note="{}"
+            @cancel="handleCloseCreateNote"
           />
           <div v-if="isCreatingNote">Loading . . .</div>
-          <div class="text-right">
-            <button
-              type="button"
-              class="btn btn-secondary mr-2"
-              @click="handleCloseCreateNote"
-            >Cancel</button>
-            <button class="btn btn-primary">Create</button>
-          </div>
         </form>
       </div>
     </modal>

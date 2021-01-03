@@ -5,11 +5,11 @@
     :class="{ collapsed: !expanded, expanded: expanded }"
   >
     <button class="pane-header font-weight-bold" @click="toggleExpanded">
-      <span class="chevron mx-1 expander" :class="{ collapsed: !expanded }">
+      <span class="chevron mx-1 expander col-auto p-0" :class="{ collapsed: !expanded }">
         <i class="fas fa-sm fa-chevron-down"></i>
       </span>
-      <span>{{title}}</span>
-      <slot name="actions"></slot>
+      <span class="col p-0">{{title}}</span>
+      <slot name="actions" class="col-auto p-0"></slot>
     </button>
     <gemini-scrollbar
       class="pane-body"
