@@ -1,58 +1,77 @@
 <template>
   <div>
-    <div class="form-group form-check">
-      <input type="checkbox" class="form-check-input" id="guest-access" v-model="guestAccess" />
-      <label for="guest-access" class="form-check-label">
-        Guest access (will not require login)
-      </label>
+    <div class="card card-body mb-3">
+      <div class="form-check">
+        <input type="checkbox" class="form-check-input" id="guest-access" v-model="guestAccess" />
+        <label for="guest-access" class="form-check-label">
+          Guest access (will not require login)
+        </label>
+      </div>
+      <transition name="guest-fade-height">
+        <div class="my-3" v-if="guestAccess">
+          <template v-if="note._id">
+            <input
+              type="text"
+              class="form-control"
+              readonly
+              :value="getGuestAccessUrl(note)"
+              ref="guestAccessLink"
+              @click="selectLink"
+            />
+          </template>
+          <template v-else>
+            <small class="text-info">
+              The link will be available after the note is created
+            </small>
+          </template>
+        </div>
+      </transition>
     </div>
-    <div class="form-group" v-if="guestAccess">
-      <template v-if="note._id">
+    <div class="card card-body mb-3">
+      <div class="form-group">
+        <select
+          v-model="visibility"
+          class="form-control"
+          :class="{ 'is-invalid': this.errors.has('visibility') }"
+        >
+          <option value="private">Private</option>
+          <option value="anyone_with_link">Anyone with the link</option>>
+          <option value="users">Users</option>
+        </select>
+        <span
+          class="invalid-feedback"
+          v-for="error in errors.getErrors('visibility')"
+          :key="error"
+        >{{error}}</span>
+      </div>
+      <user-share v-if="visibility === 'users'" v-model="sharedUsers" />
+      <div class="form-group">
         <input
           type="text"
           class="form-control"
           readonly
-          :value="getGuestAccessUrl(note)"
-          ref="guestAccessLink"
+          v-if="(visibility === 'anyone_with_link' || visibility === 'users') && note._id"
+          :value="getViewSharedUrl(note)"
+          ref="link"
           @click="selectLink"
         />
-      </template>
-      <template v-else>
-        <small class="text-info">
+        <small v-if="(visibility === 'anyone_with_link' || visibility === 'users') && !note._id" class="text-info">
           The link will be available after the note is created
         </small>
-      </template>
+      </div>
+      <div class="row no-gutters justify-content-end">
+        <div class="col-auto">
+          <button
+            type="button"
+            class="btn btn-secondary mr-2"
+            @click="$emit('cancel', $event)"
+          >Cancel</button>
+        </div>
+        <div class="col-auto">
+          <button class="btn btn-primary">Save changes</button>
+        </div>
+      </div>
     </div>
-    <h3>Collaboration</h3>
-    <div class="form-group">
-      <select
-        v-model="visibility"
-        class="form-control"
-        :class="{ 'is-invalid': this.errors.has('visibility') }"
-      >
-        <option value="private">Private</option>
-        <option value="anyone_with_link">Anyone with the link</option>>
-        <option value="users">Users</option>
-      </select>
-      <span
-        class="invalid-feedback"
-        v-for="error in errors.getErrors('visibility')"
-        :key="error"
-      >{{error}}</span>
-    </div>
-    <user-share v-if="visibility === 'users'" v-model="sharedUsers" />
-    <input
-      type="text"
-      class="form-control"
-      readonly
-      v-if="(visibility === 'anyone_with_link' || visibility === 'users') && note._id"
-      :value="getViewSharedUrl(note)"
-      ref="link"
-      @click="selectLink"
-    />
-    <small v-if="(visibility === 'anyone_with_link' || visibility === 'users') && !note._id" class="text-info">
-      The link will be available after the note is created
-    </small>
   </div>
 </template>
 

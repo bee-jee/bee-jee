@@ -19,17 +19,14 @@
     </div>
 
     <modal name="share" height="auto" :adaptive="true">
-      <form @submit.prevent="handleChangeShare" class="p-3">
+      <form @submit.prevent="handleChangeShare">
         <share-selector
           class="form-group"
           :errors="editShareErrors"
           v-model="permission"
           :note="note"
+          @cancel="handleCloseEditShare"
         />
-        <div class="text-right">
-          <button type="button" class="btn btn-secondary mr-2" @click="handleCloseEditShare">Cancel</button>
-          <button class="btn btn-primary">Save changes</button>
-        </div>
       </form>
     </modal>
   </div>
@@ -70,6 +67,7 @@ export default {
     },
     handleCloseEditShare() {
       this.$modal.hide('share');
+      this.populatePermission(this.note);
     },
     handleChangeShare() {
       const { permission } = this;

@@ -41,15 +41,17 @@
       :adaptive="true"
       @closed="handleCloseDelete"
     >
-      <div class="p-3">
-        <h5>
-          <i class="fas fa-arrows-alt modal-mover"></i>
-          Delete "{{toDeleteNote.title}}"
-        </h5>
-        <p>Are you sure you want to delete?</p>
-        <div class="text-right">
-          <button class="btn btn-secondary mr-2" @click="handleCloseDelete">Close</button>
-          <button class="btn btn-danger" @click="handleDeleteNote">Delete</button>
+      <div class="card">
+        <div class="card-body">
+          <h5>
+            <i class="fas fa-arrows-alt modal-mover"></i>
+            Delete "{{toDeleteNote.title}}"
+          </h5>
+          <p>Are you sure you want to delete?</p>
+          <div class="text-right">
+            <button class="btn btn-secondary mr-2" @click="handleCloseDelete">Close</button>
+            <button class="btn btn-danger" @click="handleDeleteNote">Delete</button>
+          </div>
         </div>
       </div>
     </modal>
