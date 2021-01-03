@@ -28,6 +28,7 @@
     </collapsible-pane>
 
     <collapsible-pane
+      ref="sharedNotesPane"
       title="Shared notes"
       :expanded="sharedNotesExpanded"
       @setExpanded="(value) => setExpanded('sharedNotesExpanded', value)"
@@ -137,6 +138,9 @@ export default {
     },
     sharedNotesExpanded: {
       get() {
+        if (this.$store.getters.config('sharedNotesExpanded')) {
+          this.$refs.sharedNotesPane.invalidate();
+        }
         return this.$store.getters.config('sharedNotesExpanded');
       },
       set(value) {

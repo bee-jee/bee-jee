@@ -128,10 +128,11 @@ class NoteController implements Controller {
   };
 
   private getSharedNotes = async (request: RequestWithUser, response: Response) => {
-    const userSharedNotes = await this.UserSharedNoteModel.find({
+    const userSharedNotes = (await this.UserSharedNoteModel.find({
       user: request.user._id,
     })
-      .populate('note');
+      .populate('note'))
+      .filter((sharedNote) => !sharedNote.note.author.equals(request.user._id));
     response.send(userSharedNotes);
   };
 

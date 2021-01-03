@@ -14,28 +14,19 @@
         </div>
       </div>
       <div class="col">
-        <div
-          class="note-item-title position-relative"
-          :class="{'font-weight-bold': selectedNote._id === note._id}"
-        >
-          {{note.title ? note.title : 'No title'}}
+        <div class="note-item-title position-relative" :class="{ 'font-weight-bold': selectedNote._id === note._id }">
+          {{ note.title ? note.title : 'No title' }}
         </div>
-        <span class="text-muted" v-if="showChildren && children.length === 0">No pages inside</span>
+        <span :class="{ 'text-muted': selectedNote._id !== note._id }" v-if="showChildren && children.length === 0"
+          >No pages inside</span
+        >
       </div>
       <div class="col-auto">
-        <span v-if="sharedNote.isViewed==false" class="badge badge-warning">New</span>
-        <button
-          class="btn-icon btn-secondary"
-          @click="handleShowCreateSubNote()"
-          v-if="note.author === user._id"
-        >
+        <span v-if="sharedNote.isViewed == false" class="badge badge-warning">New</span>
+        <button class="btn-icon btn-secondary" @click="handleShowCreateSubNote()" v-if="note.author === user._id">
           <i class="fas fa-plus fa-xs"></i>
         </button>
-        <button
-          class="btn-icon btn-danger"
-          @click="handleClickDeleteNote(note)"
-          v-if="note.author === user._id"
-        >
+        <button class="btn-icon btn-danger" @click="handleClickDeleteNote(note)" v-if="note.author === user._id">
           <i class="far fa-trash-alt fa-sm"></i>
         </button>
       </div>
@@ -55,9 +46,7 @@
 
 <script>
 import { mapGetters } from 'vuex';
-import {
-  mdiChevronDown,
-} from '@mdi/js';
+import { mdiChevronDown } from '@mdi/js';
 
 export default {
   name: 'note-explorer-item',
@@ -72,10 +61,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters([
-      'selectedNote',
-      'user',
-    ]),
+    ...mapGetters(['selectedNote', 'user']),
     sharedNote() {
       return this.$store.getters.sharedById(this.note._id);
     },
