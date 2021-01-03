@@ -43,7 +43,7 @@
         <div class="d-flex justify-content-center">
           <group-button :position="tableMenuPosition" @hidden="onTableMenuHidden">
             <template v-slot:button-content>
-              <mt-icon :path="mdiGrid" />
+              <mt-icon class="icon-table" :path="mdiGrid" />
             </template>
             <sub-menu ref="tableMenu">
               <template v-slot:label>Insert table</template>
@@ -113,7 +113,7 @@
             @click="commands.strike"
             title="Strikethrough"
           >
-            <mt-icon :path="mdiFormatStrikethroughVariant" :classNames="['sm']" />
+            <mt-icon :path="mdiFormatStrikethroughVariant" class="icon-strike" :classNames="['sm']" />
           </button>
 
           <button
@@ -122,15 +122,18 @@
             @click="commands.underline"
             title="Underline"
           >
-            <mt-icon :path="mdiFormatUnderline" />
+            <mt-icon :path="mdiFormatUnderline" class="icon-underline" />
           </button>
 
           <group-button ref="colorText">
             <template v-slot:button-content>
-              <mt-icon :path="mdiFormatColorText" />
+              <mt-icon :path="mdiFormatColorText" class="icon-text-color" />
               <span class="color-under-bar" :style="{ background: getTextColor() }"></span>
             </template>
-            <color-selector @select="selectColorText($event, commands)"> Default </color-selector>
+            <color-selector
+              @select="selectColorText($event, commands)"
+              :selectedColor="getTextColor()"
+            > Default </color-selector>
           </group-button>
 
           <button
@@ -207,7 +210,7 @@
             @click="commands.bullet_list"
             title="Unordered list"
           >
-            <mt-icon :path="mdiFormatListBulleted" />
+            <mt-icon :path="mdiFormatListBulleted" class="icon-ul" />
           </button>
 
           <button
@@ -216,7 +219,7 @@
             @click="commands.ordered_list"
             title="Ordered list"
           >
-            <mt-icon :path="mdiFormatListNumbered" />
+            <mt-icon :path="mdiFormatListNumbered" class="icon-ol" />
           </button>
 
           <button class="menubar__button" :class="{ active: isActive.blockquote() }" @click="commands.blockquote">
@@ -228,11 +231,11 @@
           </button>
 
           <button class="menubar__button" @click="commands.undo" title="Undo">
-            <mt-icon :path="mdiUndoVariant" />
+            <mt-icon :path="mdiUndoVariant" class="icon-undo" />
           </button>
 
           <button class="menubar__button" @click="commands.redo" title="Redo">
-            <mt-icon :path="mdiRedoVariant" />
+            <mt-icon :path="mdiRedoVariant" class="icon-redo" />
           </button>
 
           <div class="separator" v-if="allUserCursors.length"></div>
@@ -573,3 +576,31 @@ export default {
   },
 };
 </script>
+
+<style lang="scss">
+.icon-table {
+  padding: 3px;
+  margin-top: -3px;
+}
+.icon-strike {
+  margin-top: -3px;
+  padding-bottom: 1px;
+}
+.icon-underline {
+  padding: 2px;
+  margin-top: -3px;
+}
+.icon-text-color {
+  padding: 2px;
+  margin-top: -5px;
+}
+.icon-ul,
+.icon-ol {
+  margin-top: -6px;
+}
+.icon-undo,
+.icon-redo {
+  padding: 2px;
+  margin-top: -5px;
+}
+</style>

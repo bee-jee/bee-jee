@@ -381,15 +381,19 @@ p, div {
         outline: 1px solid $black;
         outline-offset: 2px;
     }
+    &.active {
+        outline: 2px solid $green;
+        outline-offset: 2px;
+    }
 }
 
 .color-under-bar {
-    width: 1.2rem;
-    height: 0.25rem;
+    width: 14px;
+    height: 2px;
     background: #000;
     position: absolute;
-    left: .7rem;
-    bottom: 0.35rem;
+    left: 13px;
+    bottom: 12px;
 }
 
 .online-user {
