@@ -33,6 +33,8 @@ const actions = {
       const resp = await Axios.post(`/auth/login`, {
         username,
         password,
+      }, {
+        skipAuthRefresh: true,
       });
       commit('setToken', resp.data.accessToken);
       commit('setRefreshToken', resp.data);

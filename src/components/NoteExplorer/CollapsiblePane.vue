@@ -11,7 +11,7 @@
       <span class="col p-0">{{title}}</span>
       <slot name="actions" class="col-auto p-0"></slot>
     </button>
-    <gemini-scrollbar
+    <div
       class="pane-body"
       v-if="showBody"
       @scroll="handleBodyScroll"
@@ -19,7 +19,7 @@
       ref="scrollView"
     >
       <slot></slot>
-    </gemini-scrollbar>
+    </div>
   </div>
 </template>
 
@@ -39,6 +39,11 @@ export default {
     },
     scroll(fn) {
       this.$refs.scrollView.scroll(fn);
+    },
+    invalidate() {
+      if (this.showBody !== this.expanded) {
+        this.showBody = this.expanded;
+      }
     },
   },
   data() {

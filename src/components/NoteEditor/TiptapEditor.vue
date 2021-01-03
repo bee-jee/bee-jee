@@ -2,7 +2,7 @@
   <div class="editor h-100">
     <editor-menu-bar :editor="editor" v-slot="{ commands, isActive }">
       <div class="menubar" v-if="!readOnly" ref="menubar">
-        <div class="editor-note-title">
+        <div class="editor-note-title clearfix">
           <input
             type="text"
             v-autowidth="{ maxWidth: '100%', comfortZone: 0 }"
@@ -12,10 +12,10 @@
             :readonly="!isOwner"
             class="rounded"
           />
-          <button class="btn btn-primary" @click="$parent.handleShowEditShare">
+          <button class="btn btn-primary" v-if="isOwner" @click="$parent.handleShowEditShare">
             <mt-icon :path="mdiShareVariantOutline" /> Share
           </button>
-          <span class="pl-2">
+          <span class="pl-2 status">
             <small class="text-success" v-if="websocketIsConnected && isLoggedIn">
               <b>Connected</b>
             </small>
@@ -314,7 +314,6 @@ import {
   mdiLink,
   mdiShareVariantOutline,
 } from '@mdi/js';
-import GeminiScrollbar from 'gemini-scrollbar';
 import { debounce } from 'vue-debounce';
 import { mapGetters } from 'vuex';
 import {
@@ -477,17 +476,6 @@ export default {
     isAlign(isActive, value) {
       return isActive.paragraph(value) || isActive.heading(value);
     },
-    initialiseScrollbar() {
-      this.scrollbar = new GeminiScrollbar({
-        element: this.$refs.editorContainer,
-        createElements: true,
-      });
-      this.scrollbar.create();
-      this.scrollbar.update();
-      this.scrollbar.getViewElement().onscroll = () => {
-        this.updateTopShadow();
-      };
-    },
     updateTopShadow() {
       const target = this.scrollbar.getViewElement();
       const shadowPercentage = Math.min(target.scrollTop / SHADOW_SCROLL_TOP_THRESHOLD, 1);
@@ -566,9 +554,6 @@ export default {
           this.$nextTick(() => {
             el.appendChild(editor.element.firstChild);
             editor.setParentComponent(this);
-            if (!this.isGuest) {
-              this.initialiseScrollbar();
-            }
           });
         }
       },
