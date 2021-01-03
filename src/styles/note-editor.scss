@@ -167,7 +167,7 @@ $selection-highlight: rgba(152, 204, 253, 0.8);
     resize: none;
 }
 
-$hover-background: darken($primary, 25%);
+$hover-background: $blue;
 .menubar {
     border: none;
     border-bottom: 1px solid #eee;
