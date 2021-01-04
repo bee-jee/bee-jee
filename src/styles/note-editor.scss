@@ -130,7 +130,6 @@ $selection-highlight: rgba(152, 204, 253, 0.8);
         color: $input-color;
         padding: .25rem;
         transition: border-color .25s ease;
-        float: left;
 
         &:hover {
             border-color: $gray-400;
@@ -269,6 +268,9 @@ $hover-background: $blue;
 }
 [data-decor-del] {
     text-decoration: line-through;
+}
+[data-decor-blockquote] {
+    color: $green;
 }
 p, div {
     > [data-decor-list]:first-child {
