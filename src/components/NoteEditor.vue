@@ -6,16 +6,6 @@
       ref="editorContainer"
     >
       <tiptap-editor :note="note" :key="note._id"></tiptap-editor>
-      <transition name="fade">
-        <div class="loading-spinner-overlay" v-if="isLoadingSelectedNote"></div>
-      </transition>
-      <transition name="fade">
-        <div class="loading-spinner" v-if="isLoadingSelectedNote">
-          <div class="spinner-border text-success" role="status">
-            <span class="sr-only">Loading...</span>
-          </div>
-        </div>
-      </transition>
     </div>
 
     <modal name="share" height="auto" :adaptive="true">
@@ -51,7 +41,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(['isUpdatingNote', 'isLoadingSelectedNote']),
+    ...mapGetters(['isUpdatingNote']),
     note() {
       return this.$store.getters.selectedNote;
     },

@@ -413,3 +413,23 @@ p, div {
 .overflow-visible {
     overflow: visible !important;
 }
+
+.tabs-container {
+    font-size: 0.8125rem;
+    background-color: $gray-200;
+
+    .tab {
+        border-right: 1px solid $gray-400;
+        background-color: $gray-200;
+        color: rgba(51, 51, 51, 0.7);
+        white-space: nowrap;
+        cursor: pointer;
+        height: 35px;
+        line-height: 35px;
+        padding: 0 0.75rem;
+
+        &.active {
+            background-color: rgb(255, 255, 255);
+        }
+    }
+}

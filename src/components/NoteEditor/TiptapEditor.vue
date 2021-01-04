@@ -1,5 +1,6 @@
 <template>
   <div class="editor h-100">
+    <note-tabs-container />
     <editor-menu-bar :editor="editor" v-slot="{ commands, isActive }">
       <div class="menubar" v-if="!readOnly" ref="menubar">
         <div class="editor-note-title clearfix">
@@ -344,6 +345,7 @@ import TableGridSizeEditor from './TableGridSizeEditor';
 import ColorSelector from './ColorSelector';
 import { getTextColorFromBackground } from '../../../common/collab';
 import { isValidURL } from '../../helpers/url';
+import NoteTabsContainer from './NoteTabsContainer';
 
 const SHADOW_SCROLL_TOP_THRESHOLD = 200;
 
@@ -360,6 +362,7 @@ export default {
     SubMenu,
     TableGridSizeEditor,
     ColorSelector,
+    NoteTabsContainer,
   },
   data() {
     return {

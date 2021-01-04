@@ -33,6 +33,7 @@ export const state = {
   awareness: null,
   userCursorByIds: {},
   userCursorIds: [],
+  noteTabIds: [],
 };
 
 export const getters = {
@@ -64,6 +65,7 @@ export const getters = {
       ? id !== state.awareness.getLocalState().user.id
       : false)
     .map((id) => state.userCursorByIds[id]),
+  noteTabs: (state, getters) => state.noteTabIds.map((id) => getters.noteById(id)),
 };
 
 export const actions = {
@@ -118,6 +120,7 @@ export const actions = {
       const resp = await Axios.get(`/note/${_id}`);
       const note = resp.data;
       commit('setSelectedNote', { note, token: getters.token });
+      commit('appendNoteToTab', { _id: note._id });
     } catch (err) {
       console.error(err);
     } finally {
@@ -415,6 +418,18 @@ export const mutations = {
   },
   setNewNoteParent(state, parent) {
     state.newNoteParent = parent;
+  },
+  appendNoteToTab(state, { _id }) {
+    if (state.noteTabIds.some((id) => id === _id)) {
+      return;
+    }
+    state.noteTabIds.push(_id);
+  },
+  deleteNoteFromTab(state, { _id }) {
+    const index = state.noteTabIds.indexOf(_id);
+    if (index >= 0) {
+      state.noteTabIds.splice(index, 1);
+    }
   },
 };
 
