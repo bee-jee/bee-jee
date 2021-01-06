@@ -19,14 +19,16 @@
 
 <script>
 import { mapGetters } from 'vuex';
+import { currUserPref } from './helpers/currUserPref';
 
 export default {
   mounted() {
+    this.initialiseUserPref();
     this.$store.dispatch('retrieveConfig');
     this.$store.dispatch('retrieveUser');
   },
   computed: {
-    ...mapGetters(['isLoggedIn', 'logoutSource', 'isFinishedRefreshingAuth']),
+    ...mapGetters(['isLoggedIn', 'logoutSource', 'isFinishedRefreshingAuth', 'token']),
   },
   data() {
     return {
@@ -64,6 +66,25 @@ export default {
         }
       }
     },
+    initialiseUserPref() {
+      currUserPref.on('sync', (state) => {
+        if (this.$route.path === '/' && state.selectedNoteType && state.selectedNoteId) {
+          const matchedRoute = this.$router.match({
+            name: state.selectedNoteType,
+          });
+
+          if (matchedRoute.matched.length) {
+            this.$router.push({
+              name: state.selectedNoteType,
+              params: {
+                id: state.selectedNoteId,
+              },
+            });
+          }
+        }
+        this.$store.commit('setNoteTabIds', state.noteTabIds);
+      });
+    },
   },
   watch: {
     isLoggedIn() {
@@ -74,6 +95,16 @@ export default {
     },
     isFinishedRefreshingAuth() {
       this.checkIfLoginRequired();
+    },
+    token: {
+      immediate: true,
+      handler(token) {
+        if (token) {
+          currUserPref.connect(token);
+        } else {
+          currUserPref.disconnect();
+        }
+      },
     },
   },
 };

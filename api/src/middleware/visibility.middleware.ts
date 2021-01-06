@@ -78,17 +78,21 @@ function visiMiddleware(): RequestHandler[] {
   ];
 }
 
-export async function guestIfAvailableMiddleware(
-  req: RequestWithUser, res: Response, next: NextFunction,
-): Promise<void> {
-  const { id } = req.params;
-  if (id) {
-    const note = await NoteModel.findById(id);
-    if (note && note.guestAccess) {
-      req.allowGuest = true;
+export function guestIfAvailableMiddleware(except: string[]) {
+  const exceptSet: Set<string> = new Set(except);
+
+  return async (
+    req: RequestWithUser, res: Response, next: NextFunction,
+  ): Promise<void> => {
+    const { id } = req.params;
+    if (id && !exceptSet.has(id)) {
+      const note = await NoteModel.findById(id);
+      if (note && note.guestAccess) {
+        req.allowGuest = true;
+      }
     }
-  }
-  await authMiddleware(req, res, next);
+    await authMiddleware(req, res, next);
+  };
 }
 
 export default visiMiddleware;

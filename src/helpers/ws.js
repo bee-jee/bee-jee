@@ -5,7 +5,9 @@ import {
   messageSyncEnd,
 } from '../../common/collab';
 
-export const withBeeJeeWs = (provider, awareness, currHandler) => (event) => {
+export const withBeeJeeWs = (
+  provider, awareness, currHandler = provider.ws.onmessage,
+) => (event) => {
   const decoder = decoding.createDecoder(new Uint8Array(event.data));
   const messageType = decoding.readVarUint(decoder);
 

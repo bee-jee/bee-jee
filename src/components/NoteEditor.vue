@@ -6,16 +6,6 @@
       ref="editorContainer"
     >
       <tiptap-editor :note="note" :key="note._id"></tiptap-editor>
-      <transition name="fade">
-        <div class="loading-spinner-overlay" v-if="isLoadingSelectedNote"></div>
-      </transition>
-      <transition name="fade">
-        <div class="loading-spinner" v-if="isLoadingSelectedNote">
-          <div class="spinner-border text-success" role="status">
-            <span class="sr-only">Loading...</span>
-          </div>
-        </div>
-      </transition>
     </div>
 
     <modal name="share" height="auto" :adaptive="true">
@@ -37,6 +27,7 @@ import TiptapEditor from './NoteEditor/TiptapEditor';
 import { mapGetters } from 'vuex';
 import ValidationErrors from '../helpers/validationErrors';
 import ShareSelector from './Note/ShareSelector';
+import { currUserPref } from '../helpers/currUserPref';
 
 export default {
   components: {
@@ -51,7 +42,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(['isUpdatingNote', 'isLoadingSelectedNote']),
+    ...mapGetters(['isUpdatingNote']),
     note() {
       return this.$store.getters.selectedNote;
     },
@@ -112,6 +103,7 @@ export default {
       if (to.params.id) {
         this.setSelectedNote(to.params.id);
       } else {
+        currUserPref.setSelectedNoteId('');
         this.$store.commit('setSelectedNote', {});
       }
     },

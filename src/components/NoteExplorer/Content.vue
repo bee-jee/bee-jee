@@ -139,7 +139,9 @@ export default {
     sharedNotesExpanded: {
       get() {
         if (this.$store.getters.config('sharedNotesExpanded')) {
-          this.$refs.sharedNotesPane.invalidate();
+          if (this.$refs.sharedNotesPane) {
+            this.$refs.sharedNotesPane.invalidate();
+          }
         }
         return this.$store.getters.config('sharedNotesExpanded');
       },

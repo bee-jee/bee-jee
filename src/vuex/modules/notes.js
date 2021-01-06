@@ -3,6 +3,7 @@ import Vue from 'vue';
 import { Awareness } from 'y-protocols/awareness';
 import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
+import { currUserPref } from '../../helpers/currUserPref';
 import { withBeeJeeWs } from '../../helpers/ws';
 
 export const state = {
@@ -33,6 +34,7 @@ export const state = {
   awareness: null,
   userCursorByIds: {},
   userCursorIds: [],
+  noteTabIds: [],
 };
 
 export const getters = {
@@ -64,6 +66,9 @@ export const getters = {
       ? id !== state.awareness.getLocalState().user.id
       : false)
     .map((id) => state.userCursorByIds[id]),
+  noteTabs: (state, getters) => state.noteTabIds
+    .filter((id) => getters.noteById(id)._id)
+    .map((id) => getters.noteById(id)),
 };
 
 export const actions = {
@@ -117,7 +122,12 @@ export const actions = {
     try {
       const resp = await Axios.get(`/note/${_id}`);
       const note = resp.data;
+      if (note._id) {
+        currUserPref.setSelectedNoteType('note-edit');
+        currUserPref.setSelectedNoteId(note._id);
+      }
       commit('setSelectedNote', { note, token: getters.token });
+      commit('appendNoteToTab', { _id: note._id });
     } catch (err) {
       console.error(err);
     } finally {
@@ -142,6 +152,10 @@ export const actions = {
       const resp = await Axios.get(`/note/shared/${_id}`);
       const { data: sharedNote } = resp;
       const { note } = sharedNote;
+      if (note._id) {
+        currUserPref.setSelectedNoteType('view-shared-note');
+        currUserPref.setSelectedNoteId(note._id);
+      }
       commit('updateSharedNote', sharedNote);
       commit('setSelectedNote', { note, token: getters.token });
     } catch (err) {
@@ -302,7 +316,7 @@ export const mutations = {
       state.wsProvider.on('status', ({ status }) => {
         if (status === 'connected') {
           const { ws } = state.wsProvider;
-          ws.onmessage = withBeeJeeWs(state.wsProvider, awareness, ws.onmessage);
+          ws.onmessage = withBeeJeeWs(state.wsProvider, awareness);
         }
       });
       state.wsProvider.on('startSyncing', () => {
@@ -415,6 +429,23 @@ export const mutations = {
   },
   setNewNoteParent(state, parent) {
     state.newNoteParent = parent;
+  },
+  appendNoteToTab(state, { _id }) {
+    if (state.noteTabIds.some((id) => id === _id)) {
+      return;
+    }
+    state.noteTabIds.push(_id);
+    currUserPref.appendNoteTabId(_id);
+  },
+  deleteNoteFromTab(state, { _id }) {
+    const index = state.noteTabIds.indexOf(_id);
+    if (index >= 0) {
+      state.noteTabIds.splice(index, 1);
+      currUserPref.removeNoteTabId(_id);
+    }
+  },
+  setNoteTabIds(state, payload) {
+    state.noteTabIds = payload;
   },
 };
 

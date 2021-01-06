@@ -1,7 +1,7 @@
 import http from 'http';
 import WebSocket from 'ws';
 // @ts-ignore
-import { getYDoc, getPersistence, docs } from 'y-websocket/bin/utils';
+import { getYDoc as getYDocOrCreate, getPersistence, docs } from 'y-websocket/bin/utils';
 // @ts-ignore
 import * as awarenessProtocol from 'y-protocols/dist/awareness.cjs';
 // @ts-ignore
@@ -72,7 +72,9 @@ const closeConn = (doc: any, conn: WebSocket) => {
       docs.delete(doc.name);
     }
   }
-  removeUser(doc, conn);
+  if (doc.clientUserMap) {
+    removeUser(doc, conn);
+  }
   conn.close();
 };
 
@@ -99,7 +101,40 @@ const useSendAck = () => {
 
 const sendAck = useSendAck();
 
-const messageListener = (
+type MessageHandler = (
+  conn: WebSocket,
+  user: User & Document | undefined,
+  doc: any,
+  message: Uint8Array,
+) => void;
+
+const withAwareness = (currHandler: MessageHandler) => (
+  conn: WebSocket,
+  user: User & Document | undefined,
+  doc: any,
+  message: Uint8Array,
+) => {
+  const decoder = decoding.createDecoder(message);
+  const messageType = decoding.readVarUint(decoder);
+  switch (messageType) {
+    case messageAwareness: {
+      const update = awarenessProtocol.modifyAwarenessUpdate(
+        decoding.readVarUint8Array(decoder),
+        (state: { cursor: any } | null) => ({
+          cursor: (state || {}).cursor,
+          user: doc.clientUserMap.get(conn),
+        }),
+      );
+      awarenessProtocol.applyAwarenessUpdate(doc.awareness, update, conn);
+      break;
+    }
+    default:
+      currHandler(conn, user, doc, message);
+      break;
+  }
+};
+
+const useDocSyncMessageListener = () => (
   conn: WebSocket, user: User & Document | undefined, doc: any, message: Uint8Array,
 ) => {
   const encoder = encoding.createEncoder();
@@ -134,17 +169,6 @@ const messageListener = (
       sendAck(doc, conn);
       break;
     }
-    case messageAwareness: {
-      const update = awarenessProtocol.modifyAwarenessUpdate(
-        decoding.readVarUint8Array(decoder),
-        (state: { cursor: any } | null) => ({
-          cursor: (state || {}).cursor,
-          user: doc.clientUserMap.get(conn),
-        }),
-      );
-      awarenessProtocol.applyAwarenessUpdate(doc.awareness, update, conn);
-      break;
-    }
     default:
       break;
   }
@@ -158,38 +182,9 @@ const sendUserInfo = (doc: any, conn: WebSocket, userInfo: UserInfo) => {
   send(doc, conn, encoding.toUint8Array(encoder));
 };
 
-const pingTimeout = 30000;
+const pingTimeout = 15000;
 
-const setupWSConnection = (
-  conn: WebSocket,
-  req: RequestWithUser,
-  { docName = req.params.id, gc = true } = {},
-) => {
-  conn.binaryType = 'arraybuffer';
-  // get doc, initialize if it does not exist yet
-  const doc = getYDoc(docName, gc);
-  if (!doc.colorCounter) {
-    doc.colorCounter = 0;
-  }
-  if (!doc.clientUserMap) {
-    doc.clientUserMap = new Map();
-  }
-  const userInfo: UserInfo | undefined = req.user ? {
-    id: `${req.user._id.toString()}-${doc.colorCounter}`,
-    name: req.user.fullName || '',
-    color: Colors[doc.colorCounter % Colors.length],
-    initials: req.user.initials || '',
-  } : undefined;
-  doc.colorCounter++;
-  if (userInfo) {
-    addUser(doc, conn, userInfo);
-    sendUserInfo(doc, conn, userInfo);
-  }
-  doc.conns.set(conn, new Set());
-  // listen and reply to events
-  conn.on('message', (message) => messageListener(conn, req.user, doc, new Uint8Array(message as ArrayBuffer)));
-
-  // Check if connection is still alive
+const setupPingPong = (conn: WebSocket, doc: any) => {
   let pongReceived = true;
   const pingInterval = setInterval(() => {
     if (!pongReceived) {
@@ -214,22 +209,86 @@ const setupWSConnection = (
   conn.on('pong', () => {
     pongReceived = true;
   });
-  // put the following in a variables in a block so the interval handlers don't keep in in
-  // scope
-  {
-    // send sync step 1
-    const encoder = encoding.createEncoder();
-    encoding.writeVarUint(encoder, messageSync);
-    syncProtocol.writeSyncStep1(encoder, doc);
-    send(doc, conn, encoding.toUint8Array(encoder));
-    const awarenessStates = doc.awareness.getStates();
-    if (awarenessStates.size > 0) {
-      const awarenessEncoder = encoding.createEncoder();
-      encoding.writeVarUint(awarenessEncoder, messageAwareness);
-      encoding.writeVarUint8Array(awarenessEncoder,
-        awarenessProtocol.encodeAwarenessUpdate(doc.awareness, Array.from(awarenessStates.keys())));
-      send(doc, conn, encoding.toUint8Array(awarenessEncoder));
-    }
+};
+
+const sendSyncStep1 = (conn: WebSocket, doc: any) => {
+  // send sync step 1
+  const encoder = encoding.createEncoder();
+  encoding.writeVarUint(encoder, messageSync);
+  syncProtocol.writeSyncStep1(encoder, doc);
+  send(doc, conn, encoding.toUint8Array(encoder));
+  const awarenessStates = doc.awareness.getStates();
+  if (awarenessStates.size > 0) {
+    const awarenessEncoder = encoding.createEncoder();
+    encoding.writeVarUint(awarenessEncoder, messageAwareness);
+    encoding.writeVarUint8Array(awarenessEncoder,
+      awarenessProtocol.encodeAwarenessUpdate(doc.awareness, Array.from(awarenessStates.keys())));
+    send(doc, conn, encoding.toUint8Array(awarenessEncoder));
+  }
+};
+
+const setupNoteWSConnection = (
+  conn: WebSocket,
+  req: RequestWithUser,
+  { docName = req.params.id, gc = true } = {},
+) => {
+  conn.binaryType = 'arraybuffer';
+  const doc = getYDocOrCreate(docName, gc);
+  if (!doc.colorCounter) {
+    doc.colorCounter = 0;
+  }
+  if (!doc.clientUserMap) {
+    doc.clientUserMap = new Map();
+  }
+  const userInfo: UserInfo | undefined = req.user ? {
+    id: `${req.user._id.toString()}-${doc.colorCounter}`,
+    name: req.user.fullName || '',
+    color: Colors[doc.colorCounter % Colors.length],
+    initials: req.user.initials || '',
+  } : undefined;
+  doc.colorCounter++;
+  if (userInfo) {
+    addUser(doc, conn, userInfo);
+    sendUserInfo(doc, conn, userInfo);
+  }
+  doc.conns.set(conn, new Set());
+
+  const messageListener = withAwareness(useDocSyncMessageListener());
+
+  conn.on('message', (message) => messageListener(conn, req.user, doc, new Uint8Array(message as ArrayBuffer)));
+
+  setupPingPong(conn, doc);
+
+  sendSyncStep1(conn, doc);
+};
+
+const setupUserPrefWSConnection = (
+  conn: WebSocket,
+  req: RequestWithUser,
+  { docName = 'userPref' } = {},
+) => {
+  conn.binaryType = 'arraybuffer';
+  const doc = getYDocOrCreate(`${req.user._id}-${docName}`, true);
+  doc.conns.set(conn, new Set());
+
+  const messageListener = useDocSyncMessageListener();
+
+  conn.on('message', (message) => messageListener(conn, req.user, doc, new Uint8Array(message as ArrayBuffer)));
+
+  setupPingPong(conn, doc);
+
+  sendSyncStep1(conn, doc);
+};
+
+const setupWSConnection = (
+  conn: WebSocket,
+  req: RequestWithUser,
+  { docName = req.params.id, gc = true } = {},
+) => {
+  if (docName === 'userPref') {
+    setupUserPrefWSConnection(conn, req);
+  } else {
+    setupNoteWSConnection(conn, req, { docName, gc });
   }
 };
 
@@ -237,7 +296,9 @@ const initialiseYWebsocket = (server: http.Server): WebSocket.Server => {
   const wss = new WebSocket.Server({ noServer: true });
   const app = container.resolve<Application>('app');
 
-  app.use('/ws/:id', guestIfAvailableMiddleware, (req: RequestWithUser, res: Response, next: NextFunction) => {
+  app.use('/ws/:id', guestIfAvailableMiddleware([
+    'userPref',
+  ]), (req: RequestWithUser, res: Response, next: NextFunction) => {
     if (isWsServerResponse(res)) {
       res.acceptRequest(req);
       return;

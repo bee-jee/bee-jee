@@ -1,5 +1,6 @@
 <template>
   <div class="editor h-100">
+    <note-tabs-container />
     <editor-menu-bar :editor="editor" v-slot="{ commands, isActive }">
       <div class="menubar" v-if="!readOnly" ref="menubar">
         <div class="editor-note-title clearfix">
@@ -10,12 +11,16 @@
             @input="changeTitle"
             placeholder="Enter note title here"
             :readonly="!isOwner"
-            class="rounded"
+            class="rounded float-left"
           />
-          <button class="btn btn-primary" v-if="isOwner" @click="$parent.handleShowEditShare">
+          <button
+            class="btn btn-primary float-left"
+            v-if="isOwner"
+            @click="$parent.handleShowEditShare"
+          >
             <mt-icon :path="mdiShareVariantOutline" /> Share
           </button>
-          <span class="pl-2 status">
+          <span class="pl-2 status float-left">
             <small class="text-success" v-if="websocketIsConnected && isLoggedIn">
               <b>Connected</b>
             </small>
@@ -23,7 +28,7 @@
               <b>{{disconnectedStatus}}</b>
             </small>
           </span>
-          <span class="pl-2" v-if="isSyncing">
+          <span class="pl-2 status" v-if="isSyncing">
             Saving...
           </span>
         </div>
@@ -163,7 +168,7 @@
             </template>
           </group-button>
 
-          <group-button toggle-class="button__text">
+          <group-button :toggle-class="`button__text${isActive.heading() ? ' active' : ''}`">
             <template v-slot:button-content><strong>Heading</strong></template>
             <b-dropdown-item :active="isActive.heading({ level: 1 })" @click="commands.heading({ level: 1 })">
               <slot name="label">Heading 1</slot>
@@ -176,7 +181,7 @@
             </b-dropdown-item>
           </group-button>
 
-          <group-button toggle-class="button__text">
+          <group-button :toggle-class="`button__text${isAnyAlign(isActive) ? ' active' : ''}`">
             <template v-slot:button-content><strong>Align</strong></template>
             <b-dropdown-item
               :active="isAlign(isActive, { align: 'left' })"
@@ -340,6 +345,7 @@ import TableGridSizeEditor from './TableGridSizeEditor';
 import ColorSelector from './ColorSelector';
 import { getTextColorFromBackground } from '../../../common/collab';
 import { isValidURL } from '../../helpers/url';
+import NoteTabsContainer from './NoteTabsContainer';
 
 const SHADOW_SCROLL_TOP_THRESHOLD = 200;
 
@@ -356,6 +362,7 @@ export default {
     SubMenu,
     TableGridSizeEditor,
     ColorSelector,
+    NoteTabsContainer,
   },
   data() {
     return {
@@ -475,6 +482,14 @@ export default {
   methods: {
     isAlign(isActive, value) {
       return isActive.paragraph(value) || isActive.heading(value);
+    },
+    isAnyAlign(isActive) {
+      const values = [
+        'left', 'center', 'right', 'justify',
+      ];
+      return values.some((value) => this.isAlign(isActive, {
+        align: value,
+      }));
     },
     updateTopShadow() {
       const target = this.scrollbar.getViewElement();

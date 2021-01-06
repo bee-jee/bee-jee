@@ -1,14 +1,16 @@
+$font-lato: 'Lato', sans-serif;
+
 $blue: #1a73e8;
 $blue-light: #dcf1fa;
-$green: #32CD32;
+$green: #1CB27E;
 $gray-100: rgb(248, 249, 250);
 $primary-light: $blue-light;
 $link-color: #7ed6f8;
 $dropdown-link-active-color: #fff;
 $dropdown-link-disabled-color: #aaa;
-$font-family-base: Roboto, sans-serif;
+$font-family-base: $font-lato;
 
-@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
 @import "~bootstrap/scss/bootstrap.scss";
 @import "~bootstrap-vue/src/index.scss";
