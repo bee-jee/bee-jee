@@ -27,6 +27,7 @@ import TiptapEditor from './NoteEditor/TiptapEditor';
 import { mapGetters } from 'vuex';
 import ValidationErrors from '../helpers/validationErrors';
 import ShareSelector from './Note/ShareSelector';
+import { currUserPref } from '../helpers/currUserPref';
 
 export default {
   components: {
@@ -102,6 +103,7 @@ export default {
       if (to.params.id) {
         this.setSelectedNote(to.params.id);
       } else {
+        currUserPref.setSelectedNoteId('');
         this.$store.commit('setSelectedNote', {});
       }
     },

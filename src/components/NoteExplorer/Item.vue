@@ -23,10 +23,10 @@
       </div>
       <div class="col-auto">
         <span v-if="sharedNote.isViewed == false" class="badge badge-warning">New</span>
-        <button class="btn-icon btn-secondary" @click="handleShowCreateSubNote()" v-if="note.author === user._id">
+        <button class="btn-icon btn-secondary" @click.prevent="handleShowCreateSubNote()" v-if="note.author === user._id">
           <i class="fas fa-plus fa-xs"></i>
         </button>
-        <button class="btn-icon btn-danger" @click="handleClickDeleteNote(note)" v-if="note.author === user._id">
+        <button class="btn-icon btn-danger" @click.prevent="handleClickDeleteNote(note)" v-if="note.author === user._id">
           <i class="far fa-trash-alt fa-sm"></i>
         </button>
       </div>
