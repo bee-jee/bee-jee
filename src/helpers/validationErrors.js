@@ -1,5 +1,6 @@
 class ValidationErrors {
   errors = {};
+  formError = '';
 
   constructor(errors) {
     if (typeof errors !== 'undefined') {
@@ -37,10 +38,15 @@ class ValidationErrors {
 
   reset() {
     this.errors = {};
+    this.formError = '';
   }
 
   setErrors(errors) {
     this.errors = errors;
+  }
+
+  setFormError(formError) {
+    this.formError = formError;
   }
 }
 

@@ -5,6 +5,7 @@ import bcrypt from 'bcrypt';
 import { User } from '../user/user.interface';
 import { OAuthTokenModel, OAuthClientModel } from './authentication.model';
 import UserModel from '../user/user.model';
+import UserIsNotConfirmedException from '../exceptions/UserIsNotConfirmedException';
 
 const OAuthModel = {
   async getAccessToken(accessToken: string): Promise<Token | Falsey> {
@@ -28,6 +29,10 @@ const OAuthModel = {
   async getUser(username: string, password: string): Promise<User | Falsey> {
     const user = await UserModel.findOne({ username });
     if (user) {
+      if (!user.confirm) {
+        throw new UserIsNotConfirmedException(user);
+      }
+
       const passwordMatched = await bcrypt.compare(
         password,
         user.get('password', null, { getters: false }),

@@ -21,23 +21,12 @@ const routes = [
     },
   },
   {
-    // The path here is empty because we want to use a layout
-    // for all routes, because we want to display a note-explorer
-    // on the left bar no matter what routes
     path: '',
     component: BaseLayout,
     meta: {
       requiresAuth: true,
     },
     children: [
-      {
-        path: '/guest/:id',
-        name: 'view-guest-access-note',
-        component: () => import('../components/GuestAccess'),
-        meta: {
-          requiresGuest: true,
-        },
-      },
       {
         path: '/',
         component: SidebarLayout,
@@ -77,6 +66,28 @@ const routes = [
             component: NoteEditor,
           },
         ],
+      },
+    ],
+  },
+  {
+    path: '',
+    component: BaseLayout,
+    meta: {
+      requiresGuest: true,
+    },
+    children: [
+      {
+        path: '/login/register',
+        component: () => import('../components/Login/Register'),
+      },
+      {
+        path: '/login/email-confirm/:username/:secret',
+        component: () => import('../components/Login/EmailConfirm'),
+      },
+      {
+        path: '/guest/:id',
+        name: 'view-guest-access-note',
+        component: () => import('../components/GuestAccess'),
       },
     ],
   },

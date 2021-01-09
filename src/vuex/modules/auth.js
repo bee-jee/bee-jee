@@ -10,6 +10,7 @@ const state = {
   token: Cookie.get('token') || '',
   refreshToken: Cookie.get('refreshToken') || '',
   loginError: '',
+  loginErrorResponse: {},
   logoutSource: 'user',
   isLoggingIn: false,
   isFinishedRefreshingAuth: false,
@@ -22,6 +23,7 @@ const getters = {
   token: state => state.token,
   refreshToken: state => state.refreshToken,
   loginError: state => state.loginError,
+  loginErrorResponse: state => state.loginErrorResponse,
   logoutSource: state => state.logoutSource,
   isLoggingIn: state => state.isLoggingIn,
 };
@@ -40,7 +42,8 @@ const actions = {
       commit('setRefreshToken', resp.data);
       commit('setUser', resp.data.user);
     } catch (err) {
-      if (err.response && err.response.status === 401) {
+      if (err.response) {
+        commit('setLoginErrorResponse', err.response.data);
         commit('setLoginError', err.response.data.message);
       } else {
         console.error(err);
@@ -126,6 +129,9 @@ const mutations = {
   },
   setLoginError(state, message) {
     state.loginError = message;
+  },
+  setLoginErrorResponse(state, payload) {
+    state.loginErrorResponse = payload;
   },
   setLogoutSource(state, source) {
     state.logoutSource = source;

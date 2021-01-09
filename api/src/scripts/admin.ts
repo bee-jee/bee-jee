@@ -67,6 +67,7 @@ rl.question('Password: ', (answer: string) => {
         lastName: 'User',
         username: 'admin',
         role: 'admin',
+        confirm: true,
         password: hashedPassword,
         created: new Date(),
         updated: new Date(),

@@ -2,7 +2,10 @@ import { Schema, model, Document } from 'mongoose';
 import { User } from './user.interface';
 
 const userSchema = new Schema({
-  username: String,
+  username: {
+    type: String,
+    index: true,
+  },
   password: {
     type: String,
     get: (): undefined => undefined,
@@ -11,6 +14,18 @@ const userSchema = new Schema({
   firstName: String,
   lastName: String,
   role: String,
+  secret: {
+    type: String,
+    default: '',
+  },
+  confirm: {
+    type: Boolean,
+    default: false,
+  },
+  lastConfirmSend: {
+    type: Date,
+    default: null,
+  },
   created: Date,
   updated: {
     type: Date,
@@ -46,5 +61,10 @@ userSchema.virtual('notes', {
 });
 
 const UserModel = model<User & Document>('User', userSchema);
+
+UserModel.syncIndexes()
+  .catch((err) => {
+    console.error(err);
+  });
 
 export default UserModel;
