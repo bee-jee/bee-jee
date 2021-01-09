@@ -4,6 +4,8 @@ import { setCellAttr } from 'prosemirror-tables';
 import findActionableCell from './utils/table';
 import store from '../vuex/store';
 
+const HORIZONTAL_POPUP_SPACING = 3;
+
 function fromHTMlElement(el) {
   const display = document.defaultView.getComputedStyle(el).display;
   if (display === 'contents' && el.children.length === 1) {
@@ -66,13 +68,31 @@ class TableCellTooltipView {
     this.setPos = {};
     if (this.dropdown) {
       this.dropdown.$on('shown', () => {
-        let { top, left, parentHeight } = this.setPos;
-        if (top && left && parentHeight) {
-          const diff = (top + this.dropdown.$refs.menu.clientHeight) - parentHeight;
-          if (diff > 0) {
-            top -= diff + 50;
+        let { top, left, leftToParent, parentHeight, parentWidth } = this.setPos;
+        if (top && left && parentHeight && parentWidth) {
+          const diffHeight = (top + this.dropdown.$refs.menu.clientHeight) - parentHeight;
+          let maxSubMenuWidth = 0;
+          this.dropdown.$refs.menu.querySelectorAll('.sub-dropdown')
+            .forEach((subMenu) => {
+              if (subMenu.clientWidth > maxSubMenuWidth) {
+                maxSubMenuWidth = subMenu.clientWidth;
+              }
+            });
+          const diffWidth = (
+            leftToParent
+            + this.dropdown.$refs.menu.clientWidth
+            + maxSubMenuWidth
+          ) - parentWidth;
+          let menuDirection = 'right';
+
+          if (diffHeight > 0) {
+            top -= diffHeight + 50;
           }
-          store.commit('setPosition', { top, left });
+          if (diffWidth > 0) {
+            left -= diffWidth + 2 * (HORIZONTAL_POPUP_SPACING + this.popUp.clientWidth) + 10;
+            menuDirection = 'left';
+          }
+          store.commit('setPosition', { top, left, menuDirection });
           this.setPos = {};
         }
       });
@@ -145,14 +165,23 @@ class TableCellTooltipView {
     this.dropdown.show();
     const scrollDom = view.dom.parentNode.parentNode;
     const top = this.popUp.offsetTop - scrollDom.scrollTop;
-    let left = this.popUp.offsetLeft + this.popUp.offsetWidth + 3;
+    let left = this.popUp.offsetLeft + this.popUp.offsetWidth + HORIZONTAL_POPUP_SPACING;
+    let leftToParent = 0;
     const toggle = this.dropdown.$refs.toggle;
     let parent = toggle.offsetParent;
     while (parent !== null && !parent.classList.contains('note-editor-container')) {
       left -= parent.offsetLeft;
+      leftToParent += parent.offsetLeft;
       parent = parent.offsetParent;
     }
-    this.setPos = { top, left, parentHeight: scrollDom.clientHeight };
+    leftToParent += left;
+    this.setPos = {
+      top,
+      left,
+      leftToParent,
+      parentHeight: scrollDom.clientHeight,
+      parentWidth: scrollDom.clientWidth,
+    };
   };
 }
 

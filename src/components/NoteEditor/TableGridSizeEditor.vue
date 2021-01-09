@@ -11,7 +11,7 @@
       ></div>
     </div>
     <div class="text-center">
-      <small>{{ width }} X {{ height }}</small>
+      <small>{{ numCols }} X {{ numRows }}</small>
     </div>
   </div>
 </template>
@@ -24,6 +24,12 @@ const MAX_WIDTH = 20;
 const MAX_HEIGHT = 20;
 
 export default {
+  props: {
+    direction: {
+      type: String,
+      default: 'right',
+    },
+  },
   data() {
     return {
       width: MIN_WIDTH,
@@ -35,20 +41,44 @@ export default {
   computed: {
     grid() {
       const grid = [];
+      const isWithinHor = (value) => {
+        if (this.direction === 'left') {
+          const realX = this.width - value - 1;
+          return this.hoverX >= realX;
+        } else {
+          return value <= this.hoverX;
+        }
+      };
       for (let i = 0; i < this.height; i++) {
         const rows = [];
         for (let j = 0; j < this.width; j++) {
           rows.push({
-            hovered: j <= this.hoverX && i <= this.hoverY,
+            hovered: isWithinHor(j) && i <= this.hoverY,
           });
         }
         grid.push(rows);
       }
       return grid;
     },
+    numCols() {
+      if (this.hoverX >= 0) {
+        return this.hoverX + 1;
+      }
+      return 0;
+    },
+    numRows() {
+      if (this.hoverY >= 0) {
+        return this.hoverY + 1;
+      }
+      return 0;
+    },
   },
   methods: {
     hoverCell(x, y) {
+      if (this.direction === 'left') {
+        x = this.width - x - 1;
+      }
+
       this.hoverX = x;
       this.hoverY = y;
 
@@ -78,7 +108,53 @@ export default {
       }
     },
     selectCell(x, y) {
+      x = this.width - x - 1;
       this.$emit('select', { x, y });
+    },
+    rightIterator() {
+      let value = 0;
+      const end = this.width;
+
+      return {
+        next() {
+          value++;
+        },
+        value() {
+          return value;
+        },
+        isEnd() {
+          return value === end;
+        },
+        fromEnd(curr) {
+          return end - curr;
+        },
+      };
+    },
+    leftIterator() {
+      let value = this.width;
+      const end = 0;
+
+      return {
+        next() {
+          value--;
+        },
+        value() {
+          return value;
+        },
+        isEnd() {
+          return value === end;
+        },
+        fromEnd(curr) {
+          return curr - end;
+        },
+      };
+    },
+    getRowIterator() {
+      if (this.direction === 'left') {
+        return this.leftIterator();
+      } else {
+        return this.rightIterator();
+      }
     },
   },
 };

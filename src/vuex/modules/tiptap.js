@@ -26,8 +26,8 @@ const mutations = {
   setMenubar(state, el) {
     state.menubar = el;
   },
-  setPosition(state, { top, left }) {
-    state.position = { top, left };
+  setPosition(state, { top, left, menuDirection }) {
+    state.position = { top, left, menuDirection };
   },
   setEditorSelection(state, payload) {
     state.selection = payload;

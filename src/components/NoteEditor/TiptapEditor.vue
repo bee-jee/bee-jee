@@ -52,15 +52,18 @@
             </template>
             <sub-menu ref="tableMenu">
               <template v-slot:label>Insert table</template>
-              <table-grid-size-editor
-                @select="
-                  commands.createTable({
-                    rowsCount: $event.y + 1,
-                    colsCount: $event.x + 1,
-                    withHeaderRow: true,
-                  })
-                "
-              />
+              <template v-slot:default="{ direction }">
+                <table-grid-size-editor
+                  @select="
+                    commands.createTable({
+                      rowsCount: $event.y + 1,
+                      colsCount: $event.x + 1,
+                      withHeaderRow: true,
+                    })
+                  "
+                  :direction="direction"
+                />
+              </template>
             </sub-menu>
 
             <b-dropdown-divider />

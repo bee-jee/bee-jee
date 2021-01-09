@@ -314,11 +314,11 @@ p, div {
     position: relative;
 
     &:hover .sub-dropdown {
-        display: block;
+        visibility: visible;
     }
 }
 .sub-dropdown {
-    display: none;
+    visibility: hidden;
     position: absolute;
     left: 100%;
     top: 0;
@@ -328,6 +328,11 @@ p, div {
     border: $dropdown-border-width solid $dropdown-border-color;
     @include border-radius($dropdown-border-radius);
     @include box-shadow($dropdown-box-shadow);
+
+    &.left {
+        left: 0;
+        transform: translateX(-100%);
+    }
 }
 
 .grid-row {
