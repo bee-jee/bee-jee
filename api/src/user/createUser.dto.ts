@@ -1,4 +1,10 @@
-import { IsString, Length, IsNotEmpty, IsEmail, IsOptional } from 'class-validator';
+import {
+  IsString,
+  Length,
+  IsNotEmpty,
+  IsEmail,
+  IsOptional,
+} from 'class-validator';
 import { Match } from '../validation/match.decorator';
 import { UniqueDB } from '../validation/uniqueDB.decorator';
 
