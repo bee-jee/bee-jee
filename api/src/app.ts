@@ -8,8 +8,17 @@ import { container } from 'tsyringe';
 import { Controller } from './interfaces/controller.interface';
 import errorMiddleware from './middleware/error.middleware';
 import ConfigService from './config/config.service';
+import UserModel from './user/user.model';
 
 export const ROOT_DIR = path.resolve(__dirname, '..', '..');
+
+export const MODELS_REQUIRE_INDEX = [
+  UserModel,
+];
+
+export async function syncIndexesForModels(): Promise<void> {
+  await Promise.all(MODELS_REQUIRE_INDEX.map((model) => model.syncIndexes()));
+}
 
 class App {
   public app: express.Application;
@@ -23,17 +32,19 @@ class App {
     container.register<express.Application>('app', { useValue: this.app });
     container.register<http.Server>('server', { useValue: this.server });
     container.register<Controller[]>('controllers', { useValue: controllers });
-
-    this.boot(controllers);
   }
 
-  public listen() {
-    this.server.listen(this.configService.get('API_PORT'), () => {
-      console.log(`API is listening on ${this.configService.get('API_PORT')}`);
-    });
+  public listen(): Promise<void> {
+    return this.boot(this.controllers)
+      .then(() => new Promise<void>((resolve) => {
+        this.server.listen(this.configService.get('API_PORT'), () => {
+          console.log(`API is listening on ${this.configService.get('API_PORT')}`);
+          resolve();
+        });
+      }));
   }
 
-  private boot(controllers: Controller[]) {
+  private async boot(controllers: Controller[]) {
     const {
       MONGO_USER,
       MONGO_PASSWORD,
@@ -43,12 +54,17 @@ class App {
     if (typeof MONGO_USER === 'undefined' || MONGO_USER === '') {
       uri = `mongodb://${MONGO_PATH}`;
     }
-    mongoose.connect(uri, {
+    await mongoose.connect(uri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
       useFindAndModify: false,
       useCreateIndex: true,
     });
+    try {
+      await syncIndexesForModels();
+    } catch (err) {
+      console.error(err);
+    }
     this.initialiseMiddlewares();
     this.initialiseControllers(controllers);
     this.initialiseErrorHandler();

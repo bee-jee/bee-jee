@@ -8,7 +8,7 @@
     "api:build": "tsc -p api/tsconfig.json",
     "api:lint": "tsc -p api/tsconfig.json --noemit && eslint --ext .ts,.tsx api/",
     "api:start": "nodemon",
-    "api:test": "cross-env TS_NODE_PROJECT=api/tsconfig.json mocha -r ts-node/register --project ./api/tsconfig.json api/__tests__/**/*.spec.ts",
+    "api:test": "cross-env TS_NODE_PROJECT=api/tsconfig.json mocha -r ts-node/register -r api/test-register.js --project ./api/tsconfig.json api/__tests__/**/*.spec.ts",
     "start": "npm-run-all -p api:start vue:serve",
     "test": "npm run vue:test && npm run api:test",
     "vue:build": "vue-cli-service build --mode=production --modern",

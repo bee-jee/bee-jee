@@ -62,9 +62,4 @@ userSchema.virtual('notes', {
 
 const UserModel = model<User & Document>('User', userSchema);
 
-UserModel.syncIndexes()
-  .catch((err) => {
-    console.error(err);
-  });
-
 export default UserModel;
