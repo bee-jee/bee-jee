@@ -61,24 +61,32 @@ describe('Note visibility', () => {
       guestAccess: undefined,
     });
 
-    await (middleware as RequestHandler)({
-      user: personB,
-      params: {
-        id: aNote1._id,
-      } as any,
-    } as RequestWithUser, {} as Response, nextSpy);
+    await (middleware as RequestHandler)(
+      {
+        user: personB,
+        params: {
+          id: aNote1._id,
+        } as any,
+      } as RequestWithUser,
+      {} as Response,
+      nextSpy,
+    );
     expect(nextSpy.calledOnce).equal(true);
     expect(nextSpy.getCall(0).args.length).equal(0);
 
     nextSpy.resetHistory();
     aNote1.visibility = Visibility.Private;
     await aNote1.save();
-    await (middleware as RequestHandler)({
-      user: personA,
-      params: {
-        id: aNote1._id,
-      } as any,
-    } as RequestWithUser, {} as Response, nextSpy);
+    await (middleware as RequestHandler)(
+      {
+        user: personA,
+        params: {
+          id: aNote1._id,
+        } as any,
+      } as RequestWithUser,
+      {} as Response,
+      nextSpy,
+    );
     expect(nextSpy.calledOnce).equal(true);
     expect(nextSpy.getCall(0).args.length).equal(1);
     expect(nextSpy.getCall(0).args[0]).to.be.instanceOf(NoPermissionException);

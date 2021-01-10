@@ -7,6 +7,9 @@ export interface User {
   fullName?: string;
   initials?: string;
   role: string;
+  secret?: string;
+  confirm?: boolean;
+  lastConfirmSend?: Date | null;
   created: Date;
   updated: Date;
 }

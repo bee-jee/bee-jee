@@ -49,6 +49,10 @@ class AuthenticationController implements Controller {
       const token = await oauthToken(oauthRequest, oauthResponse);
       response.send(token);
     } catch (err) {
+      if (err.inner && err.inner instanceof HttpException) {
+        next(err.inner);
+        return;
+      }
       next(new InvalidCredentialsException());
     }
   };

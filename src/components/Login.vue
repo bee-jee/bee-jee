@@ -23,7 +23,23 @@
           placeholder="Password"
           required
         />
-        <div class="text-danger" v-if="loginError">{{loginError}}</div>
+        <div class="text-danger" v-if="loginError">
+          {{ loginError }}
+          <div v-if="loginErrorResponse.errorCode === 'user_is_not_confirmed'">
+            <a href="#" @click.prevent="resendConfirmationEmail(loginErrorResponse.params)">
+              <span
+                class="spinner-border spinner-border-sm text-success"
+                role="status"
+                v-if="isResendingConfirmationEmail"
+              >
+                <span class="sr-only">Loading...</span>
+              </span>
+              <template v-else>Re-send confirmation email</template>
+            </a>
+            <div v-if="resendError">Error: {{ resendError }}</div>
+            <div v-if="resendSuccessMessage" class="alert alert-success">{{ resendSuccessMessage }}</div>
+          </div>
+        </div>
       </div>
       <button class="btn btn-lg btn-primary btn-block" type="submit">
         <span class="spinner-border text-success" role="status" v-if="isLoggingIn">
@@ -31,17 +47,30 @@
         </span>
         <template v-else>Sign in</template>
       </button>
+      <div>
+        Don't have an account?
+      </div>
+      <div>
+        <router-link to="/login/register">Register a new account now.</router-link>
+      </div>
     </form>
   </div>
 </template>
 
 <script>
+import axios from 'axios';
 import { mapGetters } from 'vuex';
 export default {
+  mounted() {
+    this.$store.commit('setLoginError', '');
+  },
   data() {
     return {
       username: '',
       password: '',
+      isResendingConfirmationEmail: false,
+      resendError: '',
+      resendSuccessMessage: '',
     };
   },
   methods: {
@@ -51,7 +80,8 @@ export default {
       }
       const { username, password } = this;
       const self = this;
-      this.$store.dispatch('login', { vm: this, username, password })
+      this.$store
+        .dispatch('login', { vm: this, username, password })
         .then(function () {
           if (self.isLoggedIn) {
             return self.$store.dispatch('popWantsUrl');
@@ -67,38 +97,49 @@ export default {
           }
         });
     },
+    async resendConfirmationEmail({ _id }) {
+      this.isResendingConfirmationEmail = true;
+      this.resendError = '';
+      this.resendSuccessMessage = '';
+      try {
+        const resp = await axios.post(`/user/resendConfirmationEmail/${_id}`);
+        if (resp.data.status === 'ok') {
+          this.resendSuccessMessage = resp.data.message;
+        } else {
+          this.resendError = 'Unknown server error';
+        }
+      } catch (err) {
+        if (err.response && err.response.data.message) {
+          this.resendError = err.response.data.message;
+          return;
+        }
+        this.resendError = 'Unknown server error';
+      } finally {
+        this.isResendingConfirmationEmail = false;
+      }
+    },
   },
   computed: {
-    ...mapGetters([
-      'loginError',
-      'isLoggedIn',
-      'isLoggingIn',
-    ]),
+    ...mapGetters(['loginError', 'loginErrorResponse', 'isLoggedIn', 'isLoggingIn']),
   },
-}
+};
 </script>
 
 <style>
 html,
 body,
-#app,
-.login-container {
+#app {
   height: 100%;
 }
 
 .login-container {
-  display: -ms-flexbox;
-  display: -webkit-box;
   display: flex;
-  -ms-flex-align: center;
-  -ms-flex-pack: center;
-  -webkit-box-align: center;
   align-items: center;
-  -webkit-box-pack: center;
   justify-content: center;
   padding-top: 40px;
   padding-bottom: 40px;
-  background-color: #f5f5f5;
+  height: auto;
+  min-height: 100%;
 }
 
 .form-login {

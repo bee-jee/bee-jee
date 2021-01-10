@@ -1,14 +1,13 @@
 import {
+  IsEmail,
+  IsNotEmpty,
   IsString,
   Length,
-  IsNotEmpty,
-  IsEmail,
-  IsOptional,
 } from 'class-validator';
 import { Match } from '../validation/match.decorator';
 import { UniqueDB } from '../validation/uniqueDB.decorator';
 
-class CreateUserDto {
+export class RegisterUserDto {
   @IsString()
   @Length(4, 64)
   @UniqueDB({ modelName: 'User', field: 'username' })
@@ -24,21 +23,15 @@ class CreateUserDto {
   public passwordConfirm: string;
 
   @IsString()
-  @IsNotEmpty()
-  public role: string;
-
-  @IsString()
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'First name should not be empty' })
   public firstName: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Last name should not be empty' })
   public lastName: string;
 
+  @IsNotEmpty()
   @IsEmail()
-  @IsOptional()
   @UniqueDB({ modelName: 'User', field: 'email' })
   public email: string;
 }
-
-export default CreateUserDto;

@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
+import { syncIndexesForModels } from '../src/app';
 
 const mongod = new MongoMemoryServer();
 
@@ -7,15 +8,22 @@ const mongod = new MongoMemoryServer();
  * Connect to the in-memory database.
  */
 const connect = async () => {
-  const uri = await mongod.getConnectionString();
+  const uri = await mongod.getUri();
 
   const mongooseOpts = {
     useNewUrlParser: true,
     useFindAndModify: false,
     useUnifiedTopology: true,
+    useCreateIndex: true,
   };
 
   await mongoose.connect(uri, mongooseOpts);
+
+  try {
+    await syncIndexesForModels();
+  } catch (err) {
+    console.error(err);
+  }
 };
 
 const close = async () => {
