@@ -387,10 +387,11 @@ class Image extends Node {
   createDecorations(doc, view) {
     const decorations = [];
     if (this.selectedImg !== null) {
-      const { left, top, bottom } = relativeCoordsAt(view, this.imgPos);
-      const { left: right } = relativeCoordsAt(view, this.imgPos + 1);
+      const { left } = relativeCoordsAt(view, this.imgPos);
+      const { left: right, top, bottom } = relativeCoordsAt(view, this.imgPos + 1);
       const width = Math.abs(right - left);
       const height = bottom - top;
+      console.log({ top, bottom });
       decorations.push(Decoration.widget(
         this.imgPos + 1,
         () => {

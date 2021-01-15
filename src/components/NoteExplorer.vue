@@ -1,12 +1,12 @@
 <template>
   <div class="note-explorer">
-    <div class="row no-gutters">
+    <div class="row no-gutters user-menu">
       <div class="col">
         <b-dropdown
           :text="user.fullName"
           block
           variant="link"
-          toggle-class="text-decoration-none text-left user-menu-toggle overflow-hidden"
+          toggle-class="text-decoration-none text-left user-menu-toggle overflow-hidden py-0"
         >
           <b-dropdown-item disabled>{{user.fullName}}</b-dropdown-item>
           <b-dropdown-divider></b-dropdown-divider>
@@ -25,7 +25,7 @@
         </b-dropdown>
       </div>
       <div class="col-auto">
-        <button type="button" class="btn px-2" @click="closeExplorer">
+        <button type="button" class="btn px-2 py-0 close-explorer" @click="closeExplorer">
           <i class="fas fa-chevron-left"></i>
         </button>
       </div>

@@ -415,7 +415,7 @@ p, div {
 }
 
 .tabs-container {
-    font-size: 0.8125rem;
+    font-size: $top-bar-font-size;
     background-color: $gray-200;
 
     .tab {
@@ -424,8 +424,8 @@ p, div {
         color: rgba(51, 51, 51, 0.7);
         white-space: nowrap;
         cursor: pointer;
-        height: 35px;
-        line-height: 35px;
+        height: $top-bar-height;
+        line-height: $top-bar-height;
         padding: 0 0.75rem;
 
         &.active {

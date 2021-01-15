@@ -4,6 +4,27 @@
 
 $pane-height: 30px;
 
+.user-menu {
+    font-size: $top-bar-font-size;
+
+    &-toggle {
+        line-height: $top-bar-height;
+        height: $top-bar-height;
+
+        &.btn.btn-link {
+            color: $black;
+
+            &:hover {
+                background-color: $primary-light;
+            }
+        }
+    }
+    .close-explorer {
+        line-height: $top-bar-height;
+        height: $top-bar-height;
+    }
+}
+
 .note-explorer {
     height: 100%;
     background-color: $gray-100;
@@ -110,14 +131,6 @@ $pane-height: 30px;
         position: absolute;
         top: 50%;
         margin: -0.5rem;
-    }
-}
-
-.btn.btn-link.user-menu-toggle {
-    color: $black;
-
-    &:hover {
-        background-color: $primary-light;
     }
 }
 

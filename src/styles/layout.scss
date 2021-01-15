@@ -1,7 +1,9 @@
 .open-explorer {
     position: absolute;
     left: 100%;
-    top: 5px;
+    top: 0;
+    height: $top-bar-height;
+    line-height: $top-bar-height;
     z-index: 1;
 }
 
