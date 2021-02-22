@@ -36,7 +36,12 @@
 
       <template #actions>
         <div class="actions text-right">
-          <button type="button" class="btn btn-icon btn-grow" @click.stop="handleShowNavigateToNote">
+          <button
+            type="button"
+            class="btn btn-icon btn-grow"
+            title="Navigate to note (Ctrl + p)"
+            @click.stop="handleShowNavigateToNote"
+          >
             <i class="fas fa-search fa-xs"></i>
           </button>
           <button type="button" class="btn btn-icon btn-grow" @click.stop="handleShowCreateNote">
