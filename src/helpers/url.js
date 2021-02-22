@@ -10,3 +10,7 @@ export function isValidURL(str) {
   }
   return true;
 }
+
+export function getNoteUrl(note) {
+  return `/${note._id}`;
+}

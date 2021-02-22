@@ -104,7 +104,7 @@ export default {
     this.$store.dispatch('fetchSharedNotes');
   },
   beforeDestroy() {
-    this.$store.commit('setSelectedNote', {});
+    this.$store.dispatch('closeSelectedNote');
   },
   watch: {
     toDeleteNote(note) {

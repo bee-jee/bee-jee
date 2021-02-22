@@ -32,7 +32,7 @@ export default {
             _id: to.params.id,
           });
         } else {
-          this.$store.commit('setSelectedNote', {});
+          this.$store.dispatch('closeSelectedNote');
         }
       },
     },

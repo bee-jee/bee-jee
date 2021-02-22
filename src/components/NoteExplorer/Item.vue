@@ -5,31 +5,49 @@
       class="note-explorer-item p-1 row no-gutters"
       :class="{ active: selectedNote._id === note._id }"
       :title="note.title"
+      v-slot="{ href, navigate }"
     >
-      <div class="col-auto">
-        <div class="note-item-expand mr-1" @click.prevent="toggleShowChildren">
-          <span class="expander" :class="{ collapsed: !showChildren }">
-            <mt-icon :path="mdiChevronDown"></mt-icon>
-          </span>
+      <a :href="href" @mousedown.stop="navigateToNote($event, navigate)">
+        <div class="col-auto">
+          <div class="note-item-expand mr-1" @click.prevent="toggleShowChildren">
+            <span class="expander" :class="{ collapsed: !showChildren }">
+              <mt-icon :path="mdiChevronDown"></mt-icon>
+            </span>
+          </div>
         </div>
-      </div>
-      <div class="col">
-        <div class="note-item-title position-relative" :class="{ 'font-weight-bold': selectedNote._id === note._id }">
-          {{ note.title ? note.title : 'No title' }}
+        <div class="col">
+          <div
+            class="note-item-title position-relative"
+            :class="{ 'font-weight-bold': selectedNote._id === note._id }"
+          >
+            <highlightable-text
+              :text="note.title ? note.title : 'No title'"
+              :should-highlight="!!note.title"
+              :indexes="note.indexes"
+            />
+          </div>
+          <span :class="{ 'text-muted': selectedNote._id !== note._id }" v-if="showChildren && children.length === 0"
+            >No pages inside</span
+          >
         </div>
-        <span :class="{ 'text-muted': selectedNote._id !== note._id }" v-if="showChildren && children.length === 0"
-          >No pages inside</span
-        >
-      </div>
-      <div class="col-auto">
-        <span v-if="sharedNote.isViewed == false" class="badge badge-warning">New</span>
-        <button class="btn-icon btn-secondary" @click.prevent="handleShowCreateSubNote()" v-if="note.author === user._id">
-          <i class="fas fa-plus fa-xs"></i>
-        </button>
-        <button class="btn-icon btn-danger" @click.prevent="handleClickDeleteNote(note)" v-if="note.author === user._id">
-          <i class="far fa-trash-alt fa-sm"></i>
-        </button>
-      </div>
+        <div class="col-auto">
+          <span v-if="sharedNote.isViewed == false" class="badge badge-warning">New</span>
+          <button
+            class="btn-icon btn-secondary"
+            @click.prevent="handleShowCreateSubNote()"
+            v-if="note.author === user._id"
+          >
+            <i class="fas fa-plus fa-xs"></i>
+          </button>
+          <button
+            class="btn-icon btn-danger"
+            @click.prevent="handleClickDeleteNote(note)"
+            v-if="note.author === user._id"
+          >
+            <i class="far fa-trash-alt fa-sm"></i>
+          </button>
+        </div>
+      </a>
     </router-link>
     <template v-if="showChildren && children.length">
       <note-explorer-item
@@ -47,6 +65,8 @@
 <script>
 import { mapGetters } from 'vuex';
 import { mdiChevronDown } from '@mdi/js';
+import { closest } from '../../helpers/dom';
+import HighlightableText from '../layout/HighlightableText.vue';
 
 export default {
   name: 'note-explorer-item',
@@ -59,6 +79,9 @@ export default {
       showChildren: true,
       mdiChevronDown,
     };
+  },
+  components: {
+    HighlightableText,
   },
   computed: {
     ...mapGetters(['selectedNote', 'user']),
@@ -85,6 +108,11 @@ export default {
     },
     toggleShowChildren() {
       this.showChildren = !this.showChildren;
+    },
+    navigateToNote(e, navigate) {
+      if (!closest(e.target, '.expander')) {
+        navigate(e);
+      }
     },
   },
   watch: {

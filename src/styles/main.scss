@@ -11,6 +11,13 @@ $font-family-base: $font-lato;
 $top-bar-height: 2.1875rem;
 $top-bar-font-size: 0.8125rem;
 
+$input-border-radius: 0;
+$card-border-radius: 0;
+$btn-border-radius: 0;
+$enable-shadows: false;
+$input-focus-box-shadow: none;
+$btn-focus-width: 0;
+
 @import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
 @import "~bootstrap/scss/bootstrap.scss";

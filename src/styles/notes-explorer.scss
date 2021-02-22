@@ -164,3 +164,44 @@ $pane-height: 30px;
         }
     }
 }
+
+.highlight {
+    background-color: rgba(234, 92, 0, 0.33);
+}
+
+.search-box {
+    input {
+        padding-right: 3rem;
+    }
+}
+
+.search-clear {
+    position: absolute;
+    right: .5rem;
+    top: 50%;
+    transform: translateY(-50%);
+
+    &.btn-icon.btn-grow:active {
+        transform: scale(1.5) translateY(-30%);
+    }
+    svg {
+        user-select: none;
+    }
+}
+
+.input-widget {
+    position: fixed;
+    width: 600px;
+    padding-bottom: 6px;
+    top: 20px;
+    left: 50%;
+    margin-left: -300px;
+    background-color: rgb(255, 255, 255);
+    color: rgb(0, 0, 0);
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 8px 2px;
+    z-index: 100;
+}
+
+.navigate-item {
+    display: block;
+}

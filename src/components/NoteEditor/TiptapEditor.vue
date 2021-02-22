@@ -338,6 +338,7 @@ import {
   SelectionPlaceholder,
   getSelectedText,
   TextSelection,
+  ForwardHotkeys,
 } from '../../tiptap';
 import GroupButton from './GroupButton';
 import SubMenu from './SubMenu';
@@ -446,6 +447,7 @@ export default {
       new SelectionPlaceholder({
         store: this.$store,
       }),
+      new ForwardHotkeys(this.$store),
     ];
     const { note } = this;
     if (note) {

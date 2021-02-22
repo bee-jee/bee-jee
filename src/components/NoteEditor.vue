@@ -104,8 +104,9 @@ export default {
         this.setSelectedNote(to.params.id);
       } else {
         currUserPref.setSelectedNoteId('');
-        this.$store.commit('setSelectedNote', {});
+        this.$store.dispatch('closeSelectedNote');
       }
+      this.$store.commit('setShowNavigateNoteWidget', false);
     },
   },
 };

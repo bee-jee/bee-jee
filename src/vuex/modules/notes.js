@@ -3,8 +3,11 @@ import Vue from 'vue';
 import { Awareness } from 'y-protocols/awareness';
 import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
+import { fuzzysearch } from '../../helpers/search';
 import { currUserPref } from '../../helpers/currUserPref';
 import { withBeeJeeWs } from '../../helpers/ws';
+
+const RECENTLY_LIMIT = 15;
 
 export const state = {
   // allIds contains only the notes' IDs, the reason
@@ -35,15 +38,18 @@ export const state = {
   userCursorByIds: {},
   userCursorIds: [],
   noteTabIds: [],
+  myNoteSearchKeyword: '',
+  showNavigateNoteWidget: false,
+  searchNavigateKeyword: '',
+  selectedNavigateNoteWidgetIndex: 0,
 };
 
 export const getters = {
-  noteById: (state) => (id) => id in state.byIds ? state.byIds[id] : {},
+  noteById: (state) => (id) => (id in state.byIds ? state.byIds[id] : {}),
   selectedNote: (state) => state.selectedNote,
-  toDeleteNote: (state, getters) => state.toDeleteNoteId ? getters.noteById(state.toDeleteNoteId) : {},
-  allMyNotes: (state, getters) => state.allIds
-    .filter(id => !(id in state.sharedByIds))
-    .map(id => getters.noteById(id)),
+  toDeleteNote: (state, getters) => (state.toDeleteNoteId ? getters.noteById(state.toDeleteNoteId) : {}),
+  allMyNotes: (state, getters) =>
+    state.allIds.filter((id) => !(id in state.sharedByIds)).map((id) => getters.noteById(id)),
   isLoading: (state) => state.isLoading,
   isCreatingNote: (state) => state.isCreatingNote,
   isLoadingSelectedNote: (state) => state.isLoadingSelectedNote,
@@ -51,24 +57,44 @@ export const getters = {
   isSyncing: (state) => state.isSyncing || state.isUpdatingNote,
   isLoadingSharedNotes: (state) => state.isLoadingSharedNotes,
   sharedById: (state) => (id) => state.sharedByIds[id] || {},
-  numOfAllUnviewedNotes:(state)=> state.numOfAllUnviewedNotes,
-  allSharedNotes: (state, getters) => state.allIds
-    .filter((id) => id in state.sharedByIds)
-    .map(id => getters.noteById(id)),
-  showCreateNoteModal: state => state.showCreateNoteModal,
-  newNoteParent: state => state.newNoteParent,
-  allMyNotesTree: (state, getters) => buildNoteTree(getters.allMyNotes),
+  numOfAllUnviewedNotes: (state) => state.numOfAllUnviewedNotes,
+  allSharedNotes: (state, getters) =>
+    state.allIds.filter((id) => id in state.sharedByIds).map((id) => getters.noteById(id)),
+  showCreateNoteModal: (state) => state.showCreateNoteModal,
+  newNoteParent: (state) => state.newNoteParent,
+  allMyNotesTree: (state, getters) => buildNoteTree(getters.allMyNotes, state.myNoteSearchKeyword),
   allSharedNotesTree: (state, getters) => buildNoteTree(getters.allSharedNotes),
   wsProvider: (state) => state.wsProvider,
-  websocketIsConnected: (state) => state.wsProvider ? state.wsProvider.wsconnected : false,
-  allUserCursors: (state) => state.userCursorIds
-    .filter((id) => state.awareness.getLocalState().user
-      ? id !== state.awareness.getLocalState().user.id
-      : false)
-    .map((id) => state.userCursorByIds[id]),
-  noteTabs: (state, getters) => state.noteTabIds
-    .filter((id) => getters.noteById(id)._id)
-    .map((id) => getters.noteById(id)),
+  websocketIsConnected: (state) => (state.wsProvider ? state.wsProvider.wsconnected : false),
+  allUserCursors: (state) =>
+    state.userCursorIds
+      .filter((id) => (state.awareness.getLocalState().user ? id !== state.awareness.getLocalState().user.id : false))
+      .map((id) => state.userCursorByIds[id]),
+  noteTabs: (state, getters) =>
+    state.noteTabIds.filter((id) => getters.noteById(id)._id).map((id) => getters.noteById(id)),
+  allNotesForNavigate: (state) => {
+    const keyword = state.searchNavigateKeyword.toLowerCase();
+    const allNotes = Object.values(state.byIds || {})
+      .concat(Object.values(state.sharedById || {}))
+      .sort((a, b) => (b.lastAccessed || 0) - (a.lastAccessed || 0));
+    const filteredNotes = [];
+    let count = 0;
+
+    allNotes.some((note) => {
+      const [isMatched, indexes] = fuzzysearch(keyword, note.title.toLowerCase());
+      if (isMatched) {
+        filteredNotes.push({
+          ...note,
+          navigateIndexes: indexes,
+        });
+        count++;
+      }
+      return count >= RECENTLY_LIMIT;
+    });
+
+    return filteredNotes;
+  },
+  selectedNavigateNoteWidgetIndex: (state) => state.selectedNavigateNoteWidgetIndex,
 };
 
 export const actions = {
@@ -95,12 +121,12 @@ export const actions = {
       commit('setIsLoadingSelectedNote', false);
     }
   },
-  async fetchNumOfUnviewedSharedNutes({ commit }){
+  async fetchNumOfUnviewedSharedNutes({ commit }) {
     try {
       const resp = await Axios.get('/note/numOfUnviewed');
       // console.log(resp.data.num);
       commit('setNumOfAllUnviewedNotes', resp.data.num);
-    }catch (err) {
+    } catch (err) {
       console.error(err);
     }
   },
@@ -133,6 +159,9 @@ export const actions = {
     } finally {
       commit('setIsLoadingSelectedNote', false);
     }
+  },
+  closeSelectedNote({ commit }) {
+    commit('setSelectedNote', { note: {} });
   },
   async fetchPublicAccessNote({ commit, getters }, { _id }) {
     commit('setIsLoadingSelectedNote', true);
@@ -222,21 +251,39 @@ function getNotePath(note) {
   return note.path || '/';
 }
 
-function buildNoteTree(allNotes) {
+function buildNoteTree(allNotes, keyword = '') {
   const roots = [];
   const map = {};
   const sortedNotes = allNotes
     .sort((a, b) => getNotePath(a).split('/').length - getNotePath(b).split('/'))
-    .map((note) => ({ ...note, children: [] }));
+    .map((note) => {
+      const [isShown, indexes] = fuzzysearch(keyword.toLowerCase(), note.title.toLowerCase());
+      return {
+        ...note,
+        children: [],
+        parentNote: null,
+        isShown,
+        indexes,
+      };
+    });
   sortedNotes.forEach((note) => {
     map[note._id] = note;
-    note.children = [];
   });
   sortedNotes.forEach((note) => {
     if (note.parent && note.parent in map) {
+      note.parentNode = map[note.parent];
       map[note.parent].children.push(note);
     } else {
       roots.push(note);
+    }
+  });
+  sortedNotes.forEach((note) => {
+    if (note.isShown) {
+      let parent = note.parentNode;
+      while (parent) {
+        parent.isShown = true;
+        parent = parent.parentNode;
+      }
     }
   });
   return roots;
@@ -305,6 +352,10 @@ export const mutations = {
       ...note,
       contentVersion: 0,
     };
+    state.byIds[note._id] = {
+      ...note,
+      lastAccessed: new Date().getTime(),
+    };
     if (isValidNote) {
       const awareness = new Awareness(note.content);
       state.wsProvider = new WebsocketProvider(process.env.VUE_APP_WS_URL, note._id, note.content, {
@@ -341,7 +392,7 @@ export const mutations = {
     if (status !== 200) {
       return;
     }
-    state.allIds = state.allIds.filter(id => id !== _id);
+    state.allIds = state.allIds.filter((id) => id !== _id);
     delete state.byIds[_id];
     state.byIds = {
       ...state.byIds,
@@ -400,7 +451,7 @@ export const mutations = {
   setIsLoadingSharedNotes(state, value) {
     state.isLoadingSharedNotes = value;
   },
-  setNumOfAllUnviewedNotes(state, value){
+  setNumOfAllUnviewedNotes(state, value) {
     state.numOfAllUnviewedNotes = value;
   },
   setSharedNotes(state, sharedNotes) {
@@ -446,6 +497,24 @@ export const mutations = {
   },
   setNoteTabIds(state, payload) {
     state.noteTabIds = payload;
+  },
+  setMyNoteSearchKeyword(state, keyword) {
+    state.myNoteSearchKeyword = keyword;
+  },
+  setShowNavigateNoteWidget(state, value) {
+    state.showNavigateNoteWidget = value;
+  },
+  setSearchNavigateKeyword(state, keyword) {
+    state.searchNavigateKeyword = keyword;
+  },
+  setSelectedNavigateNoteWidgetIndex(state, value) {
+    state.selectedNavigateNoteWidgetIndex = value;
+  },
+  incSelectedNavigateNoteWidgetIndex(state) {
+    state.selectedNavigateNoteWidgetIndex++;
+  },
+  decSelectedNavigateNoteWidgetIndex(state) {
+    state.selectedNavigateNoteWidgetIndex--;
   },
 };
 
