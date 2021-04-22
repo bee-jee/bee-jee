@@ -81,6 +81,14 @@ const routes = [
         component: () => import('../components/Login/Register'),
       },
       {
+        path: '/login/forgot',
+        component: () => import('../components/Login/Forgot'),
+      },
+      {
+        path: '/login/reset-password/:secret',
+        component: () => import('../components/Login/ResetPassword'),
+      },
+      {
         path: '/login/email-confirm/:username/:secret',
         component: () => import('../components/Login/EmailConfirm'),
       },

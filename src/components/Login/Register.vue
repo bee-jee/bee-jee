@@ -97,14 +97,16 @@
           }}</span>
         </div>
       </div>
-      <div class="form-group">
-        <button class="btn btn-primary mr-2" :disabled="isLoading">
-          <span class="spinner-border spinner-border-sm text-success" role="status" v-if="isLoading">
-            <span class="sr-only">Loading...</span>
-          </span>
-          <template v-else>Save changes</template>
-        </button>
-        <router-link to="/login" class="btn btn-secondary">Cancel</router-link>
+      <div class="form-group row">
+        <div class="offset-2 col">
+          <button class="btn btn-primary mr-2" :disabled="isLoading">
+            <span class="spinner-border spinner-border-sm text-success" role="status" v-if="isLoading">
+              <span class="sr-only">Loading...</span>
+            </span>
+            <template v-else>Save changes</template>
+          </button>
+          <router-link to="/login" class="btn btn-secondary">Cancel</router-link>
+        </div>
       </div>
     </form>
   </div>

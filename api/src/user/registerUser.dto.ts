@@ -10,7 +10,7 @@ import { UniqueDB } from '../validation/uniqueDB.decorator';
 export class RegisterUserDto {
   @IsString()
   @Length(4, 64)
-  @UniqueDB({ modelName: 'User', field: 'username' })
+  @UniqueDB({ modelName: 'User', field: 'username', caseSensitive: true })
   public username: string;
 
   @IsString()

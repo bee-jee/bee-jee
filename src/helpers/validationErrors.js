@@ -42,11 +42,23 @@ class ValidationErrors {
   }
 
   setErrors(errors) {
-    this.errors = errors;
+    this.errors = errors || {};
   }
 
   setFormError(formError) {
     this.formError = formError;
+  }
+
+  populateFromPayload(payload) {
+    if (!payload) {
+      this.setFormError('Unknown error, please try again later');
+    }
+    if (payload.errors) {
+      this.setErrors(payload.errors);
+    }
+    if (payload.message) {
+      this.setFormError(payload.message);
+    }
   }
 }
 

@@ -28,6 +28,7 @@ import { CannotConfirmEmailException } from '../exceptions/UsernameNotFoundExcep
 import UserIsAlreadyConfirmed from '../exceptions/UserIsAlreadyConfirmedException';
 import { millisInMinutes } from '../utils/date';
 import EmailConfirmTooFrequent from '../exceptions/EmailConfirmTooFrequent';
+import { PasswordResetModel } from '../authentication/passwordReset.model';
 
 const USERS_PER_PAGE = 30;
 
@@ -64,6 +65,8 @@ class UserController implements Controller {
     this.router.patch(`${this.path}/:id`, authMiddleware, adminMiddleware,
       validationMiddleware(EditUserDto), this.editUser);
     this.router.delete(`${this.path}/:id`, authMiddleware, adminMiddleware, this.deleteUser);
+    this.router.post(`${this.path}/resetPassword/:secret`, guestMiddleware,
+      validationMiddleware(ChangePasswordDto), this.resetPassword);
   }
 
   private changeOwnPassword = async (request: RequestWithUser, response: Response,
@@ -213,7 +216,7 @@ class UserController implements Controller {
       role: 'user',
       secret: await cryptoRandomString.async({ length: 15, type: 'url-safe' }),
       confirm: false,
-      email,
+      email: email.toLowerCase(),
       created: new Date(),
       updated: new Date(),
     });
@@ -286,6 +289,36 @@ class UserController implements Controller {
       return;
     }
     next(new UserNotFoundException(id));
+  };
+
+  private resetPassword = async (request: Request, response: Response, next: NextFunction) => {
+    const { secret } = request.params;
+    const { newPassword }: ChangePasswordDto = request.body;
+
+    try {
+      const passwordReset = await this.userService.retrievePasswordReset(secret);
+      if (!passwordReset.user) {
+        await passwordReset.populate('user').execPopulate();
+      }
+
+      if (!passwordReset.user) {
+        next(new UserNotFoundException(passwordReset.userId));
+        return;
+      }
+
+      await this.UserModel.findByIdAndUpdate(passwordReset.user._id, {
+        password: await bcrypt.hash(newPassword, 10),
+      });
+
+      await PasswordResetModel.findByIdAndDelete(passwordReset._id);
+
+      response.send({
+        status: 'ok',
+        message: 'Your password has been successfully reset. You can now log in using the new password.',
+      });
+    } catch (err) {
+      next(err);
+    }
   };
 }
 

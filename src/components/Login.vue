@@ -4,12 +4,12 @@
       <img class="mb-4" src="../images/BeeJee-logo-small.png" alt="BeeJee" width="72" height="72" />
       <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
       <div class="mb-4">
-        <label for="inputUsername" class="sr-only">Username</label>
+        <label for="inputUsername" class="sr-only">Username or email address</label>
         <input
           type="text"
           id="inputUsername"
           class="form-control username"
-          placeholder="Username"
+          placeholder="Username or email address"
           v-model="username"
           required
           autofocus
@@ -47,6 +47,9 @@
         </span>
         <template v-else>Sign in</template>
       </button>
+      <div>
+        <router-link to="/login/forgot">Forgot your password?</router-link>
+      </div>
       <div>
         Don't have an account?
       </div>

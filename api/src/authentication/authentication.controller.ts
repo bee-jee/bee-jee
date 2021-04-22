@@ -3,16 +3,21 @@ import {
 } from 'express';
 import { Request as OAuthRequest, Response as OAuthResponse } from 'oauth2-server';
 import { autoInjectable } from 'tsyringe';
+import { Document } from 'mongoose';
 import { Controller } from '../interfaces/controller.interface';
 import validationMiddleware from '../middleware/validation.middleware';
 import LoginDto from './login.dto';
-import { oauthToken, authMiddleware } from '../middleware/auth.middleware';
+import { oauthToken, authMiddleware, guestMiddleware } from '../middleware/auth.middleware';
 import RequestWithUser from '../interfaces/requestWithUser.interface';
 import OAuthModel from './authentication.service';
 import RefreshTokenDto from './refreshToken.dto';
 import HttpException from '../exceptions/HttpException';
 import InvalidCredentialsException from '../exceptions/InvalidCredentialsException';
 import ConfigService from '../config/config.service';
+import { PasswordResetDto } from './passwordReset.dto';
+import { User } from '../user/user.interface';
+import UserModel from '../user/user.model';
+import { UserService } from '../user/user.service';
 
 @autoInjectable()
 class AuthenticationController implements Controller {
@@ -20,7 +25,7 @@ class AuthenticationController implements Controller {
 
   public router = Router();
 
-  constructor(private config: ConfigService) {
+  constructor(private config: ConfigService, private userService: UserService) {
     this.initialiseRoutes();
   }
 
@@ -30,8 +35,13 @@ class AuthenticationController implements Controller {
     this.router.get(`${this.path}/user`, authMiddleware, this.user);
     this.router.post(`${this.path}/login`, validationMiddleware(LoginDto), this.login);
     this.router.post(`${this.path}/logout`, authMiddleware, this.logout);
-    this.router.post(`${this.path}/refreshToken`, validationMiddleware(RefreshTokenDto),
-      this.refreshToken);
+    this.router.post(`${this.path}/refreshToken`, validationMiddleware(RefreshTokenDto), this.refreshToken);
+    this.router.post(
+      `${this.path}/forgotPassword`,
+      guestMiddleware,
+      validationMiddleware(PasswordResetDto),
+      this.forgotPassword,
+    );
   }
 
   private user = async (request: RequestWithUser, response: Response) => {
@@ -77,6 +87,40 @@ class AuthenticationController implements Controller {
     } catch (err) {
       next(new HttpException(401, err.message));
     }
+  };
+
+  private forgotPassword = async (request: Request, response: Response, next: NextFunction) => {
+    const { username, email }: PasswordResetDto = request.body;
+
+    let user: (User & Document) | null = null;
+
+    if (email) {
+      user = await UserModel.findOne({ email: email.toLowerCase() });
+    } else if (username) {
+      user = await UserModel.findOne({ username });
+    }
+
+    const sendGenericResponse = () => {
+      response.send({
+        status: 'ok',
+        message: 'Your request has been submitted. If your details exist in our database, then an email will be sent to you with instructions to recover your password.',
+      });
+    };
+
+    if (!user) {
+      sendGenericResponse();
+      return;
+    }
+
+    try {
+      const passwordReset = await this.userService.generatePasswordReset(user);
+      await this.userService.sendPasswordReset(user, passwordReset);
+    } catch (err) {
+      next(err);
+      return;
+    }
+
+    sendGenericResponse();
   };
 
   private buildOAuthRequest(data: any): OAuthRequest {

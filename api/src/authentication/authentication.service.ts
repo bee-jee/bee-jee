@@ -27,7 +27,10 @@ const OAuthModel = {
     return tokenInstance;
   },
   async getUser(username: string, password: string): Promise<User | Falsey> {
-    const user = await UserModel.findOne({ username });
+    let user = await UserModel.findOne({ username });
+    if (!user) {
+      user = await UserModel.findOne({ email: username.toLowerCase() });
+    }
     if (user) {
       if (!user.confirm) {
         throw new UserIsNotConfirmedException(user);

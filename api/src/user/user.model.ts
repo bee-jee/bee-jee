@@ -10,7 +10,10 @@ const userSchema = new Schema({
     type: String,
     get: (): undefined => undefined,
   },
-  email: String,
+  email: {
+    type: String,
+    index: true,
+  },
   firstName: String,
   lastName: String,
   role: String,
