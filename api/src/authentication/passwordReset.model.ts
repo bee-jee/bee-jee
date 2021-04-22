@@ -6,7 +6,7 @@ const passwordResetSchema = new Schema({
     ref: 'User',
     type: Schema.Types.ObjectId,
   },
-  secret: { type: String },
+  secret: { type: String, index: true },
   requestedAt: { type: Date },
   reRequestedAt: { type: Date },
 });
