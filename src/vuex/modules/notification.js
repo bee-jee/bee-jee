@@ -20,7 +20,6 @@ const actions = {
 
 const mutations = {
   addNewSharedNoteNotification(state, params) {
-    console.log(this);
     state.newSharedNotesNotification.push({
       ...params,
     });

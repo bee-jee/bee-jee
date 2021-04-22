@@ -164,12 +164,9 @@ export default {
   },
   computed: {
     numOfUnviewed() {
-      // return 3;
-      // console.log(this.$store.getters.numOfAllUnviewedNotes);
       return this.$store.getters.numOfAllUnviewedNotes;
     },
     sharedNotes() {
-      // console.log(this.$store.getters.allSharedNotes);
       return this.$store.getters.allSharedNotes;
     },
     myNotesExpanded: {

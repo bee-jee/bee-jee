@@ -92,7 +92,6 @@ export const getters = {
       let [isPathMatched, pathIndexes] = [false, []];
       if (path.trim() !== '') {
         [isPathMatched, pathIndexes] = fuzzysearch(keyword, path.toLowerCase());
-        console.log({path, keyword, isPathMatched});
       }
       if (isMatched || isPathMatched) {
         filteredNotes.push({
@@ -138,7 +137,6 @@ export const actions = {
   async fetchNumOfUnviewedSharedNutes({ commit }) {
     try {
       const resp = await Axios.get('/note/numOfUnviewed');
-      // console.log(resp.data.num);
       commit('setNumOfAllUnviewedNotes', resp.data.num);
     } catch (err) {
       console.error(err);

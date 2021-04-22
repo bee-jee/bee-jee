@@ -391,7 +391,6 @@ class Image extends Node {
       const { left: right, top, bottom } = relativeCoordsAt(view, this.imgPos + 1);
       const width = Math.abs(right - left);
       const height = bottom - top;
-      console.log({ top, bottom });
       decorations.push(Decoration.widget(
         this.imgPos + 1,
         () => {
