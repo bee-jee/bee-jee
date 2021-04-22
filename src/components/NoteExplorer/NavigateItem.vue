@@ -11,6 +11,12 @@
         :should-highlight="!!note.title"
         :indexes="note.navigateIndexes || []"
       />
+      <highlightable-text
+        :text="note.path"
+        :should-highlight="!!note.path"
+        :indexes="note.pathIndexes || []"
+        class="note-path text-muted ml-2"
+      />
     </router-link>
   </div>
 </template>

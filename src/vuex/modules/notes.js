@@ -79,13 +79,27 @@ export const getters = {
       .sort((a, b) => (b.lastAccessed || 0) - (a.lastAccessed || 0));
     const filteredNotes = [];
     let count = 0;
+    const noteMap = {};
+
+    allNotes.forEach((note) => {
+      noteMap[note._id] = note;
+    });
 
     allNotes.some((note) => {
+      const path = getPathToNote(note, noteMap);
+
       const [isMatched, indexes] = fuzzysearch(keyword, note.title.toLowerCase());
-      if (isMatched) {
+      let [isPathMatched, pathIndexes] = [false, []];
+      if (path.trim() !== '') {
+        [isPathMatched, pathIndexes] = fuzzysearch(keyword, path.toLowerCase());
+        console.log({path, keyword, isPathMatched});
+      }
+      if (isMatched || isPathMatched) {
         filteredNotes.push({
           ...note,
+          path,
           navigateIndexes: indexes,
+          pathIndexes,
         });
         count++;
       }
@@ -249,6 +263,13 @@ export const actions = {
 
 function getNotePath(note) {
   return note.path || '/';
+}
+
+function getPathToNote(note, nodeMap) {
+  const parts = getNotePath(note).split('/').slice(1);
+  return parts
+    .map((part) => (nodeMap[part] || { title: '' }).title)
+    .join('/');
 }
 
 function buildNoteTree(allNotes, keyword = '') {
