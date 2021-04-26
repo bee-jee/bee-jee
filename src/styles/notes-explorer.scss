@@ -55,6 +55,10 @@ $pane-height: 30px;
             .note-item-title:after {
                 @include fading($primary);
             }
+
+            .text-muted {
+                color: #ddd !important;
+            }
         }
     }
     .note-item-summary {
