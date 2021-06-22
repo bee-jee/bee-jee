@@ -11,6 +11,7 @@ module.exports = {
     'vue-native-websocket',
     'y-prosemirror',
     'highlight.js',
+    'bootstrap-vue',
   ],
 
   chainWebpack: config => {
@@ -18,6 +19,8 @@ module.exports = {
       .rule('svg-sprite')
       .use('svgo-loader')
       .loader('svgo-loader')
+
+    config.resolve.alias.set('bootstrap-vue$', 'bootstrap-vue/src/index.js')
   },
 
   pluginOptions: {

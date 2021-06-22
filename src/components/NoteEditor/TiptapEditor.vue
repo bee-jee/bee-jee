@@ -327,7 +327,6 @@ import {
   ListItem,
   OrderedList,
   Tab,
-  MarkdownPreview,
   Cursor,
   Image,
   BulletList,
@@ -428,7 +427,6 @@ export default {
       new Strike(),
       new Underline(),
       new History(),
-      new MarkdownPreview(),
       new Image(),
       new Tab(),
       new TrailingNode({
@@ -467,6 +465,7 @@ export default {
         }
       },
       disableInputRules: true,
+      disablePasteRules: true,
     });
     this.editor = editor;
   },

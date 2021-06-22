@@ -342,7 +342,7 @@ class Image extends Node {
               const images = Array
                 .from(event.clipboardData.files)
                 .filter(file => (/image/i).test(file.type));
-              
+
               event.preventDefault();
               uploadImageFiles(view, images);
             },
