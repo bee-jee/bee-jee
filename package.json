@@ -48,7 +48,7 @@
     "lz-string": "^1.4.4",
     "marked": "^2.0.0",
     "mongoose": "^5.9.16",
-    "node-sass": "^4.14.1",
+    "node-sass": "^7.0.0",
     "nodemailer": "^6.4.17",
     "oauth2-server": "^3.1.0",
     "react": "^17.0.1",
